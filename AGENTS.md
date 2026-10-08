@@ -4,7 +4,6 @@
 
 - ブランチモデルは GitHub Flow。スカッシュマージ。
 - 対話型コマンドには手を出さない。素直にユーザに譲ること。
-- main にマージされるコードは Codex レビュー通過済みであること。
 - ブラウザ操作は優先順に使う: ① Playwright CLI (shell から叩ける通常セッション) ② Playwright MCP (CLI が使えないサンドボックス環境等) ③ ユーザーの実際のブラウザを操作する手段 (ユーザーの実セッションが要る場合のみ)。
 - コミット・PR 本文・issue は公開されるものとして書く (`public-repo-writing` skill)。
 
@@ -194,18 +193,13 @@ grep例: `grep -rn "ADR:" src/ frontend/src/`・`grep -rn "FIX:" src/ frontend/s
   文言を作り分けない。共通のエラーハンドラで `error_${code}` を引き、
   該当キーが無ければ `error_generic` にフォールバックする。
 
-## Codex レビューの依頼
-
-`codex-review` skill に従う (このプロジェクト固有の手順は持たない)。
-
 ## マージまでの基本フロー
 
-1. 変更をコミット。
-2. 二重のレビュー (Claude Code の CLAUDE.md「レビュー」、順番は `codex-review` skill「0. 投げる前に」)。指摘があれば修正コミットを重ね、指摘がなくなるまで再レビューを繰り返す。
-3. プッシュして PR 作成。push 時、lefthook の pre-push フック (→ `just hooks-install`) が整形 (`just fmt-check`) を確かめる。PR を作ると、GitHub Actions の CI が `just ci` を流す。レビュー中はプッシュしない。2. のレビューは PR 作成前に完結させる。PR 作成後に積んでよいのは、4.・5. のループで必要になったコミットだけ。
-4. CI の結果を `gh pr checks <番号> --watch` で待つ。落ちたら直してコミットを重ね、3. (プッシュ) へ戻る。
-5. main が進んでいたら (`git fetch` の後の `git rev-list --count HEAD..origin/main` が1以上)、main を取り込んで 3. へ戻る。main のブランチの保護が、CI の通過と main に追いついていることをマージの条件にしている。取り込みでコードが変わったら、その差分を対象に Codex レビューをやり直す (衝突なく取り込めたなら不要)。「main にマージされるコードは Codex レビュー通過済み」を満たすため。
-6. CI が通り、コミットが増えなくなったら、ユーザーに確認を取らずマージする。
+共通の流れ (共通の指示の「git の運用」) に、このリポジトリでは次が加わる。
+
+- push すると、lefthook の pre-push フック (→ `just hooks-install`) が整形 (`just fmt-check`) を確かめる。
+- PR を作ると、GitHub Actions の CI が `just ci` を流す。
+- main のブランチの保護が、CI の通過と main に追いついていることをマージの条件にしている。
 
 ## 文体
 
