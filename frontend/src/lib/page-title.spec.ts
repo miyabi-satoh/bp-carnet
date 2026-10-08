@@ -5,6 +5,7 @@ describe('pageTitle', () => {
 	it('公開ページはページ別の title にする', () => {
 		expect(pageTitle('/terms')).toBe('利用規約 — BP Carnet');
 		expect(pageTitle('/privacy')).toBe('プライバシーポリシー — BP Carnet');
+		expect(pageTitle('/pricing')).toBe('料金と購入の条件 — BP Carnet');
 		expect(pageTitle('/licenses')).toBe('第三者のソフトウェア — BP Carnet');
 		expect(pageTitle('/help')).toBe('使い方 — BP Carnet');
 		expect(pageTitle('/help/[slug]', 'login')).toBe('ログインする — 使い方 — BP Carnet');
