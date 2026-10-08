@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "DELETE FROM bp_records WHERE id = ? AND user_id = ? AND version = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "262cc68841193b541878f8ffc96f3d3bf2994ad7ef3bc26d4fd8fbf692e2fd4b"
+}

@@ -1,0 +1,40 @@
+# 検証用の Fly.io の設定 (DEVELOPMENT.md「デプロイ」)。本番 (fly.toml) と同じイメージを、本番の前に載せて確かめる。
+# イメージは Docker Desktop (amd64 の Windows か Apple Silicon の Mac) で作って registry.fly.io へ送り、`fly deploy --image` で載せる (→ justfile の deploy)。
+
+app = "bp-carnet-staging"
+primary_region = "nrt"
+# litestream が受けて bp-carnet へ渡し、bp-carnet の終了を待ってから最後の複製を送る。
+kill_signal = "SIGTERM"
+# bp-carnet の graceful shutdown (写真の読み取りで Gemini を待つ要求は最長 90 秒。src/ocr.rs の timeout) と、その後の
+# litestream の最後の同期 (shutdown-sync-timeout、既定 30 秒) を続けて打ち切らないよう、足した 120 秒より長く待たせる。
+kill_timeout = 130
+
+[env]
+  CLOUD_ENV = "staging"
+  R2_BUCKET = "bp-carnet-db-staging"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  # ADR: アクセスでは起こさず、使うときだけ `just staging-start` で起こす (しばらく通信が無ければ止まる)。
+  # 誰でもアカウントを作れ、メールの送信と写真の読み取りに実際の費用がかかるので、外の人が使える入口にしない。
+  auto_stop_machines = "stop"
+  auto_start_machines = false
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    grace_period = "20s"
+    interval = "30s"
+    timeout = "5s"
+    method = "GET"
+    path = "/api/v1/health"
+
+[mounts]
+  source = "bp_data"
+  destination = "/data"
+  initial_size = "1gb"
+  snapshot_retention = 1
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

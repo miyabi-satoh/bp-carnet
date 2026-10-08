@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE stripe_webhook_events SET status = 'processed', processed_at = ?, checkout_session_id = COALESCE(?, checkout_session_id) WHERE event_id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "c142d338fbd9645dcd5f34385ef6b7bfa40e47c56f9b4f8803cb91624157711c"
+}

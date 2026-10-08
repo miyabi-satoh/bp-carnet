@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE users SET last_seen_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now', printf('-%d days', ?))\n             WHERE id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "fca238ec4f46a0a29515e75c38bd1300ac5361f697963fe464a5662bc541d8fd"
+}

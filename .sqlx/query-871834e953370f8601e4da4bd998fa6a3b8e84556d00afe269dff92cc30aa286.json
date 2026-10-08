@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT token_hash FROM app_tokens",
+  "describe": {
+    "columns": [
+      {
+        "name": "token_hash",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "871834e953370f8601e4da4bd998fa6a3b8e84556d00afe269dff92cc30aa286"
+}

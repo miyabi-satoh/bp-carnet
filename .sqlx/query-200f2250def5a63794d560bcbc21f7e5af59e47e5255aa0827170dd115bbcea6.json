@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT role AS \"role: Role\" FROM users WHERE id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "role: Role",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "200f2250def5a63794d560bcbc21f7e5af59e47e5255aa0827170dd115bbcea6"
+}

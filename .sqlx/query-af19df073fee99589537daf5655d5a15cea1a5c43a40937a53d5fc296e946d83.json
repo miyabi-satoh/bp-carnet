@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO ocr_usage_records (used_at, kind, used_milli_yen, sales_milli_yen) VALUES\n                 (strftime('%Y-%m-%dT%H:%M:%fZ', 'now', 'start of year', '-8 years', '-1 day'), 'free', 1, 0),\n                 (strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '-1 year'), 'free', 2, 0)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": []
+  },
+  "hash": "af19df073fee99589537daf5655d5a15cea1a5c43a40937a53d5fc296e946d83"
+}

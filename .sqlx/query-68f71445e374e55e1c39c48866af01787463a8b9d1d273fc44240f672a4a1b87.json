@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT deletion_origin AS \"deletion_origin: String\" FROM users WHERE username = 'kyoko'",
+  "describe": {
+    "columns": [
+      {
+        "name": "deletion_origin: String",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "68f71445e374e55e1c39c48866af01787463a8b9d1d273fc44240f672a4a1b87"
+}

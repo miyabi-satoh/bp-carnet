@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE users SET ocr_spent_milli_yen = 1500 WHERE username = 'kyoko'",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": []
+  },
+  "hash": "246cb8b19e612ac01293c05c4fc2c99d4785e3fc07e3d7bb4a2ddcfb5e7c42e2"
+}

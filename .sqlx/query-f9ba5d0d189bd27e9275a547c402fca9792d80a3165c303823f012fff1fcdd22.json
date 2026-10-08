@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE email_tokens SET expires_at = '2000-01-01T00:00:00.000Z'",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": []
+  },
+  "hash": "f9ba5d0d189bd27e9275a547c402fca9792d80a3165c303823f012fff1fcdd22"
+}

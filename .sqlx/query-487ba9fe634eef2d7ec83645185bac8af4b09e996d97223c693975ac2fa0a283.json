@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO ocr_quota_grants (user_id, granted_milli_yen, remaining_milli_yen, purchased_at, price_yen, stripe_checkout_session_id) VALUES (?, ?, ?, ?, 300, ?)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 5
+    },
+    "nullable": []
+  },
+  "hash": "487ba9fe634eef2d7ec83645185bac8af4b09e996d97223c693975ac2fa0a283"
+}

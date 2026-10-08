@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT stripe_checkout_session_id, remaining_milli_yen FROM ocr_quota_grants WHERE user_id = ? ORDER BY id",
+  "describe": {
+    "columns": [
+      {
+        "name": "stripe_checkout_session_id",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "remaining_milli_yen",
+        "ordinal": 1,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true,
+      false
+    ]
+  },
+  "hash": "d617dead24097bcf145c22547634e75e983c9b9b44602532779e87a3f126bbef"
+}

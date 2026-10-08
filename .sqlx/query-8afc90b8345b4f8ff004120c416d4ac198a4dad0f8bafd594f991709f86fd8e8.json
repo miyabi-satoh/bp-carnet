@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT deletion_scheduled_at AS \"deletion_scheduled_at: String\",\n                      deletion_origin AS \"deletion_origin: DeletionOrigin\"\n               FROM users WHERE id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "deletion_scheduled_at: String",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "deletion_origin: DeletionOrigin",
+        "ordinal": 1,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true,
+      true
+    ]
+  },
+  "hash": "8afc90b8345b4f8ff004120c416d4ac198a4dad0f8bafd594f991709f86fd8e8"
+}

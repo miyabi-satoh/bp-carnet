@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        SELECT id AS \"id!: i64\" FROM users\n        WHERE deletion_scheduled_at IS NOT NULL\n          AND deletion_scheduled_at <= strftime('%Y-%m-%dT%H:%M:%fZ', 'now')\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "id!: i64",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "15956f5940621521317bed5bf6ae6b47ad8818ba839fcf938ed1ebf02a467683"
+}

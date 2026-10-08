@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        UPDATE users\n        SET timezone = ?,\n            timezone_auto = ?,\n            morning_start_min = ?,\n            morning_end_min = ?,\n            evening_start_min = ?,\n            evening_end_min = ?\n        WHERE id = ?\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 7
+    },
+    "nullable": []
+  },
+  "hash": "373f9049121a90a3090102e6481606fa1ae44ab55221b07a99175664e7fec389"
+}

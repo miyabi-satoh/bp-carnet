@@ -1,0 +1,167 @@
+# bp-carnet の設定ファイルサンプル。
+#
+# 実行時に読みに行く場所:
+#   - 環境変数 BP_CARNET_HOME が設定されていれば $BP_CARNET_HOME/config.toml
+#     (DB・セッション鍵・ログ・シングルインスタンスロックも同じディレクトリ直下に置かれる。
+#     Docker / systemd 向け)
+#   - それ以外は OS 標準のアプリデータディレクトリ (directories::ProjectDirs)
+#     - macOS:   ~/Library/Application Support/com.amiiby.bp-carnet/config.toml
+#     - Linux:   ~/.config/bp-carnet/config.toml
+#     - Windows: %APPDATA%\amiiby\bp-carnet\config\config.toml
+# ファイルが無いと起動しない。本番で必ず入れる設定 ([server] public_url・contact_url、[mail] host・from) も、
+# 空なら起動しない。開発ではここに示す値 (メールは手元で受ける。→ just dev-mail) をそのまま使える。
+# それ以外は、書かなければここに示す値が使われる。
+
+[server]
+# 外部からの接続を受けるため、既定では全インターフェースで待ち受ける。
+bind = "0.0.0.0"
+# 3000 は src/config.rs のデフォルト値をそのまま書いているだけ (このファイル自体は
+# サンプルなので、実際にポートを変えたいだけならこの値ではなく手元の config.toml を
+# 書き換えればよい)。dev 環境では frontend/vite.config.ts の /api プロキシ先が
+# 手元の config.toml をそのまま読むため、vite.config.ts 側を別途合わせる必要は無い。
+port = 3000
+# リバースプロキシ配下で運用する場合に、X-Forwarded-Proto / -Host / -For を信頼する接続元。
+# ここに挙げたアドレス・範囲から来たリクエストにだけ適用し、空なら一切見ない (直接接続で
+# ヘッダーを名乗るだけで詐称できてしまうため)。プロキシを同じマシンに
+# 置くなら ["127.0.0.1", "::1"]。Docker のネットワーク越しでプロキシのアドレスが変わりうるなら、
+# そのネットワークの範囲を CIDR で書く (例: ["172.18.0.0/16"])。範囲内のどの接続元も信頼する
+# ことになる。設定すると CSRF の同一オリジンチェックが scheme まで検証するようになる
+# (→ docs/authentication.md)。
+trusted_proxies = []
+# trusted_proxies から来たリクエストで読むヘッダー。
+#   "x-forwarded": X-Forwarded-Proto / -Host / -For (既定)。受け取った値を消して付け直すプロキシ向け。
+#   "fly": Fly.io に置くとき。fly-proxy は X-Forwarded-Proto / -Host をクライアントの値のまま渡すため、
+#          fly-proxy が自分で付ける Fly-Forwarded-Proto と Fly-Client-IP だけを読む。
+proxy_headers = "x-forwarded"
+# このサーバーの外部公開URL (末尾スラッシュは付けても除去される)。必須。次に使う。
+#   - Google ログイン: リダイレクトURI ("{public_url}/api/v1/auth/google/callback")。
+#     この値 + "/api/v1/auth/google/callback" を Google Cloud Console の
+#     「承認済みのリダイレクト URI」に登録すること。Client ID/Secret は環境変数
+#     GOOGLE_OAUTH_CLIENT_ID / GOOGLE_OAUTH_CLIENT_SECRET で渡す (.env 経由でもよい、.env.example 参照)。
+#   - LINE ログイン: コールバック URL ("{public_url}/api/v1/auth/line/callback")。LINE Developers の
+#     チャネルの「LINEログイン設定」に登録すること。チャネルID/シークレットは環境変数
+#     LINE_LOGIN_CHANNEL_ID / LINE_LOGIN_CHANNEL_SECRET で渡す。
+#   - Sign in with Apple: Return URL ("{public_url}/api/v1/auth/apple/callback")。Apple Developer の
+#     サービス ID の設定に登録すること (https のみ)。ID と秘密鍵は環境変数 APPLE_* で渡す (.env.example 参照)。
+#   - メール ([mail]): メールに載せるリンク。
+#
+# 例: dev  -> "http://localhost:5173" (Vite dev server 経由でアクセスする場合)
+#     本番 -> "https://bp.example.com"
+# Google は http のリダイレクトURIを localhost とそのループバックIP (127.0.0.1・::1) しか
+# 認めず、それ以外の生のIPアドレスも受け付けない。Google ログインには HTTPS と所有ドメインが要る。
+public_url = "http://localhost:3000"
+# 「オープンβテスト中」の表示 (ヘッダーのバッジと、ログイン・サインアップ画面の一文) を出すか。
+# 設定しなければ無効。本番・検証用は deploy/cloud の設定で出し分ける。
+beta_notice = false
+# 利用者からの問い合わせ先の URL (問い合わせフォームなど)。必須。アカウントの衝突・凍結などで
+# 「運営者にお問い合わせください」と出し、このURLへのリンクを添える。
+contact_url = "https://example.com/contact/"
+# アプリを紹介するページの URL。設定すると、ウェブのログイン画面に紹介へのリンクを出す。
+# 設定しなければ出さない。
+# intro_url = "https://example.com/app/"
+
+[log]
+# tracing-subscriber の EnvFilter 書式。環境変数 RUST_LOG があればそちらを優先する。
+filter = "bp_carnet=debug,tower_http=debug"
+# "stdout" | "file" (省略時は stdout)
+# file の場合の出力先 (日次ローテーション: bp-carnet.log.YYYY-MM-DD、日付は UTC):
+#   - BP_CARNET_HOME 設定時: $BP_CARNET_HOME/logs/
+#   - macOS:   ~/Library/Application Support/com.amiiby.bp-carnet/logs/
+#   - Linux:   ~/.local/share/bp-carnet/logs/
+#   - Windows: %LOCALAPPDATA%\amiiby\bp-carnet\data\logs\
+# output = "file"
+
+[session]
+# セッション Cookie の署名鍵。base64 エンコードされた 64 バイトである必要がある。
+# 空のままにした場合は初回起動時に自動生成してデータディレクトリの session.key に保存し、
+# 以降は再利用する (このファイルを削除すると全セッションが失効する)。
+# 複数インスタンスで鍵を共有したい場合などにだけ明示設定する。
+secret = ""
+# セッション Cookie に Secure 属性を付与するか。
+# 設定しなければ無効。HTTPS を終端する本番では true にする。
+secure_cookie = false
+# 最終アクセスからこの日数が経過したセッションを失効させる。
+expiry_days = 30
+
+[password]
+# パスワードの最小文字数 (Unicode のコードポイント数で数える)。
+min_length = 8
+# 少なくとも1文字ずつ含めることを求める文字種。空なら文字種は問わない。
+# 指定できるのは "digit" (ASCII の数字)・"lowercase" (ASCII の英小文字)・
+# "uppercase" (ASCII の英大文字)・"symbol" (ASCII の英数字以外。記号のほか日本語なども含む)。
+# 同じ文字種を重複して書くこと、min_length より多くの文字種を求めることはできない
+# (どう入力しても満たせない設定になるため、起動時に弾く)。
+# 例: required_classes = ["digit", "lowercase"]
+required_classes = []
+
+[mail]
+# メール送信 (サインアップ・パスワードのリセット・通知) に使う SMTP サーバー。host と from は必須。
+# ここに示す値は、開発で手元に立てる受け口 (just dev-mail。届いたメールを data/dev-runtime/mail/ に置く) に送る。
+# public_url が http のままだと、メール内リンクのトークン (それだけでパスワードを再設定できる) を
+# 同じネットワーク上で盗み見られうる。起動時に警告が出る。できるだけ HTTPS で公開すること。
+# パスワードは環境変数 SMTP_PASSWORD で渡す (.env 経由でもよい)。
+host = "127.0.0.1"
+# "starttls" (587 番ポートが一般的) | "tls" (465 番) | "none" (暗号化しない。同じマシンや
+# 同じネットワーク内の中継サーバーに渡す場合だけ)。書かなければ "starttls" と 587。
+tls = "none"
+port = 1025
+# 認証に使うユーザー名。空なら認証しない。
+username = ""
+# 送信元。
+from = "BP Carnet <noreply@example.com>"
+
+[inactivity]
+# 最終アクセスからこの日数がたったアカウントを、予告のメールのうえで自動退会 (削除予約) させる。
+# 0 なら無効。ユーザーIDがメールアドレスでない (管理者が作った) アカウントには、予告が届かないまま退会させる (docs/authentication.md)。
+delete_after_days = 0
+
+[ocr]
+# 無料枠・買い足し1回の量・単価は、環境変数 OCR_FREE_BUDGET_YEN・OCR_TOPUP_GRANT_YEN・
+# OCR_INPUT_USD_PER_MILLION_TOKENS・OCR_OUTPUT_USD_PER_MILLION_TOKENS・OCR_JPY_PER_USD でも与えられ、
+# あればそちらを使う (本番・検証用は Fly のシークレット。→ DEVELOPMENT.md「写真の読み取りの無料枠・単価を変える」)。
+# 既定値は無い。GEMINI_API_KEY があるのに無料枠か単価が無い、または Stripe かアプリ内課金が有効なのに
+# 買い足しの量が無いと、起動しない。
+#
+# 1ユーザーが写真の読み取りに使える累計の金額 (円、整数。無料枠)。負値は無制限。
+# ユーザーごとに変えたい場合は users.ocr_budget_yen を設定する (NULL ならこの値を使う)。
+# free_budget_yen = -1
+# 買い足し1回で付ける量 (円、1以上の整数)。
+# topup_grant_yen = 100
+# Gemini とのやりとり (送った写真・プロンプトと、返ってきた応答) を残すディレクトリ。読み取りの誤りを後から調べるためのもの。
+# 呼び出しごとにサブディレクトリを作り、写真 (image-0.jpg など)・request.json・response.json・meta.json を置く。
+# 血圧の写真と値がそのまま残るので、調べるときだけ有効にし、済んだら消す。相対パスはデータディレクトリ基準。
+# dump_dir = "ocr-dumps"
+# 開発用。dump_dir に同じ写真・同じ送信内容で成功したやりとりが残っていれば、Gemini を呼ばずに、その応答を返す。
+# 画面の見た目を確かめるたびに料金を使わないため。dump_dir が要る。
+# reuse_dumps = false
+# 使った額を API の usage (トークン数) から計算する単価。Google の価格に合わせる。
+# 表なので、[ocr] の他のキーより後ろに置く。値は書き方の例で、実際の価格ではない。
+# [ocr.pricing]
+# input_usd_per_million_tokens = 1.0   # 入力 100 万トークンあたりのドル
+# output_usd_per_million_tokens = 4.0  # 出力 (思考を含む) 100 万トークンあたりのドル
+# jpy_per_usd = 100.0                  # 1ドルの円換算
+
+[payments.stripe]
+# OCR 枠の買い足し (→ docs/payments.md)。
+# 次の3つが「すべて」そろったときだけ有効になり (available=true)、買い足し導線・Webhook が動く。
+# 一つでも欠ければ無効のまま (開発・テストの既定)。本番は deploy/cloud の設定で有効にする。
+#   1. この enabled = true
+#   2. checkout_success_url / checkout_cancel_url が両方とも空でない
+#   3. 環境変数 STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET / STRIPE_OCR_TOPUP_PRICE_ID が
+#      すべて設定済み (.env 経由でもよい、.env.example 参照)。秘密のため config.toml には置かない。
+# STRIPE_TAX_RATE_ID は有効になる条件ではないが、2026-12-01 からは無いと Checkout を作らない。
+enabled = false
+# Checkout 完了後に戻る URL。`{CHECKOUT_SESSION_ID}` を必ず含める (Stripe が実IDに置換し、
+# 戻り先ページが結果確認 API に session_id として渡す)。フロントの結果ルート /payments/ocr-topup/result に合わせる。
+#   例: 本番 -> "https://bp.amiiby.com/payments/ocr-topup/result?session_id={CHECKOUT_SESSION_ID}"
+#       dev  -> "http://localhost:3010/payments/ocr-topup/result?session_id={CHECKOUT_SESSION_ID}"
+checkout_success_url = ""
+# 購入をキャンセルしたときに戻る URL。写真で記録画面へ戻す。
+#   例: 本番 -> "https://bp.amiiby.com/record/photo"
+checkout_cancel_url = ""
+
+[mobile_app]
+# API を呼べる iPhone・iPad アプリの一番古い版 (例: "1.2")。これより古い版のアプリには、
+# 更新を促す画面を出す。API を変えて古い版と合わなくなったときに上げる。
+# 書かなければ版を見ない。開発・テストでは未設定のままにし、本番は deploy/cloud の設定で有効にする。
+# min_version = "1.0"

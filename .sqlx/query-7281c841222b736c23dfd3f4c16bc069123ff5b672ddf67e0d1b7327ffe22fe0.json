@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT new_email AS \"new_email!: String\" FROM email_tokens\n           WHERE token_hash = ? AND purpose = ? AND used_at IS NULL\n             AND expires_at > strftime('%Y-%m-%dT%H:%M:%fZ', 'now')",
+  "describe": {
+    "columns": [
+      {
+        "name": "new_email!: String",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "7281c841222b736c23dfd3f4c16bc069123ff5b672ddf67e0d1b7327ffe22fe0"
+}

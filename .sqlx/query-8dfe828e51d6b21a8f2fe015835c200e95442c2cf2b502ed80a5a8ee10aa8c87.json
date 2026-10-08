@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE users SET inactivity_notice_days = ? WHERE id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "8dfe828e51d6b21a8f2fe015835c200e95442c2cf2b502ed80a5a8ee10aa8c87"
+}

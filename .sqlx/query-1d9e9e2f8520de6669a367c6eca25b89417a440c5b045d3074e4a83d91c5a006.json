@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "DELETE FROM oauth_identities\n           WHERE user_id = ?1 AND provider = ?2\n             AND ((SELECT password_usable FROM users WHERE id = ?1) = 1\n                  OR EXISTS (SELECT 1 FROM oauth_identities\n                             WHERE user_id = ?1 AND provider <> ?2))\n           RETURNING refresh_token, access_token",
+  "describe": {
+    "columns": [
+      {
+        "name": "refresh_token",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "access_token",
+        "ordinal": 1,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": [
+      true,
+      true
+    ]
+  },
+  "hash": "1d9e9e2f8520de6669a367c6eca25b89417a440c5b045d3074e4a83d91c5a006"
+}

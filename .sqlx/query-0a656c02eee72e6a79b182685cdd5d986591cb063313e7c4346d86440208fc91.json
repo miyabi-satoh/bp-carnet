@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            DELETE FROM bp_records\n            WHERE user_id = ? AND measured_at >= ? AND measured_at < ?\n            RETURNING id AS \"id!: i64\", version AS \"version!: i64\"\n            ",
+  "describe": {
+    "columns": [
+      {
+        "name": "id!: i64",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "version!: i64",
+        "ordinal": 1,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": [
+      true,
+      false
+    ]
+  },
+  "hash": "0a656c02eee72e6a79b182685cdd5d986591cb063313e7c4346d86440208fc91"
+}

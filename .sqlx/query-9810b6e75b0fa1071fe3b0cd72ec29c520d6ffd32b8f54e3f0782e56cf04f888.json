@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "DELETE FROM email_tokens",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": []
+  },
+  "hash": "9810b6e75b0fa1071fe3b0cd72ec29c520d6ffd32b8f54e3f0782e56cf04f888"
+}

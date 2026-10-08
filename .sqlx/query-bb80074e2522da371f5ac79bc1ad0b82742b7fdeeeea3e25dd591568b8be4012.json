@@ -1,0 +1,32 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT user_id, remaining_milli_yen, revoked_milli_yen FROM ocr_quota_grants WHERE stripe_checkout_session_id = 'cs_refunded'",
+  "describe": {
+    "columns": [
+      {
+        "name": "user_id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "remaining_milli_yen",
+        "ordinal": 1,
+        "type_info": "Integer"
+      },
+      {
+        "name": "revoked_milli_yen",
+        "ordinal": 2,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      true,
+      false,
+      true
+    ]
+  },
+  "hash": "bb80074e2522da371f5ac79bc1ad0b82742b7fdeeeea3e25dd591568b8be4012"
+}

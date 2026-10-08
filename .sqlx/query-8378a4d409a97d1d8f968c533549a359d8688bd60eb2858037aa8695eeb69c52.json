@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT display_name AS \"display_name: String\" FROM users WHERE username = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "display_name: String",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "8378a4d409a97d1d8f968c533549a359d8688bd60eb2858037aa8695eeb69c52"
+}

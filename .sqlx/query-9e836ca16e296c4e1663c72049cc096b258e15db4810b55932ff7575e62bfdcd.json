@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "DELETE FROM app_tokens\n         WHERE last_used_at < strftime('%Y-%m-%dT%H:%M:%fZ', 'now', ?)\n            OR session_generation <> (SELECT session_generation FROM users WHERE users.id = app_tokens.user_id)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "9e836ca16e296c4e1663c72049cc096b258e15db4810b55932ff7575e62bfdcd"
+}

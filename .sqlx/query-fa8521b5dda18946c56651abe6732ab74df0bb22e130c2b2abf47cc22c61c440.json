@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT EXISTS (SELECT 1 FROM ocr_quota_grants WHERE apple_transaction_id = ? AND user_id IS NULL) AS \"exists!: bool\"",
+  "describe": {
+    "columns": [
+      {
+        "name": "exists!: bool",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "fa8521b5dda18946c56651abe6732ab74df0bb22e130c2b2abf47cc22c61c440"
+}

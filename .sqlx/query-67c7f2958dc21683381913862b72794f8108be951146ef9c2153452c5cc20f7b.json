@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT count(*) AS \"count!: i64\" FROM sqlite_master WHERE type = 'table' AND name = 'bp_records'",
+  "describe": {
+    "columns": [
+      {
+        "name": "count!: i64",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "67c7f2958dc21683381913862b72794f8108be951146ef9c2153452c5cc20f7b"
+}

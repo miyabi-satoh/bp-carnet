@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE stripe_webhook_events SET status = 'failed', processed_at = ?, failure_reason = ? WHERE event_id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "e85859faba3484103a91fd8aad69f9ca268a124196e3ee11a168d448e8bab241"
+}

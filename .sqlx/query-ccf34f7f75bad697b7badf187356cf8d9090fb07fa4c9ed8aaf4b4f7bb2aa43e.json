@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO app_tokens (user_id, token_hash, session_generation)\n         SELECT id, ?, session_generation FROM users WHERE id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "ccf34f7f75bad697b7badf187356cf8d9090fb07fa4c9ed8aaf4b4f7bb2aa43e"
+}

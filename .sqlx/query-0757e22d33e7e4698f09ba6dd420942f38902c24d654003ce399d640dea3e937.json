@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE users SET frozen = 1 WHERE username = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "0757e22d33e7e4698f09ba6dd420942f38902c24d654003ce399d640dea3e937"
+}

@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO users (username, password_hash, password_usable, email_verified, role,\n                              terms_version, terms_agreed_at)\n           VALUES (?1, ?2, 0, 0, ?3, ?4, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))\n           ON CONFLICT (username) DO UPDATE SET\n               username = excluded.username,\n               terms_version = CASE WHEN users.email_verified = 0\n                                    THEN excluded.terms_version ELSE users.terms_version END,\n               terms_agreed_at = CASE WHEN users.email_verified = 0\n                                      THEN excluded.terms_agreed_at ELSE users.terms_agreed_at END\n           RETURNING id AS \"id!: i64\", email_verified",
+  "describe": {
+    "columns": [
+      {
+        "name": "id!: i64",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "email_verified",
+        "ordinal": 1,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 4
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "cfe0e84759026fcf7f54871e208a927dde7b26192ad88422524ab7d811bb0694"
+}

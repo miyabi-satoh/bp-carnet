@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT deletion_scheduled_at AS \"deletion_scheduled_at: String\" FROM users\n           WHERE id = ? AND email_verified = 1",
+  "describe": {
+    "columns": [
+      {
+        "name": "deletion_scheduled_at: String",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "3800db174f7343b26af90e7db53a9d75509f731852c6bc4cc8926a6cb20027e5"
+}

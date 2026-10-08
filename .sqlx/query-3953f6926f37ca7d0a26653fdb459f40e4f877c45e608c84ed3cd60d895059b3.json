@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT stripe_checkout_session_id AS \"id!: String\" FROM ocr_quota_grants ORDER BY id",
+  "describe": {
+    "columns": [
+      {
+        "name": "id!: String",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "3953f6926f37ca7d0a26653fdb459f40e4f877c45e608c84ed3cd60d895059b3"
+}

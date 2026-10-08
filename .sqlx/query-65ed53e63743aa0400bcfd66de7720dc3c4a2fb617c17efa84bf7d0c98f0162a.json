@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE users SET apple_app_account_token = ? WHERE id = ? AND apple_app_account_token IS NULL",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "65ed53e63743aa0400bcfd66de7720dc3c4a2fb617c17efa84bf7d0c98f0162a"
+}

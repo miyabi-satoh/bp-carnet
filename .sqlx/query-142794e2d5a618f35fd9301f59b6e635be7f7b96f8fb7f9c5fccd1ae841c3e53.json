@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE users SET deletion_scheduled_at = '2030-01-01T00:00:00.000Z', deletion_origin = 'inactive'",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": []
+  },
+  "hash": "142794e2d5a618f35fd9301f59b6e635be7f7b96f8fb7f9c5fccd1ae841c3e53"
+}

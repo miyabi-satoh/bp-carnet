@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO users (username, password_hash, deletion_scheduled_at)\n             VALUES ('scheduled', 'x', '2030-01-01T00:00:00Z'), ('unscheduled', 'x', NULL)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": []
+  },
+  "hash": "8036ebc46053e3ba6e01d9bf974c8c5fd0aa87555408d6f73f6a26c83d410117"
+}

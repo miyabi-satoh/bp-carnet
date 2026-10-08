@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT terms_version, terms_agreed_at FROM users WHERE username = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "terms_version",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "terms_agreed_at",
+        "ordinal": 1,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true,
+      true
+    ]
+  },
+  "hash": "760e5a4118a9d5bfd5189130b4032964532396af764a174db9d55fc591c7c8bc"
+}

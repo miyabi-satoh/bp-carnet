@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "DELETE FROM users WHERE username = ? AND email_verified = 0",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "11ffd51599bc6e597b2ffe3a766f1f63b416c9e32cbea490b817f7281051fbd8"
+}

@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__codegraph__*"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"require(process.env.CLAUDE_PROJECT_DIR + '/.claude/hooks/block-destructive-fly.cjs').main()\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v codegraph >/dev/null 2>&1 && codegraph prompt-hook || true"
+          }
+        ]
+      }
+    ]
+  }
+}

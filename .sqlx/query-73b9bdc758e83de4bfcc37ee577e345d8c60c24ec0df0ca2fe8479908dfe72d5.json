@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT user_id AS \"user_id!: i64\" FROM oauth_identities WHERE provider = ? AND subject = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "user_id!: i64",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "73b9bdc758e83de4bfcc37ee577e345d8c60c24ec0df0ca2fe8479908dfe72d5"
+}

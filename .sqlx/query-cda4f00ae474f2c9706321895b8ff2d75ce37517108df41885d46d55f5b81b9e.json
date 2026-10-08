@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO stripe_webhook_events (event_id, status, event_type, received_at) VALUES (?, 'received', ?, ?) ON CONFLICT(event_id) DO UPDATE SET status = 'received', event_type = excluded.event_type",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "cda4f00ae474f2c9706321895b8ff2d75ce37517108df41885d46d55f5b81b9e"
+}

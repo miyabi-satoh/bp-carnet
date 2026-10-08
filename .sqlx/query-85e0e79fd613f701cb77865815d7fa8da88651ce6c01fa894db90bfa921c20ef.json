@@ -1,0 +1,50 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        SELECT\n            timezone AS \"timezone!: String\",\n            timezone_auto AS \"timezone_auto!: bool\",\n            morning_start_min AS \"morning_start_min!: i64\",\n            morning_end_min AS \"morning_end_min!: i64\",\n            evening_start_min AS \"evening_start_min!: i64\",\n            evening_end_min AS \"evening_end_min!: i64\"\n        FROM users\n        WHERE id = ?\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "timezone!: String",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "timezone_auto!: bool",
+        "ordinal": 1,
+        "type_info": "Integer"
+      },
+      {
+        "name": "morning_start_min!: i64",
+        "ordinal": 2,
+        "type_info": "Integer"
+      },
+      {
+        "name": "morning_end_min!: i64",
+        "ordinal": 3,
+        "type_info": "Integer"
+      },
+      {
+        "name": "evening_start_min!: i64",
+        "ordinal": 4,
+        "type_info": "Integer"
+      },
+      {
+        "name": "evening_end_min!: i64",
+        "ordinal": 5,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "85e0e79fd613f701cb77865815d7fa8da88651ce6c01fa894db90bfa921c20ef"
+}

@@ -1,0 +1,44 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT user_id, remaining_milli_yen, revoked_milli_yen, price_yen, apple_environment AS \"apple_environment!: String\"\n           FROM ocr_quota_grants WHERE apple_transaction_id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "user_id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "remaining_milli_yen",
+        "ordinal": 1,
+        "type_info": "Integer"
+      },
+      {
+        "name": "revoked_milli_yen",
+        "ordinal": 2,
+        "type_info": "Integer"
+      },
+      {
+        "name": "price_yen",
+        "ordinal": 3,
+        "type_info": "Integer"
+      },
+      {
+        "name": "apple_environment!: String",
+        "ordinal": 4,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true,
+      false,
+      true,
+      false,
+      true
+    ]
+  },
+  "hash": "20dc0442ed5afade6fa27df7571e3b3abb5f8f88e8e6aa1a71a8482746bb0446"
+}

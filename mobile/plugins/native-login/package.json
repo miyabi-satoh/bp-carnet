@@ -1,0 +1,11 @@
+{
+  "name": "bp-carnet-native-login",
+  "version": "0.0.0",
+  "private": true,
+  "description": "アプリの中の各社のログイン (docs/mobile-app.md)。JS 側は frontend/src/lib/native-login.ts",
+  "capacitor": {
+    "ios": {
+      "src": "ios"
+    }
+  }
+}

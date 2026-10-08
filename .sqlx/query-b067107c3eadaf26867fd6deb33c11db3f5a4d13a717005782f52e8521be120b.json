@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT frozen FROM users WHERE username = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "frozen",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "b067107c3eadaf26867fd6deb33c11db3f5a4d13a717005782f52e8521be120b"
+}

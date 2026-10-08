@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "DELETE FROM ocr_quota_grants WHERE user_id IS NULL AND purchased_at < strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '+9 hours', 'start of year', ?, '-9 hours')",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "0011fa1e5fd664b33046eafb399edc68090e143bbd1061651e3b202bda16435d"
+}

@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT purpose,\n                      CAST(ROUND((julianday(expires_at) - julianday('now')) * 24) AS INTEGER)\n                          AS \"hours!: i64\"\n               FROM email_tokens ORDER BY purpose",
+  "describe": {
+    "columns": [
+      {
+        "name": "purpose",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "hours!: i64",
+        "ordinal": 1,
+        "type_info": "Null"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false,
+      null
+    ]
+  },
+  "hash": "547c9650c045c57a38941040fa856d8a0334eb3524ed52d76c5af0741cf2383f"
+}

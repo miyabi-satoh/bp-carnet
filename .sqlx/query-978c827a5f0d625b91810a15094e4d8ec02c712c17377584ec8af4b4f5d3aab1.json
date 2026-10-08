@@ -1,0 +1,32 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT purchased_at, granted_milli_yen, remaining_milli_yen FROM ocr_quota_grants WHERE user_id = ? AND remaining_milli_yen > 0 ORDER BY id",
+  "describe": {
+    "columns": [
+      {
+        "name": "purchased_at",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "granted_milli_yen",
+        "ordinal": 1,
+        "type_info": "Integer"
+      },
+      {
+        "name": "remaining_milli_yen",
+        "ordinal": 2,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "978c827a5f0d625b91810a15094e4d8ec02c712c17377584ec8af4b4f5d3aab1"
+}

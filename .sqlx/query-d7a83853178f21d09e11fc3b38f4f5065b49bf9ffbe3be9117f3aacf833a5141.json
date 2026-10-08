@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE email_tokens SET expires_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now', ?, ?)\n         WHERE purpose = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "d7a83853178f21d09e11fc3b38f4f5065b49bf9ffbe3be9117f3aacf833a5141"
+}

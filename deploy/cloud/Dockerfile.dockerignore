@@ -1,0 +1,13 @@
+# deploy/cloud/Dockerfile のビルドコンテキスト (リポジトリのルート) から外すもの。
+# 転送を軽くし、手元のビルド成果物・秘密 (.env・DB) をイメージへ持ち込まないため。
+.git
+.env
+data
+target
+docs
+*.db
+*.db-*
+**/node_modules
+frontend/build
+frontend/.svelte-kit
+frontend/src/lib/paraglide

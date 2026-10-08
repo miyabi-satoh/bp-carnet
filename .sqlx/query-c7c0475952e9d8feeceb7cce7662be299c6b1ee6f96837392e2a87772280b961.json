@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT used_milli_yen FROM ocr_usage_records",
+  "describe": {
+    "columns": [
+      {
+        "name": "used_milli_yen",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "c7c0475952e9d8feeceb7cce7662be299c6b1ee6f96837392e2a87772280b961"
+}

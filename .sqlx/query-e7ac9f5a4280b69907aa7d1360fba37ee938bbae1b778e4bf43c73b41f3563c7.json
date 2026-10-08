@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO ocr_quota_grants (user_id, granted_milli_yen, remaining_milli_yen, purchased_at, price_yen, stripe_checkout_session_id, domestic) VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT(stripe_checkout_session_id) DO NOTHING",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 7
+    },
+    "nullable": []
+  },
+  "hash": "e7ac9f5a4280b69907aa7d1360fba37ee938bbae1b778e4bf43c73b41f3563c7"
+}

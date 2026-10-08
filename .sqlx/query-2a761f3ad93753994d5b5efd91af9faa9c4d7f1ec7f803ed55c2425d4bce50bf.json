@@ -1,0 +1,80 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT id AS \"id!: i64\", username, display_name, role AS \"role: Role\",\n                  frozen, ocr_budget_yen, ocr_spent_milli_yen,\n                  password_usable, deletion_scheduled_at,\n                  deletion_origin AS \"deletion_origin: DeletionOrigin\",\n                  COALESCE(last_seen_at, created_at) AS \"last_seen_at!: String\"\n           FROM users WHERE email_verified = 1 ORDER BY id",
+  "describe": {
+    "columns": [
+      {
+        "name": "id!: i64",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "username",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "display_name",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "role: Role",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "frozen",
+        "ordinal": 4,
+        "type_info": "Integer"
+      },
+      {
+        "name": "ocr_budget_yen",
+        "ordinal": 5,
+        "type_info": "Integer"
+      },
+      {
+        "name": "ocr_spent_milli_yen",
+        "ordinal": 6,
+        "type_info": "Integer"
+      },
+      {
+        "name": "password_usable",
+        "ordinal": 7,
+        "type_info": "Integer"
+      },
+      {
+        "name": "deletion_scheduled_at",
+        "ordinal": 8,
+        "type_info": "Text"
+      },
+      {
+        "name": "deletion_origin: DeletionOrigin",
+        "ordinal": 9,
+        "type_info": "Text"
+      },
+      {
+        "name": "last_seen_at!: String",
+        "ordinal": 10,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      false,
+      false,
+      true,
+      false,
+      false,
+      true,
+      true,
+      false
+    ]
+  },
+  "hash": "2a761f3ad93753994d5b5efd91af9faa9c4d7f1ec7f803ed55c2425d4bce50bf"
+}

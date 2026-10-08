@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT provider FROM oauth_identities WHERE user_id = ? ORDER BY id",
+  "describe": {
+    "columns": [
+      {
+        "name": "provider",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "073976907afb0256622194ee0e18c9822efe8a55be6abb89a730fe270093149e"
+}

@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT refresh_token AS \"refresh_token: String\", access_token AS \"access_token: String\"\n           FROM oauth_identities WHERE provider = ? AND subject = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "refresh_token: String",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "access_token: String",
+        "ordinal": 1,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": [
+      true,
+      true
+    ]
+  },
+  "hash": "c96c890b413845389b89264e986c67bf99c3bf5841ef9e53ac8584feb04aaa8f"
+}

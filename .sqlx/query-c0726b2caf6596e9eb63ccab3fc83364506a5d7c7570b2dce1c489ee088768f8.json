@@ -1,0 +1,32 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT display_name, avatar_url, password_usable FROM users WHERE id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "display_name",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "avatar_url",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "password_usable",
+        "ordinal": 2,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true,
+      true,
+      false
+    ]
+  },
+  "hash": "c0726b2caf6596e9eb63ccab3fc83364506a5d7c7570b2dce1c489ee088768f8"
+}

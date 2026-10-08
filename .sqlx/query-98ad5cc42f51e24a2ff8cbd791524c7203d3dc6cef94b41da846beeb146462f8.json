@@ -1,0 +1,50 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT id AS \"id!: i64\", username, role AS \"role: Role\", frozen,\n                      session_generation AS \"session_generation!: i64\",\n                      (COALESCE(last_seen_at, created_at)\n                           < strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '-1 day')\n                       OR deletion_origin = 'inactive') AS \"needs_touch!: bool\"\n               FROM users WHERE id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "id!: i64",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "username",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "role: Role",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "frozen",
+        "ordinal": 3,
+        "type_info": "Integer"
+      },
+      {
+        "name": "session_generation!: i64",
+        "ordinal": 4,
+        "type_info": "Integer"
+      },
+      {
+        "name": "needs_touch!: bool",
+        "ordinal": 5,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "98ad5cc42f51e24a2ff8cbd791524c7203d3dc6cef94b41da846beeb146462f8"
+}

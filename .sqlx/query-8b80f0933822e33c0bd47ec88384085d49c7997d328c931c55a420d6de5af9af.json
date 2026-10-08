@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO email_tokens (user_id, purpose, token_hash, expires_at, new_email)\n           VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ', 'now', ?), ?)\n           ON CONFLICT (user_id, purpose) DO UPDATE\n           SET token_hash = excluded.token_hash, expires_at = excluded.expires_at, used_at = NULL,\n               new_email = excluded.new_email\n           WHERE email_tokens.used_at IS NOT NULL\n              OR email_tokens.new_email IS NOT excluded.new_email\n              OR strftime('%Y-%m-%dT%H:%M:%fZ', email_tokens.expires_at, ?)\n                 <= strftime('%Y-%m-%dT%H:%M:%fZ', 'now', ?)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 7
+    },
+    "nullable": []
+  },
+  "hash": "8b80f0933822e33c0bd47ec88384085d49c7997d328c931c55a420d6de5af9af"
+}

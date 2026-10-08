@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE ocr_quota_grants SET remaining_milli_yen = 30000 WHERE apple_transaction_id = '2000000008'",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": []
+  },
+  "hash": "fc6498d2d2ead899035974e1d4697aadd184bc9389c939b014b5181b8440b3ec"
+}

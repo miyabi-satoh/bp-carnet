@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ja">
+	<head>
+		<meta charset="utf-8" />
+		<!-- viewport-fit=cover: iOS で、画面の下端に留めた帯の背景をホームインジケーターの下まで広げる
+		     (無いとページがその上で止まり、帯の下に隙間が残る)。帯の中身は layout.css の pt-safe-* などで避ける。 -->
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+		<meta name="text-scale" content="scale" />
+		<!-- PWA (vite.config.ts の SvelteKitPWA)。SPA のフォールバック index.html にはプラグインが
+		     マニフェストのリンクを差し込まないため、ここに書く。色は layout.css のライトの背景。
+		     iOS はマニフェストのアイコンを使わないため apple-touch-icon を別に指定する。 -->
+		<link rel="manifest" href="/manifest.webmanifest" />
+		<meta name="theme-color" content="#fbf5ed" />
+		<link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
+		<script>
+			// SPA (ssr=false) のため mode-watcher 本体の初期化は Svelte マウント後になり、
+			// それを待つと初回描画でダークモード利用者に白いフラッシュが見える。
+			// ここで先回りして .dark と color-scheme を設定し、FOUC を防ぐ。
+			// 不正な保存値は ModeWatcher のマウント時フォールバック(system 扱い)に合わせる。
+			try {
+				var stored = localStorage.getItem('mode-watcher-mode');
+				var mode =
+					stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system';
+				var isLight =
+					mode === 'light' ||
+					(mode === 'system' && matchMedia('(prefers-color-scheme: light)').matches);
+				var root = document.documentElement;
+				if (!isLight) root.classList.add('dark');
+				root.style.colorScheme = isLight ? 'light' : 'dark';
+			} catch (e) {}
+		</script>
+		<style>
+			/* SPA (ssr=false) のため、アプリの読み込みと `/auth/me` の応答が返るまで body は空になる。
+			   その間だけ出すスピナー。Tailwind のビルド結果を待たずに描くのでここに直接書く。 */
+			/* 消すのに :has() を使うため、それを判定できるブラウザでだけ出す
+			   (消せないまま出し続けてアプリを覆い隠すより、従来どおり何も出ないほうが
+			   害が小さい)。万一消え損ねても操作は妨げないようにしておく。 */
+			#app-loading {
+				position: fixed;
+				inset: 0;
+				display: none;
+				align-items: center;
+				justify-content: center;
+				pointer-events: none;
+			}
+			@supports selector(:has(*)) {
+				#app-loading {
+					display: flex;
+				}
+			}
+			#app-loading::after {
+				content: '';
+				width: 2rem;
+				height: 2rem;
+				border: 3px solid rgba(139, 139, 139, 0.25);
+				border-top-color: #8b8b8b;
+				border-radius: 50%;
+				animation: app-loading-spin 0.8s linear infinite;
+			}
+			/* アプリ (エラー画面を含む) が描画されたら消す。SvelteKit の起動スクリプトが
+			   同じ入れ物に入るため、script は数えない。 */
+			@supports selector(:has(*)) {
+				#app-loading:has(+ div > *:not(script)) {
+					display: none;
+				}
+			}
+			@keyframes app-loading-spin {
+				to {
+					transform: rotate(1turn);
+				}
+			}
+			@media (prefers-reduced-motion: reduce) {
+				#app-loading::after {
+					animation-duration: 2.4s;
+				}
+			}
+		</style>
+		%sveltekit.head%
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div id="app-loading" role="status" aria-label="読み込み中..."></div>
+		<div style="display: contents">%sveltekit.body%</div>
+	</body>
+</html>

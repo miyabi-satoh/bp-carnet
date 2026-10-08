@@ -1,0 +1,32 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT id AS \"id!: i64\", revoked_milli_yen, apple_signed_date AS \"apple_signed_date!: i64\"\n           FROM ocr_quota_grants WHERE apple_transaction_id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "id!: i64",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "revoked_milli_yen",
+        "ordinal": 1,
+        "type_info": "Integer"
+      },
+      {
+        "name": "apple_signed_date!: i64",
+        "ordinal": 2,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "971d5944bd8c5a09145fbcbc0eeac196305e3ba0c191fba7f528bca5786865f9"
+}

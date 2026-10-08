@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT 1 AS \"value!: i64\" FROM stripe_webhook_events\n         WHERE checkout_session_id = ? AND status = 'processed'\n           AND event_type IN ('charge.refunded', 'charge.dispute.created')\n         LIMIT 1",
+  "describe": {
+    "columns": [
+      {
+        "name": "value!: i64",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "e86174a501809e0cf2984ade65e6b2b0d9ce1517ca98fc04c3a738bf5ea4b74f"
+}

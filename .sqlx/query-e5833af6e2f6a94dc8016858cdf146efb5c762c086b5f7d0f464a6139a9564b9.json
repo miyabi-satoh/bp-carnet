@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT deletion_origin AS \"deletion_origin: DeletionOrigin\" FROM users\n           WHERE id = ? AND email_verified = 1",
+  "describe": {
+    "columns": [
+      {
+        "name": "deletion_origin: DeletionOrigin",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "e5833af6e2f6a94dc8016858cdf146efb5c762c086b5f7d0f464a6139a9564b9"
+}

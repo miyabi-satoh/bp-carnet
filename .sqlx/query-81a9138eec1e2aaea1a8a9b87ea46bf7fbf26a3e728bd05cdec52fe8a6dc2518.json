@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO bp_records (user_id, measured_at, systolic, diastolic) VALUES (?, '2026-01-01T00:00:00Z', 120, 80)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "81a9138eec1e2aaea1a8a9b87ea46bf7fbf26a3e728bd05cdec52fe8a6dc2518"
+}

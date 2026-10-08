@@ -1,0 +1,38 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT id AS \"id!: i64\", username,\n                  COALESCE(last_seen_at, created_at) AS \"last_seen!: String\",\n                  inactivity_notice_days\n           FROM users\n           WHERE role = 'user' AND frozen = 0 AND email_verified = 1\n                 AND deletion_scheduled_at IS NULL\n                 -- 買い足した枠が残っていれば、払って得たものを消さないよう対象にしない。\n                 AND NOT EXISTS (SELECT 1 FROM ocr_quota_grants\n                                 WHERE ocr_quota_grants.user_id = users.id\n                                   AND ocr_quota_grants.remaining_milli_yen > 0)",
+  "describe": {
+    "columns": [
+      {
+        "name": "id!: i64",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "username",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "last_seen!: String",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "inactivity_notice_days",
+        "ordinal": 3,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "3186e00bff9b5b778a4a0df8d85a60a951ba6502a27396147d1273335b370049"
+}

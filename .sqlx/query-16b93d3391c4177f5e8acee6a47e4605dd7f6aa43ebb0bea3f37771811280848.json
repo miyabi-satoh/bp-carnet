@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO oauth_identities (user_id, provider, subject, email)\n           SELECT id, ?1, ?2, ?3 FROM users\n           WHERE username = ?4\n             AND email_verified = 1\n             AND NOT EXISTS (\n                 SELECT 1 FROM oauth_identities\n                 WHERE oauth_identities.user_id = users.id AND oauth_identities.provider = ?1\n             )\n           RETURNING user_id AS \"user_id!: i64\"",
+  "describe": {
+    "columns": [
+      {
+        "name": "user_id!: i64",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 4
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "16b93d3391c4177f5e8acee6a47e4605dd7f6aa43ebb0bea3f37771811280848"
+}

@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT COUNT(*) AS \"count!: i64\" FROM oauth_identities\n           WHERE provider = ? AND (? IS NULL OR subject = ?)",
+  "describe": {
+    "columns": [
+      {
+        "name": "count!: i64",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "160b94e25ec0ae589a3b48bad6d23bb98e96688ffba0067204bc53d7a5e7f41c"
+}

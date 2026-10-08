@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE ocr_quota_grants SET purchased_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now', 'start of year', '-8 years', '-1 day') WHERE stripe_checkout_session_id IN ('old', 'owned')",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": []
+  },
+  "hash": "d8bf96f96e56dc0b74ba110e6b27c0202b6c1bf1369f944b61c06b024e61eb9b"
+}

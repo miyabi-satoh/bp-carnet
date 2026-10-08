@@ -1,0 +1,32 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT oauth_identities.provider, oauth_identities.refresh_token, oauth_identities.access_token\n           FROM oauth_identities\n           JOIN users ON users.id = oauth_identities.user_id\n           WHERE oauth_identities.user_id = ?\n             AND (oauth_identities.refresh_token IS NOT NULL\n                  OR oauth_identities.access_token IS NOT NULL)\n             AND users.deletion_scheduled_at IS NOT NULL\n             AND users.deletion_scheduled_at <= strftime('%Y-%m-%dT%H:%M:%fZ', 'now')",
+  "describe": {
+    "columns": [
+      {
+        "name": "provider",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "refresh_token",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "access_token",
+        "ordinal": 2,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "6163fed669eb1702845f1bb7a1713bc724916398983ceac21f3a281c90e67577"
+}

@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE users SET password_hash = ?, session_generation = session_generation + 1\n         WHERE id = ? AND password_usable = 1 AND email_verified = 1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "0e8baaa52bf8640e0c0e51bb18b9ef3b9444e697fd93f418ce749824cf755357"
+}

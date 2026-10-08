@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE ocr_quota_grants SET remaining_milli_yen = remaining_milli_yen - ? WHERE id = ? AND remaining_milli_yen >= ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "f9cfd67c6e070fef95da8b7c5aa95cb27a616b01225a4577a135f68ac8d0a489"
+}

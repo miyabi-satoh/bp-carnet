@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE ocr_quota_grants SET revoked_milli_yen = remaining_milli_yen, remaining_milli_yen = 0, apple_signed_date = ? WHERE id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "c5739339956b519d13144a2838f6db28ad447f2bb288fa73d9cd392836f1495f"
+}

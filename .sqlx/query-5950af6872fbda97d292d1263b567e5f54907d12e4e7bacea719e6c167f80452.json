@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT role FROM users WHERE username = 'second'",
+  "describe": {
+    "columns": [
+      {
+        "name": "role",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "5950af6872fbda97d292d1263b567e5f54907d12e4e7bacea719e6c167f80452"
+}

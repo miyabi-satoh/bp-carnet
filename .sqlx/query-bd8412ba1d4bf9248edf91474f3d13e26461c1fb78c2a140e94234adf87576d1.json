@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        INSERT INTO bp_records (user_id, measured_at, systolic, diastolic, pulse, memo)\n        VALUES (?, ?, ?, ?, ?, ?)\n        RETURNING id AS \"id!: i64\"\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "id!: i64",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 6
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "bd8412ba1d4bf9248edf91474f3d13e26461c1fb78c2a140e94234adf87576d1"
+}

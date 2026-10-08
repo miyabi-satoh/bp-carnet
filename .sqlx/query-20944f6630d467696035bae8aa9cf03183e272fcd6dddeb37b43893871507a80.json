@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT ocr_budget_yen FROM users WHERE id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "ocr_budget_yen",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "20944f6630d467696035bae8aa9cf03183e272fcd6dddeb37b43893871507a80"
+}

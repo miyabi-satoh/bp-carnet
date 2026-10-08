@@ -1,0 +1,32 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT deletion_scheduled_at, deletion_origin AS \"deletion_origin: DeletionOrigin\",\n                      inactivity_notice_days\n               FROM users WHERE id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "deletion_scheduled_at",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "deletion_origin: DeletionOrigin",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "inactivity_notice_days",
+        "ordinal": 2,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "1d01d0011e9b34aca8577e29115c1a1412cd367e14f6bb91f38620c454c09864"
+}

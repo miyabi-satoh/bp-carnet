@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE users SET session_generation = 3 WHERE username = 'shared@example.com'",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": []
+  },
+  "hash": "329bbcfc0f086471a9f75eb5a459778e0d872fc7a364aac31fbb4e3fbdb2619d"
+}

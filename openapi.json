@@ -1,0 +1,5118 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "bp-carnet",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/v1/account/deletion": {
+      "post": {
+        "summary": "自分のアカウントの削除を予約する。",
+        "description": "即時には削除せず、猶予期間を置く (docs/authentication.md)。猶予期間中にログインすると\n予約は自動的に取り消される。誤操作を防ぐ確認文字列の入力は画面側で行う。\n\n予約済みのユーザーが再度呼んでも予定日は変わらない (最初の予定をそのまま返す)。",
+        "operationId": "schedule_deletion",
+        "responses": {
+          "200": {
+            "description": "削除を予約した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletionResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ログイン中のユーザーが既に存在しない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/account/email": {
+      "post": {
+        "summary": "新しいメールアドレスに、変更を確かめるリンクを送る。",
+        "description": "パスワードを持つアカウントは、今のパスワードを求める (パスワードの変更と同じく、セッションだけを\n奪った相手に変えられないようにするため)。応答は新しいアドレスが使われているかによらず同じにし、\n違いはメールの中身だけにする (サインアップと同じく、アドレスから利用の有無を探らせないため)。",
+        "operationId": "request_email_change",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestEmailChangeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "受け付けた (新しいアドレスが使われていても同じ応答)"
+          },
+          "400": {
+            "description": "リクエストボディが不正 (JSON として解釈できない等)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Content-Type が application/json でない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "メールアドレスとして解釈できない・今のアドレスと同じ・今のパスワードが一致しない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "要求か、今のパスワードの照合の試行回数が上限を超えた",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/account/identities/{provider}": {
+      "delete": {
+        "summary": "自分の Google・LINE・Apple との連携を解除する (docs/authentication.md)。",
+        "description": "解除できるのは、解除した後もログインできる方法 (パスワード・ほかの連携) が残るときだけ。\nLINE・Apple は提供元の側の連携も取り消す。取り消せなくても解除は成立させる (退会時と同じ)。",
+        "operationId": "unlink_identity",
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "path",
+            "description": "連携の提供元",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Provider"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "解除した"
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "その提供元とは連携していない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "解除するとログインできる方法が無くなる",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/account/password": {
+      "put": {
+        "summary": "自分のパスワードを変更する (docs/authentication.md)。",
+        "description": "Google 専用アカウントには絶対に一致しないハッシュが入っているため、現在のパスワードの\n照合で必ず弾かれる。この経路を特別扱いする必要は無い。\n\n変更すると、この端末以外のセッションは無効になる (docs/authentication.md)。乗っ取りを疑って\n変更したときに、奪われたセッションがそのまま残らないようにするため。操作した本人は\n続けて使えるよう、この端末のセッションだけ新しい世代に更新する。",
+        "operationId": "change_password",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "変更した"
+          },
+          "400": {
+            "description": "リクエストボディが不正 (JSON として解釈できない等)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Content-Type が application/json でない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "現在のパスワードが一致しない、または新しいパスワードが設定のポリシーを満たさない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "現在のパスワードの照合試行回数の上限を超えた",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users": {
+      "get": {
+        "summary": "ユーザーの一覧を返す。",
+        "description": "ADR: 一覧の取得は `admin_audit_log` に残さない。記録は「誰に対して」を持つ操作が対象で\n(`target_user_id` は NOT NULL)、対象の定まらない一覧取得とは噛み合わないため。個別の\nアカウント情報・血圧記録の閲覧から記録する。",
+        "operationId": "list_users",
+        "responses": {
+          "200": {
+            "description": "ユーザーの一覧",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUsersResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "管理者ではない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "ユーザーを作る (docs/authentication.md)。`--create-user` CLI と同じ経路\n(`auth::create_user`) を通すため、作られるユーザーは常にメール確認済みになる。\n管理者が本人を確かめて登録する前提の機能なので、これでよい。",
+        "operationId": "create_user",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "作成した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateUserResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "リクエストボディが不正 (JSON として解釈できない等)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "管理者ではない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ユーザーIDが既に使われている",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Content-Type が application/json でない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "ユーザーIDが不正、またはパスワードが設定のポリシーを満たさない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users/{id}": {
+      "get": {
+        "summary": "ユーザーのアカウント情報を返す (docs/authentication.md)。`admin_audit_log` に `view_account` を記録する。",
+        "operationId": "get_user",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "対象ユーザーの id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "アカウント情報",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUserDetailResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "id がパスパラメータとして解釈できない (数値でない等)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "管理者ではない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "対象のユーザーが存在しない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users/{id}/deletion": {
+      "post": {
+        "summary": "ユーザーの削除を予約する (docs/authentication.md)。本人による削除と同じフローを通るが、\n起点を管理者として記録するため、本人のログインでは取り消されない (取り消しは\n`DELETE /admin/users/{id}/deletion`)。既に予約済みなら予定日も起点も変わらない。",
+        "description": "予約できないのは凍結と同じ2つ。削除は予約した時点で「有効な管理者」から外れるため、\n凍結と同じく誰も管理できない状態を作りうる。\n\n- 自分自身 (管理画面から自分を消せてしまうのは事故のもと。本人の削除は設定画面にある)\n- 有効な管理者が残らなくなる操作。判定と更新を同じトランザクションに入れて防ぐ",
+        "operationId": "schedule_user_deletion",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "対象ユーザーの id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "削除を予約した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "id がパスパラメータとして解釈できない (数値でない等)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "管理者ではない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "対象のユーザーが存在しない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "自分自身、または有効な管理者が残らなくなる削除",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "管理者が起点の削除予約を取り消す (docs/authentication.md)。",
+        "description": "本人が起点の予約は取り消さない (409)。予約が無ければ何もせず 204 を返す (監査ログには残す)。",
+        "operationId": "cancel_user_deletion",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "対象ユーザーの id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "取り消した (予約が無かった場合も含む)"
+          },
+          "400": {
+            "description": "id がパスパラメータとして解釈できない (数値でない等)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "管理者ではない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "対象のユーザーが存在しない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "本人が起点の削除予約",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users/{id}/frozen": {
+      "put": {
+        "summary": "ユーザーを凍結する / 凍結を解除する (docs/authentication.md)。凍結中はログイン・セッション継続の\nどちらも弾かれる。",
+        "description": "凍結できないのは次の2つ。どちらも「誰も管理できない状態」を作るため。\n\n- 自分自身 (凍結した時点で自分が締め出される)\n- 有効な管理者が残らなくなる操作。自分自身を弾いている以上、単独のリクエストでは起きないが、\n  2人の管理者が互いを同時に凍結すると両方が通りうる。判定と更新を同じトランザクションに\n  入れて防ぐ",
+        "operationId": "set_frozen",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "対象ユーザーの id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetFrozenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "変更した"
+          },
+          "400": {
+            "description": "リクエストボディが不正 (JSON として解釈できない等)、または id がパスパラメータとして解釈できない (数値でない等)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "管理者ではない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "対象のユーザーが存在しない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "自分自身、または有効な管理者が残らなくなる凍結",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Content-Type が application/json でない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "必須フィールドが無い、または型が不正",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users/{id}/ocr-limit": {
+      "put": {
+        "summary": "ユーザーごとの OCR 累計金額の上限を変更する (docs/authentication.md)。",
+        "description": "自分自身にも設定できる。締め出しにつながる凍結と違い、上限を絞っても管理操作は続けられる。",
+        "operationId": "set_ocr_limit",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "対象ユーザーの id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetOcrLimitRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "変更した"
+          },
+          "400": {
+            "description": "リクエストボディが不正 (JSON として解釈できない等)、または id がパスパラメータとして解釈できない (数値でない等)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "管理者ではない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "対象のユーザーが存在しない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Content-Type が application/json でない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "上限が値域外",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users/{id}/password": {
+      "put": {
+        "summary": "ユーザーのパスワードを再設定する (docs/authentication.md)。",
+        "description": "対象のセッションはすべて断たれる (docs/authentication.md)。本人による変更と違い操作しているのは別人なので、\n生き残らせるセッションが無い。\n\n再設定できないのは次の2つ。\n\n- 自分自身。本人の変更 (`PUT /account/password`) は現在のパスワードの照合を通すので、\n  セッションだけを奪った相手にこちらを迂回路として使わせない\n- パスワードを持たないユーザー (Google 専用アカウント)。新しく持たせるのは、同じく\n  セッションだけを奪った相手に ID/PW ログインの経路を作らせないため本人のメール確認が\n  前提で、管理者が起点の再設定とは別の機能になる",
+        "operationId": "reset_password",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "対象ユーザーの id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "再設定した"
+          },
+          "400": {
+            "description": "リクエストボディが不正 (JSON として解釈できない等)、または id がパスパラメータとして解釈できない (数値でない等)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "管理者ではない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "対象のユーザーが存在しない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "自分自身、または対象がパスワードを持たない (Google 専用アカウント)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Content-Type が application/json でない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "パスワードが設定のポリシーを満たさない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users/{id}/records": {
+      "get": {
+        "summary": "ユーザーの血圧記録を返す (docs/authentication.md)。日付・朝/夜の区分は対象ユーザーの個人設定で扱う。",
+        "description": "ADR: 一覧と集計を1つのエンドポイントにまとめる。取得のたびに `view_records` を記録するため、\n別々にすると期間を1回移すごとに記録が2件並ぶ。",
+        "operationId": "list_user_records",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "対象ユーザーの id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "期間の最初の日 (ユーザーのタイムゾーンでの `YYYY-MM-DD`、この日を含む)。省略時は下限無し。",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2026-09-01"
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "期間の最後の日 (ユーザーのタイムゾーンでの `YYYY-MM-DD`、この日を含む)。省略時は上限無し。",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2026-09-07"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "期間内の記録と集計",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUserRecordsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "id がパスパラメータとして解釈できない (数値でない等)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "管理者ではない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "対象のユーザーが存在しない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "from/to が日付として解釈できない、または from > to",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "保存されているタイムゾーンが tzdb に存在しない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/app/auth/apple": {
+      "post": {
+        "summary": "Sign in with Apple でログインする。認可コードを Bundle ID 宛てに引き換え、ID トークンの\n`nonce` を確かめる (docs/authentication.md)。",
+        "operationId": "app_apple_login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppAppleLoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "ログイン成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppLoginResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "リクエストボディが不正 (JSON として解釈できない等)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Apple で本人を確かめられなかった (`nonce` が発行したものでない・使用済み・期限切れを含む)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "アカウントが凍結されている",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "同じメールアドレスのアカウントに紐付けられない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Content-Type が application/json でない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "リクエストボディに必須フィールドが無い等",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "アプリの Sign in with Apple を受け付けない構成",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/app/auth/google": {
+      "post": {
+        "summary": "Google でログインする。認可コードはサーバーが Google と直接引き換え、ウェブのログインと同じく\nID トークンで本人を確かめる (docs/mobile-app.md)。",
+        "operationId": "app_google_login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppGoogleLoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "ログイン成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppLoginResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "リクエストボディが不正 (JSON として解釈できない等)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Google で本人を確かめられなかった、またはメールアドレスを Google が保証していない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "アカウントが凍結されている",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "同じメールアドレスのアカウントに紐付けられない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Content-Type が application/json でない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "リクエストボディに必須フィールドが無い等",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Google ログインを受け付けない構成",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/app/auth/line": {
+      "post": {
+        "summary": "LINE でログインする。ID トークンを LINE の検証エンドポイントで確かめ、アクセストークンは\n同じ人のものか確かめてから、連携の取り消しのために暗号化して保存する (docs/mobile-app.md)。",
+        "operationId": "app_line_login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppLineLoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "ログイン成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppLoginResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "リクエストボディが不正 (JSON として解釈できない等)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "LINE で本人を確かめられなかった (`nonce` が発行したものでない・使用済み・期限切れを含む)、またはメールアドレスの提供を断られた",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "アカウントが凍結されている",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "同じメールアドレスのアカウントに紐付けられない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Content-Type が application/json でない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "リクエストボディに必須フィールドが無い等",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "LINE ログインを受け付けない構成",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/app/auth/login": {
+      "post": {
+        "operationId": "app_login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "ログイン成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppLoginResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "リクエストボディが不正 (JSON として解釈できない等)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ユーザー名またはパスワードが正しくない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "アカウントが凍結されている",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Content-Type が application/json でない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "リクエストボディに必須フィールドが無い等",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "ログイン試行回数の上限を超えた",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/app/auth/logout": {
+      "post": {
+        "summary": "送られてきたトークンを無効にする。トークンが無い・無効なときは何もせず成功にする\n(ウェブの `/auth/logout` と同じく、ログアウトは失敗させない)。",
+        "operationId": "app_logout",
+        "responses": {
+          "204": {
+            "description": "ログアウト成功"
+          }
+        }
+      }
+    },
+    "/api/v1/app/auth/nonce": {
+      "post": {
+        "summary": "LINE・Apple でのログインを始める。アプリは返った `nonce` を SDK に渡し、得た ID トークンと\n一緒にログインの入口へ送る (ID トークンの使い回しを防ぐため、docs/mobile-app.md)。",
+        "operationId": "app_login_nonce",
+        "responses": {
+          "200": {
+            "description": "発行した nonce",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppLoginNonceResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "発行の回数、または発行済みで未使用の数の上限を超えた",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/apple/callback": {
+      "post": {
+        "summary": "Apple からのコールバック (`form_post`)。Apple のサイトからの POST なので、同一オリジンの確認\n(`crate::csrf`) から外し、`state` の照合で守る (docs/authentication.md)。Google・LINE と同じく、\n成否に関わらずリダイレクトで終わる。",
+        "operationId": "apple_callback",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/AppleCallbackForm"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "303": {
+            "description": "ログイン成功 (/) 、または失敗 (/login?oauthError=...) へのリダイレクト"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/apple/login": {
+      "get": {
+        "summary": "Apple の認可エンドポイントへリダイレクトする。`state` と `nonce` を専用 Cookie に入れる\n(Apple は PKCE を文書にしていないので、`code_verifier` は無い。docs/authentication.md)。",
+        "operationId": "apple_login",
+        "responses": {
+          "303": {
+            "description": "Apple の認可画面、または /login (無効時・エラー時) へのリダイレクト"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/email-change/check": {
+      "post": {
+        "summary": "変更のリンクがまだ使えれば、変更先のアドレスを返す (リンクを開いたときに見せて確かめてもらう)。",
+        "operationId": "check_email_change_link",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckLinkRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "リンクは使える",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailChangeTargetResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "リンクが無効・期限切れ・使用済み、またはリクエストボディが不正",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Content-Type が application/json でない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "必須フィールドが無い",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/email-change/complete": {
+      "post": {
+        "summary": "リンクの先で変更を確定し、古いアドレスに知らせる。ログインしていなくても確定できる\n(リンクが新しいアドレスを受け取れることの確かめになるため。サインアップの確認と同じ)。",
+        "operationId": "complete_email_change",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckLinkRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "変更した"
+          },
+          "400": {
+            "description": "リンクが無効・期限切れ・使用済み、またはリクエストボディが不正",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "新しいアドレスが、申し込みの後に別のアカウントで使われた",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Content-Type が application/json でない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "必須フィールドが無い",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/google/callback": {
+      "get": {
+        "summary": "Google からのコールバック。成功・失敗いずれの経路でも必ずリダイレクトで終わる\n(JSON 応答は無い)。",
+        "operationId": "google_callback",
+        "responses": {
+          "303": {
+            "description": "ログイン成功 (/) 、または失敗 (/login?oauthError=...) へのリダイレクト"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/google/login": {
+      "get": {
+        "summary": "Google の認可エンドポイントへリダイレクトする。CSRF (state) 対策・PKCE 用の専用 Cookie\n(`crate::oauth_cookie`) を発行する。無効時は JSON ではなくログイン画面へのリダイレクトに\nする (ブラウザのフルナビゲーションでのみ叩かれる想定のため)。",
+        "operationId": "google_login",
+        "responses": {
+          "303": {
+            "description": "Google の認可画面、または /login (無効時・エラー時) へのリダイレクト"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/line/callback": {
+      "get": {
+        "summary": "LINE からのコールバック。Google と同じく、成否に関わらずリダイレクトで終わる。",
+        "operationId": "line_callback",
+        "responses": {
+          "303": {
+            "description": "ログイン成功 (/) 、または失敗 (/login?oauthError=...) へのリダイレクト"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/line/login": {
+      "get": {
+        "summary": "LINE の認可エンドポイントへリダイレクトする。Google と同じく state・PKCE の専用 Cookie を\n発行し、ID トークンを結び付ける `nonce` もそこに入れる。",
+        "operationId": "line_login",
+        "responses": {
+          "303": {
+            "description": "LINE の認可画面、または /login (無効時・エラー時) へのリダイレクト"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "ログイン成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "リクエストボディが不正 (JSON として解釈できない等)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ユーザー名またはパスワードが正しくない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "アカウントが凍結されている",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Content-Type が application/json でない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "リクエストボディに必須フィールドが無い等",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "ログイン試行回数の上限を超えた",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "summary": "ログイン済みかどうかに関わらず、Cookie が指すセッションを破棄する。\n未ログイン状態での呼び出しはエラーにせず単に成功として扱う。",
+        "operationId": "logout",
+        "responses": {
+          "204": {
+            "description": "ログアウト成功"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "summary": "ログイン中のユーザー情報を返す。フロントエンドは起動時にこれを呼び、\n401 が返れば未ログインとしてログイン画面に遷移する。",
+        "description": "DB 上のユーザー存在確認は `AuthUser` エクストラクタ側で行っている\n(セッションは有効だが削除済みユーザーの場合も 401 になる)。",
+        "operationId": "me",
+        "responses": {
+          "200": {
+            "description": "ログイン中",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "保存されているタイムゾーンが tzdb に存在しない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/password-policy": {
+      "get": {
+        "summary": "パスワードの最小強度 (`[password]` 設定) を返す。パスワードを入力する画面が、条件を\nあらかじめ示し、送信前に同じ規則で確認するために使う (規則の判定自体はサーバーが行う)。",
+        "description": "未認証で叩ける: パスワードを設定する画面はサインアップ・再設定のように未ログインからも\n開くため。最小文字数が分かっても総当たりの助けにはならない。",
+        "operationId": "password_policy",
+        "responses": {
+          "200": {
+            "description": "パスワードの最小強度",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PasswordPolicyResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/password-reset": {
+      "post": {
+        "summary": "再設定を受け付け、メール確認済みのアカウントがあれば再設定のリンクを、確認前のアカウント\nなら確認リンクを送る。",
+        "description": "応答はアカウントの有無に関わらず同じにする。アカウントが無いアドレスにはメールを送らない\n(無関係なアドレスへの送りつけに使わせないため)。",
+        "operationId": "request_password_reset",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordResetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "受け付けた (アカウントが無いメールアドレスでも同じ応答)"
+          },
+          "400": {
+            "description": "リクエストボディが不正 (JSON として解釈できない等)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Content-Type が application/json でない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "メールアドレスとして解釈できない、または必須フィールドが無い",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "同じ接続元からの要求が上限を超えた",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/password-reset/check": {
+      "post": {
+        "summary": "再設定のリンクがまだ使えるかを、使用済みにせずに確かめる (リンクを開いたときに使う)。",
+        "operationId": "check_password_reset_link",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckLinkRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "リンクは使える"
+          },
+          "400": {
+            "description": "リンクが無効・期限切れ・使用済み、またはリクエストボディが不正",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Content-Type が application/json でない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "必須フィールドが無い",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/password-reset/complete": {
+      "post": {
+        "summary": "リンクの先で新しいパスワードを設定する。そのアカウントのセッションはすべて断つ。",
+        "description": "ADR: ログインはさせず、ログイン画面から入り直してもらう。凍結中の拒否や削除予約の取り消しと\nいったログイン時の判定を、ログインの経路だけに保つため。",
+        "operationId": "complete_password_reset",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompletePasswordResetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "再設定した (ログインはしない)"
+          },
+          "400": {
+            "description": "リンクが無効・期限切れ・使用済み、またはリクエストボディが不正",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Content-Type が application/json でない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "パスワードがポリシーを満たさない、または必須フィールドが無い",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "同じ接続元、または全体からの要求が上限を超えた",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/providers": {
+      "get": {
+        "summary": "未認証で叩ける公開エンドポイント。ログイン画面はこれを見て「Googleでログイン」「LINEでログイン」の\n表示可否を判断する (`/auth/me` は未ログイン時に 401 を返すため、この判断には使えない)。",
+        "operationId": "providers",
+        "responses": {
+          "200": {
+            "description": "利用可能な追加のログイン方式",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthProvidersResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/signup": {
+      "post": {
+        "summary": "サインアップを受け付け、メールを送る。",
+        "description": "応答は登録の有無に関わらず同じにし、違いはメールの中身だけにする (メールアドレスから利用の\n有無を探らせないため)。未登録・確認待ちなら確認リンク、確認済みならログインの案内を送る。\n確認リンクを直前に送っていれば、発行し直さず何も送らない。",
+        "operationId": "signup",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "受け付けた (登録済みのメールアドレスでも同じ応答)"
+          },
+          "400": {
+            "description": "リクエストボディが不正 (JSON として解釈できない等)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Content-Type が application/json でない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "メールアドレスとして解釈できない、または必須フィールドが無い",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "同じ接続元からの要求が上限を超えた",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/signup/check": {
+      "post": {
+        "summary": "確認リンクがまだ使えるかを、使用済みにせずに確かめる (リンクを開いたときに使う)。",
+        "operationId": "check_signup_link",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckLinkRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "リンクは使える"
+          },
+          "400": {
+            "description": "リンクが無効・期限切れ・使用済み、またはリクエストボディが不正",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Content-Type が application/json でない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "必須フィールドが無い",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/signup/complete": {
+      "post": {
+        "summary": "確認リンクの先でパスワードを設定し、メールアドレスを確認済みにしてログインさせる。",
+        "operationId": "complete_signup",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompleteSignupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "パスワードを設定し、ログインした"
+          },
+          "400": {
+            "description": "リンクが無効・期限切れ・使用済み、またはリクエストボディが不正",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Content-Type が application/json でない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "パスワードがポリシーを満たさない、または必須フィールドが無い",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "同じ接続元、または全体からの要求が上限を超えた",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/health": {
+      "get": {
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "description": "サーバーが正常に稼働している",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "DB に到達できない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ocr": {
+      "post": {
+        "operationId": "ocr_extract",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/OcrUploadForm"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "読み取り結果 (血圧値が読めなかった場合も200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OcrResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "multipart ボディが不正、または image フィールドが無い",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "写真を Gemini API に送ることに同意していない (`ocr_consent_required`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "同じユーザーの読み取りがまだ終わっていない (`ocr_in_progress`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "画像が10MBを超える",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "画像のMIMEタイプが対応外 (jpeg/png/webp以外)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "全部の読み取りの枠を使い切った (`ocr_budget_exhausted`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Gemini の呼び出し、またはレスポンスの解釈に失敗",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "GEMINI_API_KEY 未設定でOCR機能が無効",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ocr/consent": {
+      "post": {
+        "operationId": "consent_ocr",
+        "responses": {
+          "204": {
+            "description": "写真を Gemini API に送ることに同意した (同意済みなら何もしない)"
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "withdraw_ocr_consent",
+        "responses": {
+          "204": {
+            "description": "同意を取り消した (同意していなければ何もしない)"
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ocr/status": {
+      "get": {
+        "operationId": "ocr_status",
+        "responses": {
+          "200": {
+            "description": "OCR 機能が利用可能かどうか",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OcrStatusResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/payments/apple/account-token": {
+      "post": {
+        "operationId": "apple_account_token",
+        "responses": {
+          "200": {
+            "description": "アカウントの appAccountToken (無ければ作った)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppleAccountTokenResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "アプリ内課金が設定されていない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/payments/apple/notifications": {
+      "post": {
+        "summary": "App Store Server Notifications V2。署名は確かめず、取引を Apple から取り直して反映する。\n認証・CSRF の対象にしない理由は `stripe_webhook` と同じ。",
+        "operationId": "apple_notification",
+        "requestBody": {
+          "description": "responseBodyV2 (`signedPayload`)",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "反映した、または関係の無い通知"
+          },
+          "400": {
+            "description": "形が不正",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "送り元が Apple の範囲ではない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "アプリ内課金が設定されていない、または今は確かめられない (再送させる)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/payments/apple/transactions": {
+      "post": {
+        "summary": "枠は取引の `appAccountToken` の持ち主に付く (送ってきたアカウントとは限らない)。",
+        "operationId": "apple_transaction",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppleTransactionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "取引を Apple から取り直して反映した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppleTransactionResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "送る回数の上限を超えた (アプリは取引を終えず、次の起動で送り直す)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "アプリ内課金が設定されていない (payments_disabled)、または今は確かめられない (app_store_unavailable)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/payments/ocr-topup/checkout": {
+      "post": {
+        "operationId": "ocr_topup_checkout",
+        "responses": {
+          "200": {
+            "description": "Checkout Session を作成した",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OcrTopupCheckoutResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Stripe API 呼び出しに失敗",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Stripe 決済が設定されていない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/payments/ocr-topup/result": {
+      "get": {
+        "operationId": "ocr_topup_result",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "query",
+            "description": "Checkout Session ID (成功URLの `{CHECKOUT_SESSION_ID}` から)。",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "購入結果 (成功・処理待ち・失敗)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OcrTopupResultResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "本人の Session ではない、または存在しない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Stripe API 呼び出しに失敗",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Stripe 決済が設定されていない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/payments/stripe/webhook": {
+      "post": {
+        "summary": "Stripe からの Webhook。署名 (`Stripe-Signature`) 検証は生のリクエストボディに対して行うため、\nJSON 抽出 (`Json<T>`) ではなく `Bytes` で受ける (JSON を経由して再シリアライズすると\n署名が一致しなくなる)。\nブラウザ由来ではないため認証・CSRF 同一オリジンチェックの対象にしない\n(`crate::csrf::same_origin_check` は Origin/Referer が無いリクエストを素通りさせる設計)。",
+        "operationId": "stripe_webhook",
+        "requestBody": {
+          "description": "Stripe Event (生の JSON。署名検証のため型付けしない)",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "受理・処理した (未知のイベント種別も含む)"
+          },
+          "400": {
+            "description": "署名が不正",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Session の再検証等、Stripe API 呼び出しに失敗",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Stripe 決済が設定されていない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/records": {
+      "get": {
+        "operationId": "list_records",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "description": "期間の最初の日 (ユーザーのタイムゾーンでの `YYYY-MM-DD`、この日を含む)。省略時は下限無し。",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2026-09-01"
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "期間の最後の日 (ユーザーのタイムゾーンでの `YYYY-MM-DD`、この日を含む)。省略時は上限無し。",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2026-09-07"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "測定日時の新しい順の一覧",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RecordListItem"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "from/to が日付として解釈できない、または from > to",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "保存されているタイムゾーンが tzdb に存在しない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "create_record",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRecordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "登録成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "リクエストボディが不正 (JSON として解釈できない等)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Content-Type が application/json でない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "必須フィールドが無い、または値域・日時形式が不正",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "保存されているタイムゾーンが tzdb に存在しない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/records/export": {
+      "get": {
+        "operationId": "export_records",
+        "responses": {
+          "200": {
+            "description": "全件のエクスポート結果 (測定日時の古い順)。BOM 付き UTF-8・CRLF 改行の CSV で、先頭にヘッダー行を持つ。`Content-Disposition: attachment` を付与し、ファイル名は `bp-records-<ユーザーのタイムゾーンでの今日の日付>.csv`。本文は CSV テキストのため `body` は String だが、列名と型は `ExportRecordResponse` スキーマに載せてある (measuredAt, systolic, diastolic, pulse, memo の順)",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/records/import": {
+      "post": {
+        "operationId": "import_records",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportRecordsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "置換成功 (`records` に行がある日だけを置き換える。行が1件も無い日の記録には触らない)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportRecordsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "リクエストボディが不正 (JSON として解釈できない等)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "置き換える日の記録が `expected` と一致しない (ほかで変わった)。何も変えない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Content-Type が application/json でない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "records が空・上限件数超過、from/to が日付として解釈できない・from が to より後、または1件以上の値域・日時形式が不正・from〜to の範囲外 (`error.rows` に不正な行の index/message を列挙)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "保存されているタイムゾーンが tzdb に存在しない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/records/latest-date": {
+      "get": {
+        "operationId": "latest_record_date",
+        "responses": {
+          "200": {
+            "description": "最新の記録の日 (記録が無ければ null)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LatestRecordDateResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "保存されているタイムゾーンが tzdb に存在しない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/records/summary": {
+      "get": {
+        "operationId": "summarize_records",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "description": "期間の最初の日 (ユーザーのタイムゾーンでの `YYYY-MM-DD`、この日を含む)。省略時は下限無し。",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2026-09-01"
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "期間の最後の日 (ユーザーのタイムゾーンでの `YYYY-MM-DD`、この日を含む)。省略時は上限無し。",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2026-09-07"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "集計成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordsSummaryResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "from/to が日付として解釈できない、または from > to",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "保存されているタイムゾーンが tzdb に存在しない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/records/{id}": {
+      "get": {
+        "operationId": "get_record",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "レコードID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "記録1件",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "id がパスパラメータとして解釈できない (数値でない等)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "指定した id のレコードが存在しない、または他ユーザーのもの",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "保存されているタイムゾーンが tzdb に存在しない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "update_record",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "更新対象のレコードID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRecordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "更新成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "リクエストボディが不正 (JSON として解釈できない等)、または id がパスパラメータとして解釈できない (数値でない等)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "指定した id のレコードが存在しない、または他ユーザーのもの",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "version が今の記録と違う (ほかで変わった)。更新しない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Content-Type が application/json でない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "必須フィールドが無い、または値域・日時形式が不正",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "保存されているタイムゾーンが tzdb に存在しない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "delete_record",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "削除対象のレコードID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "description": "削除を決めた時点の版番号。今の記録と違えば削除しない。",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "削除成功"
+          },
+          "400": {
+            "description": "id がパスパラメータとして解釈できない (数値でない等)、または version が無い・数値でない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "指定した id のレコードが存在しない、または他ユーザーのもの",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "version が今の記録と違う (ほかで変わった)。削除しない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings": {
+      "get": {
+        "operationId": "get_settings",
+        "responses": {
+          "200": {
+            "description": "取得成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "update_settings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSettingsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "更新成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "リクエストボディが不正 (JSON として解釈できない等)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Content-Type が application/json でない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "タイムゾーン名が tzdb に無い、または朝/夜の時間帯が値域外・開始>=終了・重複",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/detected-timezone": {
+      "put": {
+        "summary": "自動設定のユーザーのタイムゾーンを、アプリを開いたブラウザのタイムゾーンに揃える。手動設定のユーザーは\n変えずに今の設定を返す (別の端末で手動にした直後に上書きしないため)。",
+        "operationId": "update_detected_timezone",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DetectedTimezoneRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "更新後 (手動設定なら変えないまま) の設定",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "リクエストボディが不正 (JSON として解釈できない等)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Content-Type が application/json でない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "タイムゾーン名が tzdb に無い",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/timezones": {
+      "get": {
+        "summary": "選択肢をサーバーから配る。一覧のうち、サーバー同梱の tzdb にある名前だけを返す (tzdb の版しだいで\n「選べるのに保存できない」値を出さないため)。",
+        "operationId": "list_timezones",
+        "responses": {
+          "200": {
+            "description": "取得成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimezonesResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AdminUserDetailResponse": {
+        "type": "object",
+        "description": "管理者が閲覧するアカウント情報。朝/夜の平均は本人の時間帯で分けているため、読み方に要る\nタイムゾーンと時間帯も含める。",
+        "required": [
+          "id",
+          "username",
+          "role",
+          "frozen",
+          "createdAt",
+          "passwordUsable",
+          "googleLinked",
+          "lineLinked",
+          "appleLinked",
+          "timezone",
+          "morningStartMin",
+          "morningEndMin",
+          "eveningStartMin",
+          "eveningEndMin"
+        ],
+        "properties": {
+          "appleLinked": {
+            "type": "boolean",
+            "description": "Apple ID と紐付いているか。"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "登録日時 (UTC、RFC3339)。",
+            "example": "2026-09-07T00:00:00.000Z"
+          },
+          "deletionScheduledAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "削除予定日時 (UTC、RFC3339)。`null` なら予約なし。"
+          },
+          "displayName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "eveningEndMin": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "eveningStartMin": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "frozen": {
+            "type": "boolean"
+          },
+          "googleLinked": {
+            "type": "boolean",
+            "description": "Google アカウントと紐付いているか。"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "lineLinked": {
+            "type": "boolean",
+            "description": "LINE アカウントと紐付いているか。"
+          },
+          "morningEndMin": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "morningStartMin": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "passwordUsable": {
+            "type": "boolean",
+            "description": "ID/PW ログインに使えるパスワードを持つか。"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "timezone": {
+            "type": "string",
+            "description": "IANA タイムゾーン名。",
+            "example": "Asia/Tokyo"
+          },
+          "username": {
+            "type": "string"
+          }
+        }
+      },
+      "AdminUserRecordsResponse": {
+        "type": "object",
+        "description": "管理者が閲覧する血圧記録。本人の画面が一覧と集計を別々に取るのと違い、1回の取得にまとめる。",
+        "required": [
+          "records",
+          "summary"
+        ],
+        "properties": {
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecordListItem"
+            },
+            "description": "測定日時の新しい順。"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/RecordsSummaryResponse"
+          }
+        }
+      },
+      "AdminUserResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "username",
+          "role",
+          "frozen",
+          "ocrSpentYen",
+          "ocrPaidRemainingYen",
+          "passwordUsable",
+          "lastSeenAt"
+        ],
+        "properties": {
+          "deletionOrigin": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DeletionOrigin",
+                "description": "削除予約の起点。`null` なら予約なし。管理者が取り消せるのは `admin` だけ (`inactive` は自動退会) なので、\n一覧の取り消しボタンの出し分けに使う。"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "deletionScheduledAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "削除予定日時 (UTC、RFC3339)。`null` なら予約なし。",
+            "example": "2026-10-12T00:00:00.000Z"
+          },
+          "displayName": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "表示名 (Google ログインで取得したもの)。一覧では、あればこちらを見出しに使う。"
+          },
+          "frozen": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "lastSeenAt": {
+            "type": "string",
+            "description": "最終アクセス (UTC、RFC3339)。ログインとセッションを使った操作で、1日に1回まで更新される。",
+            "example": "2026-09-20T00:00:00.000Z"
+          },
+          "ocrBudgetYen": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "このユーザー個別の OCR 累計金額の上限 (円)。`null` は設定の既定値 (`ocrDefaultBudgetYen`) を使う。\n負値は無制限。"
+          },
+          "ocrPaidRemainingYen": {
+            "type": "integer",
+            "format": "int64",
+            "description": "買い足した枠の残り (円、小数は切り上げ)。無ければ 0。"
+          },
+          "ocrSpentYen": {
+            "type": "integer",
+            "format": "int64",
+            "description": "これまでの読み取りに使った額 (円、小数は切り上げ)。"
+          },
+          "passwordUsable": {
+            "type": "boolean",
+            "description": "ID/PW ログインに使えるパスワードを持つか。`false` (Google 専用アカウント) には\n管理者からパスワードを再設定できないため、一覧のボタンを出さない。"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "username": {
+            "type": "string"
+          }
+        }
+      },
+      "AdminUsersResponse": {
+        "type": "object",
+        "required": [
+          "users",
+          "ocrDefaultBudgetYen"
+        ],
+        "properties": {
+          "ocrDefaultBudgetYen": {
+            "type": "integer",
+            "format": "int64",
+            "description": "`ocrBudgetYen` が `null` のユーザーに適用される既定値 (環境変数 `OCR_FREE_BUDGET_YEN`)。負値は無制限。"
+          },
+          "users": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminUserResponse"
+            }
+          }
+        }
+      },
+      "AppAppleLoginRequest": {
+        "type": "object",
+        "required": [
+          "authorizationCode",
+          "nonce"
+        ],
+        "properties": {
+          "authorizationCode": {
+            "type": "string",
+            "description": "Sign in with Apple が返す認可コード (`authorizationCode`)。"
+          },
+          "familyName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "givenName": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "最初の承認のときだけ Apple が渡す名前 (`fullName` の名・姓)。"
+          },
+          "nonce": {
+            "type": "string",
+            "description": "`/app/auth/nonce` で受け取り、Sign in with Apple の要求に渡した値。"
+          }
+        }
+      },
+      "AppGoogleLoginRequest": {
+        "type": "object",
+        "required": [
+          "serverAuthCode"
+        ],
+        "properties": {
+          "serverAuthCode": {
+            "type": "string",
+            "description": "Google Sign-In が offline モードで返すサーバー用の認可コード (`serverAuthCode`)。"
+          }
+        }
+      },
+      "AppLineLoginRequest": {
+        "type": "object",
+        "required": [
+          "idToken",
+          "accessToken",
+          "nonce"
+        ],
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "LINE SDK が返すアクセストークン。退会・連携の解除のときに、LINE との連携の取り消しに使う。"
+          },
+          "idToken": {
+            "type": "string",
+            "description": "LINE SDK が返す ID トークン。"
+          },
+          "nonce": {
+            "type": "string",
+            "description": "`/app/auth/nonce` で受け取り、LINE SDK に渡した値。"
+          }
+        }
+      },
+      "AppLoginNonceResponse": {
+        "type": "object",
+        "required": [
+          "nonce"
+        ],
+        "properties": {
+          "nonce": {
+            "type": "string",
+            "description": "LINE・Apple の SDK に渡す値。10分以内に、1回のログインにだけ使える。"
+          }
+        }
+      },
+      "AppLoginResponse": {
+        "type": "object",
+        "required": [
+          "token",
+          "user"
+        ],
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "以後のリクエストに `Authorization: Bearer` で付けるトークン。"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserResponse"
+          }
+        }
+      },
+      "AppStoreTransactionStatus": {
+        "type": "string",
+        "description": "アプリから届いた取引を、Apple から取り直して枠に反映した結果。",
+        "enum": [
+          "granted",
+          "already_granted",
+          "rejected"
+        ]
+      },
+      "AppleAccountTokenResponse": {
+        "type": "object",
+        "required": [
+          "appAccountToken"
+        ],
+        "properties": {
+          "appAccountToken": {
+            "type": "string",
+            "description": "購入オプションの `appAccountToken` に渡す UUID (小文字)。アカウントごとに固定。"
+          }
+        }
+      },
+      "AppleCallbackForm": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/CallbackParams"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "user": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "最初の承認のときだけ付く、名前とメールアドレスの JSON。"
+              }
+            }
+          }
+        ]
+      },
+      "AppleTransactionRequest": {
+        "type": "object",
+        "required": [
+          "transactionId",
+          "environment"
+        ],
+        "properties": {
+          "environment": {
+            "type": "string",
+            "description": "StoreKit の `Transaction.environment` の値 (`Production`・`Sandbox`・`Xcode`)。先にこの環境の API から引く。\n`Xcode` (StoreKit のローカルのテスト) の取引は Apple に無いので `rejected` になる。"
+          },
+          "transactionId": {
+            "type": "string",
+            "description": "StoreKit の `Transaction.id`。"
+          }
+        }
+      },
+      "AppleTransactionResponse": {
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/AppStoreTransactionStatus",
+            "description": "どれでもアプリは取引を終える (`finish()`)。エラーの応答なら終えない。"
+          }
+        }
+      },
+      "AuthProvidersResponse": {
+        "type": "object",
+        "required": [
+          "googleEnabled",
+          "lineEnabled",
+          "appleEnabled",
+          "appleAppEnabled",
+          "termsVersion",
+          "betaNotice",
+          "contactUrl",
+          "introUrl"
+        ],
+        "properties": {
+          "appleAppEnabled": {
+            "type": "boolean",
+            "description": "アプリで Apple のログイン (`/app/auth/apple`) を受け付けるか。アプリの中ではこちらで\n「Appleでサインイン」の表示を決める (ウェブと要る設定が違うため。docs/mobile-app.md)。"
+          },
+          "appleEnabled": {
+            "type": "boolean",
+            "description": "`false` の場合、フロントエンドは「Appleでサインイン」を隠す。"
+          },
+          "betaNotice": {
+            "type": "boolean",
+            "description": "`true` の場合、フロントエンドは「オープンβテスト中」のバッジと一文を出す\n(`[server] beta_notice`、docs/architecture.md)。"
+          },
+          "contactUrl": {
+            "type": "string",
+            "description": "問い合わせ先の URL。フロントエンドは「運営者にお問い合わせください」の文言にリンクを添える\n(`[server] contact_url`、docs/architecture.md)。",
+            "example": "https://example.com/contact/"
+          },
+          "googleEnabled": {
+            "type": "boolean",
+            "description": "`false` の場合、フロントエンドは「Googleでログイン」を隠す\n(`GET /ocr/status` の `enabled` と同じ思想)。"
+          },
+          "introUrl": {
+            "type": "string",
+            "description": "紹介ページの URL。空でなければ、ウェブのログイン画面に紹介へのリンクを出す\n(`[server] intro_url`、docs/architecture.md)。",
+            "example": "https://example.com/app/"
+          },
+          "lineEnabled": {
+            "type": "boolean",
+            "description": "`false` の場合、フロントエンドは「LINEでログイン」を隠す。"
+          },
+          "termsVersion": {
+            "type": "string",
+            "description": "利用規約・プライバシーポリシーの版 (docs/data-model.md)。",
+            "example": "1"
+          }
+        }
+      },
+      "BpAverageResponse": {
+        "type": "object",
+        "description": "上下の血圧の平均。対象の記録が無い区分は `null` になる。",
+        "required": [
+          "systolic",
+          "diastolic"
+        ],
+        "properties": {
+          "diastolic": {
+            "type": "number",
+            "format": "double",
+            "example": 82.0
+          },
+          "systolic": {
+            "type": "number",
+            "format": "double",
+            "example": 128.5
+          }
+        }
+      },
+      "CallbackParams": {
+        "type": "object",
+        "description": "コールバックで受け取る値 (Google・LINE はクエリ、Apple はフォーム)。\n\nADR: 抽出には (他のハンドラと違い) `AppQuery` などではなく生の `Query`・`Form` を使う。\n`App*` の抽出失敗は常に JSON envelope の `AppError` になるが、コールバックは失敗時も\n`/login?oauthError=...` へのリダイレクトで返す必要があるため。",
+        "properties": {
+          "code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ユーザーが同意画面でキャンセルした場合等に付く (例: Google の `access_denied`、\nLINE の `ACCESS_DENIED`)。値の中身は使わず、有無だけを見る。"
+          },
+          "state": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "ChangePasswordRequest": {
+        "type": "object",
+        "required": [
+          "currentPassword",
+          "newPassword"
+        ],
+        "properties": {
+          "currentPassword": {
+            "type": "string",
+            "example": "password"
+          },
+          "newPassword": {
+            "type": "string",
+            "example": "new-password"
+          }
+        }
+      },
+      "CharClass": {
+        "type": "string",
+        "description": "パスワードに要求する文字の種類。設定ファイルの値であると同時に、入力欄に条件を示すため\nfrontend へ返す値でもある (`GET /auth/password-policy`)。",
+        "enum": [
+          "digit",
+          "lowercase",
+          "uppercase",
+          "symbol"
+        ]
+      },
+      "CheckLinkRequest": {
+        "type": "object",
+        "description": "リンクの先を開いたときに、リンクがまだ使えるかを尋ねる要求。",
+        "required": [
+          "token"
+        ],
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "メールのリンクに載っていたトークン。"
+          }
+        }
+      },
+      "CompletePasswordResetRequest": {
+        "type": "object",
+        "required": [
+          "token",
+          "password"
+        ],
+        "properties": {
+          "password": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string",
+            "description": "再設定のメールのリンクに載っていたトークン。"
+          }
+        }
+      },
+      "CompleteSignupRequest": {
+        "type": "object",
+        "required": [
+          "token",
+          "password"
+        ],
+        "properties": {
+          "password": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string",
+            "description": "確認メールのリンクに載っていたトークン。"
+          }
+        }
+      },
+      "CreateRecordRequest": {
+        "type": "object",
+        "required": [
+          "localMeasuredAt",
+          "systolic",
+          "diastolic"
+        ],
+        "properties": {
+          "diastolic": {
+            "type": "integer",
+            "format": "int64",
+            "example": 80
+          },
+          "localMeasuredAt": {
+            "type": "string",
+            "description": "測定日時。ユーザーのタイムゾーンでの日時 (`YYYY-MM-DDTHH:MM`、オフセット無し)。",
+            "example": "2026-09-07T07:15"
+          },
+          "memo": {
+            "type": "string"
+          },
+          "pulse": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "example": 65
+          },
+          "systolic": {
+            "type": "integer",
+            "format": "int64",
+            "example": 120
+          }
+        }
+      },
+      "CreateUserRequest": {
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "properties": {
+          "password": {
+            "type": "string",
+            "example": "password"
+          },
+          "role": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Role",
+                "description": "省略時は一般ユーザー。"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "username": {
+            "type": "string",
+            "example": "kyoko"
+          }
+        }
+      },
+      "CreateUserResponse": {
+        "type": "object",
+        "description": "管理画面から作ったユーザー。ユーザーIDは保存される形 (小文字) を返す。",
+        "required": [
+          "id",
+          "username"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "username": {
+            "type": "string",
+            "example": "kyoko"
+          }
+        }
+      },
+      "DailyAveragesResponse": {
+        "type": "object",
+        "description": "グラフ用の1日分。",
+        "required": [
+          "date"
+        ],
+        "properties": {
+          "date": {
+            "type": "string",
+            "description": "ユーザーのタイムゾーンでの日付 (`YYYY-MM-DD`)。",
+            "example": "2026-09-08"
+          },
+          "evening": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BpAverageResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "morning": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BpAverageResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "DayPeriod": {
+        "type": "string",
+        "description": "測定時刻が朝/夜のどちらの時間帯か。",
+        "enum": [
+          "morning",
+          "evening"
+        ]
+      },
+      "DeletionOrigin": {
+        "type": "string",
+        "description": "削除予約の起点 (`users.deletion_origin`、docs/authentication.md)。管理者が起点の予約以外は、\n本人のログインで取り消される (自動退会はセッションでの操作でも、→ [`touch_last_seen`])。",
+        "enum": [
+          "user",
+          "admin",
+          "inactive"
+        ]
+      },
+      "DeletionResponse": {
+        "type": "object",
+        "description": "削除の予約結果。管理者による削除 (`api::admin`) も同じフローを通るため同じ形で返す。",
+        "required": [
+          "deletionScheduledAt",
+          "graceDays"
+        ],
+        "properties": {
+          "deletionScheduledAt": {
+            "type": "string",
+            "description": "削除予定日時 (UTC、RFC3339)。この日時を過ぎると記録ごと物理削除される。",
+            "example": "2026-10-12T00:00:00.000Z"
+          },
+          "graceDays": {
+            "type": "integer",
+            "format": "int64",
+            "description": "猶予期間 (日数)。確認画面の文言と同じ日数を返す。",
+            "example": 30
+          }
+        }
+      },
+      "DetectedTimezoneRequest": {
+        "type": "object",
+        "description": "ブラウザで決まったタイムゾーン。",
+        "required": [
+          "timezone"
+        ],
+        "properties": {
+          "timezone": {
+            "type": "string",
+            "description": "`Intl.DateTimeFormat().resolvedOptions().timeZone` の値。",
+            "example": "Asia/Tokyo"
+          }
+        }
+      },
+      "EmailChangeTargetResponse": {
+        "type": "object",
+        "required": [
+          "newEmail"
+        ],
+        "properties": {
+          "newEmail": {
+            "type": "string",
+            "description": "変更先のメールアドレス。"
+          }
+        }
+      },
+      "ErrorBody": {
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "rows": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/RowError"
+            }
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "description": "レスポンスボディの共通 envelope。`code` が機械可読な契約 (frontend はこちらで表示文言を引く)、\n`message` はローカライズしないデバッグ用の説明文。`rows` は `BatchValidation` のときだけ埋まる。",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorBody"
+          }
+        }
+      },
+      "ExportRecordResponse": {
+        "type": "object",
+        "description": "エクスポート1行分。主キーは含めない (インポートは日付で照合するため不要、docs/import-export.md)。",
+        "required": [
+          "measuredAt",
+          "systolic",
+          "diastolic",
+          "memo"
+        ],
+        "properties": {
+          "diastolic": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "measuredAt": {
+            "type": "string",
+            "description": "ユーザーのタイムゾーンでの日時 (`YYYY-MM-DD HH:MM`)。表計算ソフトで開いたときに、画面・\n印刷と同じ時刻に見え、日時として読まれるため (docs/import-export.md)。",
+            "example": "2026-09-25 07:15"
+          },
+          "memo": {
+            "type": "string"
+          },
+          "pulse": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "systolic": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "HealthResponse": {
+        "type": "object",
+        "required": [
+          "status",
+          "version"
+        ],
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        }
+      },
+      "ImportRecordsRequest": {
+        "type": "object",
+        "required": [
+          "from",
+          "to",
+          "records",
+          "expected"
+        ],
+        "properties": {
+          "expected": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecordVersion"
+            },
+            "description": "確認画面を出した時点の、置き換える日 (`records` に行がある日) の既存の記録。今のその日の記録と\n過不足なく一致しなければ、ほかで変わったとして取り込まない (docs/import-export.md)。"
+          },
+          "from": {
+            "type": "string",
+            "format": "date",
+            "description": "`records` が収まっているべき範囲の最初の日 (ユーザーのタイムゾーンでの `YYYY-MM-DD`、\nこの日を含む)。置き換えるのはこの範囲すべてではなく、`records` に行がある日だけ。",
+            "example": "2026-09-01"
+          },
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateRecordRequest"
+            },
+            "description": "取り込む行。行がある日だけを、その日ごと丸ごと置き換える。"
+          },
+          "to": {
+            "type": "string",
+            "format": "date",
+            "description": "`records` が収まっているべき範囲の最後の日 (ユーザーのタイムゾーンでの `YYYY-MM-DD`、\nこの日を含む)。",
+            "example": "2026-09-07"
+          }
+        }
+      },
+      "ImportRecordsResponse": {
+        "type": "object",
+        "required": [
+          "deleted",
+          "created"
+        ],
+        "properties": {
+          "created": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecordResponse"
+            }
+          },
+          "deleted": {
+            "type": "integer",
+            "format": "int64",
+            "description": "置き換えた日 (`records` に行がある日) の中で削除された既存レコード数。",
+            "minimum": 0
+          }
+        }
+      },
+      "LatestRecordDateResponse": {
+        "type": "object",
+        "description": "最新の記録の日。",
+        "properties": {
+          "date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "測定日時が最も新しい記録の、ユーザーのタイムゾーンでの日付 (`YYYY-MM-DD`)。記録が1件も無ければ `null`。\n未来の日時の記録 (誤入力など) は数えない。",
+            "example": "2026-09-08"
+          }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "properties": {
+          "password": {
+            "type": "string",
+            "example": "password"
+          },
+          "username": {
+            "type": "string",
+            "example": "admin"
+          }
+        }
+      },
+      "MeResponse": {
+        "type": "object",
+        "description": "ログイン中ユーザー。ログイン応答 (`UserResponse`) と違い、画面の表示に要る個人設定も返す。",
+        "required": [
+          "id",
+          "username",
+          "timezone",
+          "timezoneAuto",
+          "role",
+          "passwordUsable",
+          "linkedProviders"
+        ],
+        "properties": {
+          "avatarUrl": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "プロフィール画像の URL。Google ログインで取得したものだけ (無ければ `null`)。"
+          },
+          "deletionOrigin": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DeletionOrigin",
+                "description": "削除予約の起点。予約が無ければ `null`。本人が起点なら、ログインし直すと取り消せると案内する。"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "deletionScheduledAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "削除予定日時 (UTC、RFC3339)。予約が無ければ `null`。設定画面に予定日を出す (docs/authentication.md)。",
+            "example": "2026-10-12T00:00:00.000Z"
+          },
+          "displayName": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "表示名。Google ログインで取得したプロフィールの名前 (無ければ `null`)。"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "linkedProviders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Provider"
+            },
+            "description": "連携している外部アカウント。設定画面の「ログイン方法」に並べる。"
+          },
+          "passwordUsable": {
+            "type": "boolean",
+            "description": "ID/PW ログインに使えるパスワードを持つか (`users.password_usable`)。`false` (Google 専用\nアカウント) では、設定画面に「パスワードを変更」の行を出さない。"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role",
+            "description": "権限。frontend は管理者向けの導線の表示可否をこれで判断する。"
+          },
+          "timezone": {
+            "type": "string",
+            "description": "個人設定のタイムゾーン (IANA 名)。frontend は「今日」「現在時刻」をこのタイムゾーンで求める。",
+            "example": "Asia/Tokyo"
+          },
+          "timezoneAuto": {
+            "type": "boolean",
+            "description": "タイムゾーンが自動設定か。`true` なら、frontend はブラウザのタイムゾーンが `timezone` と違うときに\n`PUT /settings/detected-timezone` で揃える。"
+          },
+          "username": {
+            "type": "string"
+          }
+        }
+      },
+      "OcrPeriod": {
+        "type": "string",
+        "enum": [
+          "morning",
+          "evening"
+        ]
+      },
+      "OcrQuotaKind": {
+        "type": "string",
+        "enum": [
+          "paid",
+          "free"
+        ]
+      },
+      "OcrQuotaResponse": {
+        "type": "object",
+        "required": [
+          "kind",
+          "purchasedAt",
+          "remainingPercent"
+        ],
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/OcrQuotaKind"
+          },
+          "purchasedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "購入日時 (UTC、RFC3339)。無料の枠は `null`。",
+            "example": "2026-09-27T00:00:00.000Z"
+          },
+          "remainingPercent": {
+            "type": "integer",
+            "format": "int64",
+            "description": "残りの割合 (%)。0〜100 の整数で、使い切りだけが 0。"
+          }
+        }
+      },
+      "OcrReading": {
+        "type": "object",
+        "description": "血圧値 1 件分の読み取り結果。単発読み取り (`OcrResult::reading`) と手書きメモの\n行ごとの読み取り結果 (`OcrResult::readings`) の両方で共用する。`measured_on`/`time`/`note`\nは手書きメモでのみ使う (単発読み取りでは常に `None`)。",
+        "required": [
+          "systolic",
+          "diastolic",
+          "pulse",
+          "confidence"
+        ],
+        "properties": {
+          "confidence": {
+            "type": "number",
+            "format": "double",
+            "description": "0.0-1.0。読み取りの自信度 (フロントエンドで高・中・低の3段階の表示に変換する)。\n省略時は 0.0 (最も低い信頼度) 扱いにする (理由は systolic 等と同じ)。",
+            "example": 0.95
+          },
+          "diastolic": {
+            "type": "integer",
+            "format": "int64",
+            "example": 82
+          },
+          "measuredOn": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "\"MM-DD\" 形式。手書きメモでのみ使う。",
+            "example": "09-05"
+          },
+          "memo": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "手帳でその行に添えて書かれた文章 (体調・服薬など)。記録のメモ欄に取り込む。\n手書きメモでのみ使う。"
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "この行について Gemini が補足したいこと (判読できない字・曖昧な時刻表現等)。\n手書きメモでのみ使う。"
+          },
+          "period": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/OcrPeriod",
+                "description": "手帳でその行に添えて書かれた朝・夜 (「朝」「起床時」「夜」「就寝前」など)。時刻の無い行に\n仮の時刻を振るときに使う。書かれていない・どちらとも取れない行は `None`。手書きメモでのみ使う。"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "pulse": {
+            "type": "integer",
+            "format": "int64",
+            "example": 70
+          },
+          "systolic": {
+            "type": "integer",
+            "format": "int64",
+            "example": 128
+          },
+          "time": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "\"HH:MM\" 形式。手書きメモでのみ使う。時刻が読み取れない行は `None` のまま\n(でっち上げない)。",
+            "example": "07:30"
+          }
+        }
+      },
+      "OcrResult": {
+        "type": "object",
+        "description": "クライアントに返す OCR 結果。\n\n- `monitor_bp`: 血圧計液晶の単発読み取り。血圧値が読み取れた (`reading` を必ず埋める)\n- `monitor_none`: 液晶だが血圧値以外 (日時・気温など) が表示されている\n- `memo`: 手書きの血圧記録メモ (複数行)。行ごとの読み取り結果を `readings` に埋める\n- `unknown`: 血圧計の液晶・手書きメモのいずれとも判定できなかった",
+        "required": [
+          "kind",
+          "usage"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rawDisplay": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reading": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/OcrReading"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "readings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OcrReading"
+            },
+            "description": "`memo` のときの行ごとの読み取り結果。他の `kind` では空配列。"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/OcrUsage"
+          }
+        }
+      },
+      "OcrStatusResponse": {
+        "type": "object",
+        "required": [
+          "enabled",
+          "quotas",
+          "quotaLow",
+          "topupAvailable",
+          "appStoreTopupAvailable",
+          "consented"
+        ],
+        "properties": {
+          "appStoreTopupAvailable": {
+            "type": "boolean",
+            "description": "アプリで、アプリ内課金で読み取りを買い足せるか。App Store Server API の鍵の設定があり、\n無料の枠に上限があるとき `true`。アプリは `topupAvailable` でなくこちらを見る。"
+          },
+          "consented": {
+            "type": "boolean",
+            "description": "写真を Gemini API に送ることに同意しているか。`false` なら、画面は読み取る前に同意を求める。"
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "`false` の場合、フロントエンドは OCR 機能自体を隠す。"
+          },
+          "quotaLow": {
+            "type": "boolean",
+            "description": "全部の枠を足した残りが、買い足し1回分の20%以下か (使い切りを含む。無制限なら `false`)。"
+          },
+          "quotas": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/OcrQuotaResponse"
+            },
+            "description": "読み取りの枠を使う順 (購入の枠を買った順、無料の枠は最後) に並べたもの。\n無料の枠が無制限なら `null` (画面には出さない、docs/ocr.md)。空なら使える枠が無い。"
+          },
+          "topupAvailable": {
+            "type": "boolean",
+            "description": "読み取りを買い足せるか。Stripe 決済が有効で、無料の枠に上限があるとき `true`。"
+          }
+        }
+      },
+      "OcrTopupCheckoutResponse": {
+        "type": "object",
+        "required": [
+          "checkoutUrl"
+        ],
+        "properties": {
+          "checkoutUrl": {
+            "type": "string",
+            "description": "この URL へ遷移すると Stripe-hosted Checkout が開く。"
+          }
+        }
+      },
+      "OcrTopupResultResponse": {
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/OcrTopupResultStatus"
+          }
+        }
+      },
+      "OcrTopupResultStatus": {
+        "type": "string",
+        "enum": [
+          "processing",
+          "succeeded",
+          "failed"
+        ]
+      },
+      "OcrUploadForm": {
+        "type": "object",
+        "description": "OpenAPI ドキュメント用のダミー型 (実際の抽出は `AppMultipart` で行う)。\nutoipa-axum はハンドラ引数から `multipart/form-data` を認識できないため、\n`request_body` として明示的に指定する。",
+        "required": [
+          "image"
+        ],
+        "properties": {
+          "image": {
+            "type": "string",
+            "format": "binary"
+          }
+        }
+      },
+      "OcrUsage": {
+        "type": "object",
+        "required": [
+          "inputTokens",
+          "outputTokens"
+        ],
+        "properties": {
+          "inputTokens": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "outputTokens": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "PasswordPolicyResponse": {
+        "type": "object",
+        "required": [
+          "minLength",
+          "requiredClasses"
+        ],
+        "properties": {
+          "minLength": {
+            "type": "integer",
+            "description": "最小の文字数。",
+            "example": 4,
+            "minimum": 0
+          },
+          "requiredClasses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CharClass"
+            },
+            "description": "少なくとも1文字ずつ含める必要がある文字種。空なら文字種は問わない。"
+          }
+        }
+      },
+      "PasswordResetRequest": {
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "kyoko@example.com"
+          }
+        }
+      },
+      "Provider": {
+        "type": "string",
+        "description": "ログインに使う外部のアカウントの提供元 (`oauth_identities.provider`)。",
+        "enum": [
+          "google",
+          "line",
+          "apple"
+        ]
+      },
+      "RecordListItem": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/RecordResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "dayPeriod": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/DayPeriod",
+                    "description": "ユーザーのタイムゾーン・朝/夜の時間帯で判定した区分。どちらにも属さない時刻なら `null`。"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "description": "一覧の1件。登録・更新の応答と違い、表示用に朝/夜の区分を付ける\n(登録・更新の後は frontend が一覧を取り直すため、そちらには付けない)。"
+      },
+      "RecordResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "localMeasuredAt",
+          "systolic",
+          "diastolic",
+          "memo",
+          "version"
+        ],
+        "properties": {
+          "diastolic": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "localMeasuredAt": {
+            "type": "string",
+            "description": "ユーザーのタイムゾーンでの測定日時 (`YYYY-MM-DDTHH:MM`)。\n\nADR: UTC の値は返さない。frontend が端末のタイムゾーンで表示してしまう余地を残さないため。",
+            "example": "2026-09-07T07:15"
+          },
+          "memo": {
+            "type": "string"
+          },
+          "pulse": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "systolic": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64",
+            "description": "版番号。直す・消す・取り込むときに、この値をそのまま送る。",
+            "example": 1
+          }
+        }
+      },
+      "RecordVersion": {
+        "type": "object",
+        "description": "記録の `id` と版番号の組。",
+        "required": [
+          "id",
+          "version"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "RecordsSummaryResponse": {
+        "type": "object",
+        "description": "期間全体の朝/夜の平均と、グラフ用の日別系列。",
+        "required": [
+          "days"
+        ],
+        "properties": {
+          "days": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DailyAveragesResponse"
+            },
+            "description": "日付の昇順。朝夜どちらの時間帯にも記録が無い日は含まれない。"
+          },
+          "evening": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BpAverageResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "morning": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BpAverageResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "RequestEmailChangeRequest": {
+        "type": "object",
+        "required": [
+          "newEmail"
+        ],
+        "properties": {
+          "currentPassword": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "今のパスワード。パスワードを持つアカウントだけ必須 (持たないアカウントは送らない)。"
+          },
+          "newEmail": {
+            "type": "string",
+            "example": "new@example.com"
+          }
+        }
+      },
+      "ResetPasswordRequest": {
+        "type": "object",
+        "required": [
+          "password"
+        ],
+        "properties": {
+          "password": {
+            "type": "string",
+            "example": "new-password"
+          }
+        }
+      },
+      "Role": {
+        "type": "string",
+        "description": "ユーザーの権限 (docs/authentication.md)。`users.role` の 'user' | 'admin' に対応する。",
+        "enum": [
+          "user",
+          "admin"
+        ]
+      },
+      "RowError": {
+        "type": "object",
+        "description": "バッチ処理で 1 行の検証が失敗したことを表す。`index` はリクエスト配列内の 0 始まりの位置。",
+        "required": [
+          "index",
+          "message"
+        ],
+        "properties": {
+          "index": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "SetFrozenRequest": {
+        "type": "object",
+        "required": [
+          "frozen"
+        ],
+        "properties": {
+          "frozen": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SetOcrLimitRequest": {
+        "type": "object",
+        "properties": {
+          "ocrBudgetYen": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "累計金額 (無料枠) の上限 (円)。`null` (省略も同じ) は設定の既定値 (`ocrDefaultBudgetYen`) に従う。\n`-1` は無制限、`0` はもう読み取れない。",
+            "example": 80
+          }
+        }
+      },
+      "SettingsResponse": {
+        "type": "object",
+        "description": "個人設定。時刻は「その日の 0:00 からの経過分数」で表す (24:00 を表せるよう上限は 1440)。",
+        "required": [
+          "timezone",
+          "timezoneAuto",
+          "morningStartMin",
+          "morningEndMin",
+          "eveningStartMin",
+          "eveningEndMin"
+        ],
+        "properties": {
+          "eveningEndMin": {
+            "type": "integer",
+            "format": "int64",
+            "example": 1440
+          },
+          "eveningStartMin": {
+            "type": "integer",
+            "format": "int64",
+            "example": 1080
+          },
+          "morningEndMin": {
+            "type": "integer",
+            "format": "int64",
+            "example": 600
+          },
+          "morningStartMin": {
+            "type": "integer",
+            "format": "int64",
+            "example": 240
+          },
+          "timezone": {
+            "type": "string",
+            "description": "IANA タイムゾーン名。自動設定のときは、最後にアプリを開いたブラウザのタイムゾーン。",
+            "example": "Asia/Tokyo"
+          },
+          "timezoneAuto": {
+            "type": "boolean",
+            "description": "タイムゾーンが自動設定か。"
+          }
+        }
+      },
+      "SignupRequest": {
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "kyoko@example.com"
+          }
+        }
+      },
+      "TimezonesResponse": {
+        "type": "object",
+        "description": "設定画面のタイムゾーン選択肢。",
+        "required": [
+          "timezones"
+        ],
+        "properties": {
+          "timezones": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "手動で選べる IANA タイムゾーン名 (`timezones::TIMEZONE_CHOICES`)。並びは表示側が決める。"
+          }
+        }
+      },
+      "UpdateRecordRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/CreateRecordRequest"
+          },
+          {
+            "type": "object",
+            "required": [
+              "version"
+            ],
+            "properties": {
+              "version": {
+                "type": "integer",
+                "format": "int64",
+                "description": "フォームを開いた時点の版番号。今の記録と違えば更新しない。",
+                "example": 1
+              }
+            }
+          }
+        ]
+      },
+      "UpdateSettingsRequest": {
+        "type": "object",
+        "description": "更新リクエスト。全項目を必須にして、部分更新は扱わない (設定画面が常に全項目を持つため)。",
+        "required": [
+          "timezone",
+          "timezoneAuto",
+          "morningStartMin",
+          "morningEndMin",
+          "eveningStartMin",
+          "eveningEndMin"
+        ],
+        "properties": {
+          "eveningEndMin": {
+            "type": "integer",
+            "format": "int64",
+            "example": 1440
+          },
+          "eveningStartMin": {
+            "type": "integer",
+            "format": "int64",
+            "example": 1080
+          },
+          "morningEndMin": {
+            "type": "integer",
+            "format": "int64",
+            "example": 600
+          },
+          "morningStartMin": {
+            "type": "integer",
+            "format": "int64",
+            "example": 240
+          },
+          "timezone": {
+            "type": "string",
+            "description": "自動設定にするときは、ブラウザのタイムゾーンを送る。",
+            "example": "Asia/Tokyo"
+          },
+          "timezoneAuto": {
+            "type": "boolean",
+            "description": "自動設定にするか (手動で選んだら `false`)。"
+          }
+        }
+      },
+      "UserResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "username",
+          "deletionCancelled"
+        ],
+        "properties": {
+          "deletionCancelled": {
+            "type": "boolean",
+            "description": "猶予期間中だったアカウント削除を、このログインで取り消したか (docs/authentication.md)。\n取り消しは専用の操作ではなくログインの副作用のため、利用者に知らせる必要がある。"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "username": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

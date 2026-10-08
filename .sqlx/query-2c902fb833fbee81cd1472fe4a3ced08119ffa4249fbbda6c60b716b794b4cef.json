@@ -1,0 +1,32 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT password_hash, password_usable, session_generation AS \"session_generation!: i64\"\n               FROM users WHERE id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "password_hash",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "password_usable",
+        "ordinal": 1,
+        "type_info": "Integer"
+      },
+      {
+        "name": "session_generation!: i64",
+        "ordinal": 2,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "2c902fb833fbee81cd1472fe4a3ced08119ffa4249fbbda6c60b716b794b4cef"
+}

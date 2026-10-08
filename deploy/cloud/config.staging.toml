@@ -1,0 +1,59 @@
+# 検証用 (app: fly.staging.toml) の config.toml (DEVELOPMENT.md「デプロイ」)。
+# イメージに入れ、起動のたびに start.sh が /data/config.toml へ写す。項目の意味は config.example.toml を参照。
+
+[server]
+# 外からは fly-proxy 経由でしか届かない。IPv6 で待ち受けないので、6PN (同じ組織の他の app・WireGuard) からは直接届かない。
+bind = "0.0.0.0"
+port = 3000
+# fly-proxy が Machine へつなぐ接続元 (DEVELOPMENT.md「接続元を確かめる」)。
+trusted_proxies = ["172.16.0.0/12"]
+# fly-proxy は X-Forwarded-Proto / -Host をクライアントの値のまま渡すので、Fly-* だけを読む。
+proxy_headers = "fly"
+public_url = "https://bp-carnet-staging.fly.dev"
+# オープンβテストは終えたので、その表示を出さない (DEVELOPMENT.md「デプロイ」)。
+beta_notice = false
+# アカウントの衝突・凍結などの案内から、amiiby.com の問い合わせフォームへ導く (docs/architecture.md)。
+contact_url = "https://amiiby.com/about/#contact"
+# ログイン画面から、amiiby.com の紹介ページへ導く (docs/architecture.md)。
+intro_url = "https://amiiby.com/bp-carnet/"
+
+[session]
+# HTTPS は fly-proxy が終端する。
+secure_cookie = true
+
+[mail]
+# DMARC (p=none → p=quarantine) の検証用に本番同様の設定を入れる。
+# ADR: from はプラスアドレス (noreply+staging@…) にしない。Resend 経由だと SMTP レベルでは
+# 成功扱いになるのに実際には配送されない (2026-09-23 に実測、原因不明)。本番と同じ plain な
+# from を使い、検証用からの送信かはメール本文中のリンクのドメイン (bp-carnet-staging.fly.dev)
+# で見分ける。
+# パスワード (Resend の API キー) は Fly のシークレット SMTP_PASSWORD (staging 用)。
+host = "smtp.resend.com"
+tls = "starttls"
+port = 587
+username = "resend"
+from = "BP Carnet <noreply@bp.amiiby.com>"
+
+[log]
+filter = "bp_carnet=info,tower_http=info"
+
+[inactivity]
+# 最終アクセスからこの日数 (12か月) がたったアカウントを、予告のメールのうえで自動退会させる
+# (docs/authentication.md)。
+delete_after_days = 365
+
+# 写真の読み取りの無料枠・買い足し1回の量・Gemini の単価は、Fly のシークレット (`fly secrets set --app bp-carnet-staging`) の
+# OCR_FREE_BUDGET_YEN・OCR_TOPUP_GRANT_YEN・OCR_INPUT_USD_PER_MILLION_TOKENS・
+# OCR_OUTPUT_USD_PER_MILLION_TOKENS・OCR_JPY_PER_USD で与える (DEVELOPMENT.md「写真の読み取りの無料枠・単価を変える」)。
+
+[payments.stripe]
+# 検証用は Stripe のサンドボックスにつなぐ。
+# 環境変数 STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET / STRIPE_OCR_TOPUP_PRICE_ID / STRIPE_TAX_RATE_ID は
+# Fly のシークレット (`fly secrets set --app bp-carnet-staging`) 側に置く。
+enabled = true
+checkout_success_url = "https://bp-carnet-staging.fly.dev/payments/ocr-topup/result?session_id={CHECKOUT_SESSION_ID}"
+checkout_cancel_url = "https://bp-carnet-staging.fly.dev/record/photo"
+
+[mobile_app]
+# API を変えて古い版のアプリと合わなくなったら、合う一番古い版を書く (docs/mobile-app.md)。
+# min_version = "1.0"

@@ -1,0 +1,110 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT id AS \"id!: i64\", username, display_name, role AS \"role: Role\", frozen,\n                  deletion_scheduled_at, created_at, password_usable,\n                  EXISTS (SELECT 1 FROM oauth_identities\n                          WHERE user_id = users.id AND provider = 'google') AS \"google_linked!: bool\",\n                  EXISTS (SELECT 1 FROM oauth_identities\n                          WHERE user_id = users.id AND provider = 'line') AS \"line_linked!: bool\",\n                  EXISTS (SELECT 1 FROM oauth_identities\n                          WHERE user_id = users.id AND provider = 'apple') AS \"apple_linked!: bool\",\n                  timezone, morning_start_min, morning_end_min, evening_start_min, evening_end_min\n           FROM users WHERE id = ? AND email_verified = 1",
+  "describe": {
+    "columns": [
+      {
+        "name": "id!: i64",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "username",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "display_name",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "role: Role",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "frozen",
+        "ordinal": 4,
+        "type_info": "Integer"
+      },
+      {
+        "name": "deletion_scheduled_at",
+        "ordinal": 5,
+        "type_info": "Text"
+      },
+      {
+        "name": "created_at",
+        "ordinal": 6,
+        "type_info": "Text"
+      },
+      {
+        "name": "password_usable",
+        "ordinal": 7,
+        "type_info": "Integer"
+      },
+      {
+        "name": "google_linked!: bool",
+        "ordinal": 8,
+        "type_info": "Integer"
+      },
+      {
+        "name": "line_linked!: bool",
+        "ordinal": 9,
+        "type_info": "Integer"
+      },
+      {
+        "name": "apple_linked!: bool",
+        "ordinal": 10,
+        "type_info": "Integer"
+      },
+      {
+        "name": "timezone",
+        "ordinal": 11,
+        "type_info": "Text"
+      },
+      {
+        "name": "morning_start_min",
+        "ordinal": 12,
+        "type_info": "Integer"
+      },
+      {
+        "name": "morning_end_min",
+        "ordinal": 13,
+        "type_info": "Integer"
+      },
+      {
+        "name": "evening_start_min",
+        "ordinal": 14,
+        "type_info": "Integer"
+      },
+      {
+        "name": "evening_end_min",
+        "ordinal": 15,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "70b3256537b23211adbe51e95c6261da5f3b6808ff2172b00bfef854bdd80f9f"
+}

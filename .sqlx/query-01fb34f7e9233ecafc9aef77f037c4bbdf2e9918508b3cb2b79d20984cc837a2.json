@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT 1 AS \"value!: i64\" FROM stripe_webhook_events\n         WHERE checkout_session_id = ? AND status = 'processed'\n           AND event_type = 'checkout.session.async_payment_failed'\n         LIMIT 1",
+  "describe": {
+    "columns": [
+      {
+        "name": "value!: i64",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "01fb34f7e9233ecafc9aef77f037c4bbdf2e9918508b3cb2b79d20984cc837a2"
+}

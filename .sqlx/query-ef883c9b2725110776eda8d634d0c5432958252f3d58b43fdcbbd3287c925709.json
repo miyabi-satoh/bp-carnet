@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE app_tokens SET last_used_at = '2000-01-01T00:00:00.000Z' WHERE id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "ef883c9b2725110776eda8d634d0c5432958252f3d58b43fdcbbd3287c925709"
+}

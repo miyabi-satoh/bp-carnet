@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT CAST(julianday(?) - julianday('now') AS INTEGER) AS \"days!: i64\"",
+  "describe": {
+    "columns": [
+      {
+        "name": "days!: i64",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "fa6bf613ac91257bbfcc6add63141b12f52f4e3ab7d8dcecdb2d0fceeb7664db"
+}

@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT COUNT(*) AS \"value!: i64\"\n           FROM ocr_quota_grants WHERE user_id = ? AND stripe_checkout_session_id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "value!: i64",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "3dd1ad42bd1922f5a02d3aeba8bff0af64de87370216ca745c080da41b9d931e"
+}

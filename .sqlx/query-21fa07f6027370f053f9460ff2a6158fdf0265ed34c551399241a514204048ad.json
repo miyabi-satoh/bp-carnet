@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT password_hash, password_usable AS \"password_usable!: bool\" FROM users WHERE id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "password_hash",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "password_usable!: bool",
+        "ordinal": 1,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "21fa07f6027370f053f9460ff2a6158fdf0265ed34c551399241a514204048ad"
+}

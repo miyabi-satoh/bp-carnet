@@ -1,0 +1,47 @@
+version: 2
+
+# 各エコシステムの定期バージョン更新を1本のPRにまとめる。個別PRだとレビューの手間が
+# 依存の数だけ増えるため。間隔を monthly にしているのも同じ理由。
+# `applies-to` の既定値は version-updates なので、脆弱性対応の security update は
+# 従来どおり依存ごとにPRが作られる (個別に判断したいので、まとめない)。
+updates:
+  - package-ecosystem: "cargo"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    groups:
+      cargo:
+        patterns: ["*"]
+    ignore:
+      # tower-sessions-sqlx-store 0.15 系が対応する組み合わせとして sqlx は 0.8系、
+      # tower-sessions は 0.14系に固定している。0.x系は minor の繰り上がりも破壊的変更を
+      # 意味しうるため、semver-minor も合わせて無視し patch 更新のみ自動PR化する
+      # (固定バージョンを上げる場合は手動で Cargo.toml を更新すること)。
+      - dependency-name: "sqlx"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      - dependency-name: "tower-sessions"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      - dependency-name: "tower-sessions-sqlx-store"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    groups:
+      github-actions:
+        patterns: ["*"]
+
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "monthly"
+    groups:
+      npm:
+        patterns: ["*"]
+    ignore:
+      # typescript-eslint 8系は TS 7.0 を明示的に拒否する (起動時にエラー終了し `just lint` が
+      # 通らない)。TS >=7.1 の対応は typescript-eslint#10940 で追跡中のため、それまで
+      # semver-major を無視する。対応が入ったらこの ignore ごと削除して手動で上げること。
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]

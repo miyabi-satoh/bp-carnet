@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO ocr_usage_records (used_at, kind, used_milli_yen, sales_milli_yen) VALUES (?, 'free', ?, 0)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "51124d182a4f572899b51914dc7bfb3b3fbb8ea0243630ec99ff1e9d430de575"
+}

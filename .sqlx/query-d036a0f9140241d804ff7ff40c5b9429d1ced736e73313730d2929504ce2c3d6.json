@@ -1,0 +1,44 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        SELECT\n            measured_at AS \"measured_at!: String\",\n            systolic AS \"systolic!: i64\",\n            diastolic AS \"diastolic!: i64\",\n            pulse AS \"pulse: i64\",\n            memo AS \"memo!: String\"\n        FROM bp_records\n        WHERE user_id = ?\n        ORDER BY measured_at ASC, id ASC\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "measured_at!: String",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "systolic!: i64",
+        "ordinal": 1,
+        "type_info": "Integer"
+      },
+      {
+        "name": "diastolic!: i64",
+        "ordinal": 2,
+        "type_info": "Integer"
+      },
+      {
+        "name": "pulse: i64",
+        "ordinal": 3,
+        "type_info": "Integer"
+      },
+      {
+        "name": "memo!: String",
+        "ordinal": 4,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      false
+    ]
+  },
+  "hash": "d036a0f9140241d804ff7ff40c5b9429d1ced736e73313730d2929504ce2c3d6"
+}

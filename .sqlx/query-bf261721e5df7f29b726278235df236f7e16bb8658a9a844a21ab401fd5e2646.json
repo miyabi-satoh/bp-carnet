@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT ocr_consented_at IS NOT NULL AS \"consented!: bool\" FROM users WHERE id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "consented!: bool",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "bf261721e5df7f29b726278235df236f7e16bb8658a9a844a21ab401fd5e2646"
+}

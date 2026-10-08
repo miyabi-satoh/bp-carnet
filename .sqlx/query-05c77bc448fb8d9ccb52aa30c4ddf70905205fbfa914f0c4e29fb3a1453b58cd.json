@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE users\n         SET last_seen_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),\n             inactivity_notice_days = NULL,\n             deletion_scheduled_at = CASE WHEN deletion_origin = 'inactive' THEN NULL ELSE deletion_scheduled_at END,\n             deletion_origin = CASE WHEN deletion_origin = 'inactive' THEN NULL ELSE deletion_origin END\n         WHERE id = ?\n           AND (deletion_origin = 'inactive'\n                OR COALESCE(last_seen_at, created_at) < strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '-1 day'))",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "05c77bc448fb8d9ccb52aa30c4ddf70905205fbfa914f0c4e29fb3a1453b58cd"
+}

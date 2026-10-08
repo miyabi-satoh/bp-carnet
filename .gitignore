@@ -1,0 +1,19 @@
+*.local.*
+.DS_Store
+
+# ローカル実行時のデータ (BP_CARNET_HOME=data/dev-runtime のように使う場合用)
+/data
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# sqlx-cli / sqlx::query! マクロ用 (DATABASE_URL は各自ローカルで設定する)
+.env
+
+# `just spec` の生成物 (スクリーンショット込みの画面ごとの仕様書)
+/docs/generated
+
+# Added by cargo
+
+/target

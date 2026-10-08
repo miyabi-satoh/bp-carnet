@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE ocr_quota_grants SET apple_signed_date = ? WHERE id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "c07cc7c3123ecd92cfaba0ec1de46345c4b08285cbc8511a02e2b5246baeee99"
+}

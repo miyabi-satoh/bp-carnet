@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE users SET session_generation = session_generation + 1 WHERE id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "29a467ee9bf625c685a21d673e1149331f10056615725a2d39c8cae33d1e50bc"
+}

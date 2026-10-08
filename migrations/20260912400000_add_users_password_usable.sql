@@ -1,0 +1,11 @@
+-- users.password_usable を追加する (docs/design.md 10章)。
+--
+-- 0 なら ID/PW ログインに使えるパスワードを持たない (OAuth 専用アカウント)。画面が
+-- 「パスワードを変更」の行を出すかの判定に使う。認証の可否は引き続き password_hash が
+-- 決める (OAuth 専用アカウントには絶対に一致しないハッシュが入っているため、この列が
+-- 壊れても ID/PW ログインは通らない)。
+--
+-- 既定値は 1 にし、OAuth 専用として作る経路で明示的に 0 を入れる。既存行は 1 のままに
+-- する: 公開前で開発用データしか無く、取り違えて 0 にすると ID/PW アカウントから
+-- パスワード変更の行が消える方が痛いため。
+ALTER TABLE users ADD COLUMN password_usable INTEGER NOT NULL DEFAULT 1;

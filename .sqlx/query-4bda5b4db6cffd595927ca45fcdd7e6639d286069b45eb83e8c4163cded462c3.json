@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        UPDATE users\n        SET deletion_scheduled_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now', printf('+%d days', ?)),\n            deletion_origin = ?\n        WHERE id = ? AND email_verified = 1 AND deletion_scheduled_at IS NULL\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "4bda5b4db6cffd595927ca45fcdd7e6639d286069b45eb83e8c4163cded462c3"
+}

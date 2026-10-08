@@ -1,0 +1,24 @@
+# SQLite を Cloudflare R2 へ常に複製する (DEVELOPMENT.md「複製と復元」)。Litestream 0.5 系の書き方。
+# 認証は Fly のシークレット LITESTREAM_ACCESS_KEY_ID / LITESTREAM_SECRET_ACCESS_KEY。
+# R2_ACCOUNT_ID (Cloudflare のアカウント ID) もシークレット。R2_BUCKET は fly.toml の [env]。
+# 本番と検証用はバケットとトークンを分ける (検証用の Machine から本番の複製を書き換えられないように)。
+
+exec: bp-carnet
+
+# 7日前まで戻せるよう、日ごとのスナップショットを7日分残す (プライバシーポリシーにも書く)。
+snapshot:
+  interval: 24h
+  retention: 168h
+
+# DB のファイル名は改名前の bp-tracker.db のまま (複製先のパスも同じ)。アプリは bp-carnet.db が無く
+# bp-tracker.db があるとそちらを使う (src/config.rs)。名前を変えると複製を作り直すことになる。
+dbs:
+  - path: /data/bp-tracker.db
+    # Volume を失ったとき (作り直した Machine の初回起動) は、複製から戻してから起動する。
+    restore-if-db-not-exists: true
+    replica:
+      type: s3
+      bucket: ${R2_BUCKET}
+      path: bp-tracker.db
+      endpoint: https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com
+      region: auto

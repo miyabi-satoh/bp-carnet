@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE oauth_identities\n         SET refresh_token = COALESCE(?, refresh_token), access_token = COALESCE(?, access_token)\n         WHERE provider = ? AND subject = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 4
+    },
+    "nullable": []
+  },
+  "hash": "b2e3fc50ab3eb1596ff6ecd8e7d3b387b9609749ebb9c1a7aea501c83f2cb64a"
+}

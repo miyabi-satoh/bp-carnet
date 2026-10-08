@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE users SET timezone = ? WHERE id = ? AND timezone_auto = 1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "56635d6bcdb85f0190089f420532642c9a0f906e898efe7a7515d0920c97848a"
+}

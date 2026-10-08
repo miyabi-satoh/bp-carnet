@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT email FROM oauth_identities WHERE user_id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "email",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "46848aa6ce23e9b82fb2510083f53542a47f5a67724aae8cd15e47ca4aac379a"
+}

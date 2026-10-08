@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE users SET ocr_budget_yen = ?, ocr_spent_milli_yen = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "d2c9d7e2729536b64a139b3df18683c84644bc6c745cb39fd1c6c692b604b654"
+}

@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE users SET terms_version = ?, terms_agreed_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')\n         WHERE id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "ffc74b7750f7c13d48e3a06d170e9b0dbff9ec5229c9980dcf372619bc0c602f"
+}

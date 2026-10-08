@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE users SET deletion_scheduled_at = ?, deletion_origin = ? WHERE username = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "2837c0862813ce4f69939f1c026ba2b3bd4a2a589407d01c9430e5833183b7b5"
+}

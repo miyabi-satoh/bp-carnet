@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE app_tokens SET session_generation = session_generation + 1 WHERE id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "6a7cb8ab602acc8e2aed0f32df9088650c786fd1abebb948154296d9a047327b"
+}

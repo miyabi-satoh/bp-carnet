@@ -1,0 +1,11 @@
+{
+  "name": "bp-carnet-app-store-purchase",
+  "version": "0.0.0",
+  "private": true,
+  "description": "アプリ内課金 (StoreKit 2) で OCR 枠を買う (docs/payments.md)。JS 側は frontend/src/lib/app-store-purchase.ts",
+  "capacitor": {
+    "ios": {
+      "src": "ios"
+    }
+  }
+}

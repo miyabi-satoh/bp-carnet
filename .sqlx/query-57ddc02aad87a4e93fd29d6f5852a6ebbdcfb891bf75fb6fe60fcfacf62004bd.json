@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE users SET timezone = 'Not/AZone'",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": []
+  },
+  "hash": "57ddc02aad87a4e93fd29d6f5852a6ebbdcfb891bf75fb6fe60fcfacf62004bd"
+}

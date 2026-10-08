@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT user_id AS \"user_id!: i64\", SUM(remaining_milli_yen) AS \"remaining!: i64\"\n           FROM ocr_quota_grants\n           WHERE user_id IS NOT NULL AND remaining_milli_yen > 0\n           GROUP BY user_id",
+  "describe": {
+    "columns": [
+      {
+        "name": "user_id!: i64",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "remaining!: i64",
+        "ordinal": 1,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      true,
+      false
+    ]
+  },
+  "hash": "d74960b1cf2efaca08139557bd17b47ecb5b1967e06eba3e280f32560741ed05"
+}

@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE users SET ocr_consented_at = '2026-09-26T00:00:00.000Z'",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": []
+  },
+  "hash": "cb6ce0e044f543a08a3c0ace8e1702427be7c58043ed2bf9af18c1a31f9f6dee"
+}

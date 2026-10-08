@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT deletion_scheduled_at AS \"deletion_scheduled_at: String\" FROM users WHERE username = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "deletion_scheduled_at: String",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "ec2a5dd33e4d26226d61ba9d7c441c33397d22b63ebea77936ba93bd86805dd9"
+}

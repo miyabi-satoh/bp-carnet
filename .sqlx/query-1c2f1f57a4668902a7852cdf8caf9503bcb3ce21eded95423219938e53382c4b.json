@@ -1,0 +1,32 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT password_hash, password_usable, email_verified FROM users WHERE id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "password_hash",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "password_usable",
+        "ordinal": 1,
+        "type_info": "Integer"
+      },
+      {
+        "name": "email_verified",
+        "ordinal": 2,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "1c2f1f57a4668902a7852cdf8caf9503bcb3ce21eded95423219938e53382c4b"
+}

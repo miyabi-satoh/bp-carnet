@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT username FROM users WHERE password_hash = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "username",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "bc0fff82734a0740aa0043c33df136e6741447a53b8a76943ae3ed355235b24a"
+}

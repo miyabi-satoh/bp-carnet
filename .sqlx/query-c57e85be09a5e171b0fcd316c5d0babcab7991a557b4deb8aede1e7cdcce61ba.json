@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE ocr_quota_grants SET user_id = NULL WHERE stripe_checkout_session_id = 'old'",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": []
+  },
+  "hash": "c57e85be09a5e171b0fcd316c5d0babcab7991a557b4deb8aede1e7cdcce61ba"
+}

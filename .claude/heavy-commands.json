@@ -1,0 +1,27 @@
+{
+	"defaults": true,
+	"heavy": [
+		"just ci",
+		"just build",
+		"just frontend-build",
+		"just test",
+		"just lint",
+		"just check",
+		"just e2e",
+		"just e2e-local",
+		"just spec",
+		"just help-shots",
+		"just cloud-image",
+		"just deploy",
+		"just deploy-staging",
+		"just sqlx-prepare",
+		"just api-types",
+		"just api-types-check",
+		"just spec-coverage",
+		"just dev",
+		"just dev-backend",
+		{ "regex": "^(pnpm|npm)( run)? (check|lint|vitest|svelte-check|test:e2e|dev)\\b" },
+		{ "regex": "^(npx|pnpx|pnpm (exec|dlx)) (vitest|svelte-check|vite|playwright)\\b" },
+		{ "regex": "^node( -\\S+)* (\\S*/)?scripts/run-e2e\\.ts\\b" }
+	]
+}

@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT session_generation AS \"session_generation!: i64\" FROM users WHERE id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "session_generation!: i64",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "28ee0a24007e72c5e4cf160b16ed945d3c32f0105159ce53137174d7f4386dd5"
+}

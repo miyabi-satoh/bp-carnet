@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE users\n         SET email_verified = 1,\n             terms_version = ?1,\n             terms_agreed_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')\n         WHERE username = ?2 AND email_verified = 0",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "abf85216bad1894d23a7c5a9a482d2facd2e4083611c0e60367486ce9433b625"
+}

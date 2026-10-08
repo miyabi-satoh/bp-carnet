@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT EXISTS (\n               SELECT 1 FROM email_tokens\n               WHERE token_hash = ? AND purpose = ? AND used_at IS NULL\n                 AND expires_at > strftime('%Y-%m-%dT%H:%M:%fZ', 'now')\n           ) AS \"usable!: bool\"",
+  "describe": {
+    "columns": [
+      {
+        "name": "usable!: bool",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "e2699a98b819f52982a522d65bbe47aebfd7a4a8a03ac361e23742a9e8b14d2a"
+}

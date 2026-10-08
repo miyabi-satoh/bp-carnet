@@ -1,0 +1,50 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT id, remaining_milli_yen, granted_milli_yen, price_yen, apple_environment, domestic FROM ocr_quota_grants WHERE user_id = ? AND remaining_milli_yen > 0 ORDER BY id",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "remaining_milli_yen",
+        "ordinal": 1,
+        "type_info": "Integer"
+      },
+      {
+        "name": "granted_milli_yen",
+        "ordinal": 2,
+        "type_info": "Integer"
+      },
+      {
+        "name": "price_yen",
+        "ordinal": 3,
+        "type_info": "Integer"
+      },
+      {
+        "name": "apple_environment",
+        "ordinal": 4,
+        "type_info": "Text"
+      },
+      {
+        "name": "domestic",
+        "ordinal": 5,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true,
+      false,
+      false,
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "b420ffa80fde5c2a21b72bc0778a9152e53e9b4e02eff22219803cad7bfd3acc"
+}

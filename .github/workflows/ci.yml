@@ -1,0 +1,56 @@
+name: CI
+
+# PR ごとに `just ci` を流し、通ることを main へのマージの条件にする (ブランチの保護の必須のチェック)。
+# スカッシュマージ後の main への push では流さない。pull_request は main の先端とのマージ結果に対して走り、
+# マージの前に main へ追いつくことも保護で求めるので、同じ内容をもう一度確かめても情報が増えない。
+on:
+  # ADR: paths-ignore で文書だけの PR を飛ばさない。必須のチェックが走らないと、その PR はマージできなくなる。
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # sqlx のマクロを .sqlx/ のキャッシュだけで検査し、just sqlx-prepare の流し忘れを止める。
+  SQLX_OFFLINE: "true"
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      - uses: extractions/setup-just@v4
+
+      - uses: pnpm/action-setup@v6
+        with:
+          package_json_file: frontend/package.json
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+
+      # vitest のコンポーネントテストと e2e が chromium で動くため。
+      - name: Install Playwright browser (chromium)
+        working-directory: frontend
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run CI checks
+        run: just ci

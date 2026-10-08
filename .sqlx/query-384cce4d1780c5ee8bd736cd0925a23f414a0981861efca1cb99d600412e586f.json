@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE users SET timezone = 'Pacific/Honolulu' WHERE username = 'kyoko@example.com'",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": []
+  },
+  "hash": "384cce4d1780c5ee8bd736cd0925a23f414a0981861efca1cb99d600412e586f"
+}

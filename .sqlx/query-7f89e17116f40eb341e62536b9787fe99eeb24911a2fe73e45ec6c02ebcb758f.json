@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE ocr_quota_grants SET revoked_milli_yen = remaining_milli_yen, remaining_milli_yen = 0 WHERE stripe_checkout_session_id = ? AND revoked_milli_yen IS NULL",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "7f89e17116f40eb341e62536b9787fe99eeb24911a2fe73e45ec6c02ebcb758f"
+}

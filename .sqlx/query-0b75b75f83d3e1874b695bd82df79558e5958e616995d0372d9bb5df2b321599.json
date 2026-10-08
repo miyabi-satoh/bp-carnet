@@ -1,0 +1,44 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT kind, grant_id, domestic, used_milli_yen, sales_milli_yen FROM ocr_usage_records ORDER BY id",
+  "describe": {
+    "columns": [
+      {
+        "name": "kind",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "grant_id",
+        "ordinal": 1,
+        "type_info": "Integer"
+      },
+      {
+        "name": "domestic",
+        "ordinal": 2,
+        "type_info": "Integer"
+      },
+      {
+        "name": "used_milli_yen",
+        "ordinal": 3,
+        "type_info": "Integer"
+      },
+      {
+        "name": "sales_milli_yen",
+        "ordinal": 4,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false,
+      true,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "0b75b75f83d3e1874b695bd82df79558e5958e616995d0372d9bb5df2b321599"
+}

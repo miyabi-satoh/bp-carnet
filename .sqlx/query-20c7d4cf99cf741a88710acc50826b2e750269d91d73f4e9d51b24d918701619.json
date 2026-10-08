@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE ocr_quota_grants\n         SET revoked_milli_yen = CASE WHEN ? THEN COALESCE(revoked_milli_yen, remaining_milli_yen) END,\n             remaining_milli_yen = 0, apple_signed_date = ?\n         WHERE apple_transaction_id = ? AND user_id IS NULL AND apple_signed_date < ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 4
+    },
+    "nullable": []
+  },
+  "hash": "20c7d4cf99cf741a88710acc50826b2e750269d91d73f4e9d51b24d918701619"
+}

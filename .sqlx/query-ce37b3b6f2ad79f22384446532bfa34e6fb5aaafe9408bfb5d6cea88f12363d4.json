@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE ocr_quota_grants SET domestic = (stripe_checkout_session_id = 'cs_domestic')",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": []
+  },
+  "hash": "ce37b3b6f2ad79f22384446532bfa34e6fb5aaafe9408bfb5d6cea88f12363d4"
+}

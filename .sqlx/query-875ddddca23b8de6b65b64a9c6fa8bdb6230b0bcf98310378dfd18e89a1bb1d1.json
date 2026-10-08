@@ -1,0 +1,56 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        SELECT\n            id AS \"id!: i64\",\n            measured_at AS \"measured_at!: String\",\n            systolic AS \"systolic!: i64\",\n            diastolic AS \"diastolic!: i64\",\n            pulse AS \"pulse: i64\",\n            memo AS \"memo!: String\",\n            version AS \"version!: i64\"\n        FROM bp_records\n        WHERE id = ? AND user_id = ?\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "id!: i64",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "measured_at!: String",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "systolic!: i64",
+        "ordinal": 2,
+        "type_info": "Integer"
+      },
+      {
+        "name": "diastolic!: i64",
+        "ordinal": 3,
+        "type_info": "Integer"
+      },
+      {
+        "name": "pulse: i64",
+        "ordinal": 4,
+        "type_info": "Integer"
+      },
+      {
+        "name": "memo!: String",
+        "ordinal": 5,
+        "type_info": "Text"
+      },
+      {
+        "name": "version!: i64",
+        "ordinal": 6,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "875ddddca23b8de6b65b64a9c6fa8bdb6230b0bcf98310378dfd18e89a1bb1d1"
+}

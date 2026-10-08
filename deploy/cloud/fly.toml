@@ -1,0 +1,42 @@
+# 本番の Fly.io の設定 (DEVELOPMENT.md「デプロイ」)。検証用は fly.staging.toml。
+# イメージは Docker Desktop (amd64 の Windows か Apple Silicon の Mac) で作って registry.fly.io へ送り、`fly deploy --image` で載せる (→ justfile の deploy)。
+
+app = "bp-carnet"
+primary_region = "nrt"
+# litestream が受けて bp-carnet へ渡し、bp-carnet の終了を待ってから最後の複製を送る。
+kill_signal = "SIGTERM"
+# bp-carnet の graceful shutdown (写真の読み取りで Gemini を待つ要求は最長 90 秒。src/ocr.rs の timeout) と、その後の
+# litestream の最後の同期 (shutdown-sync-timeout、既定 30 秒) を続けて打ち切らないよう、足した 120 秒より長く待たせる。
+kill_timeout = 130
+
+[env]
+  CLOUD_ENV = "production"
+  R2_BUCKET = "bp-carnet-db"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  # ADR: 通信が無いと Machine を止める (費用を抑えるため。検証用と同じ)。
+  # 止まると、メモリ上のログインの試行回数の制限と写真の読み取りの途中の状態が消え、止まった後の最初のアクセスは
+  # 起動を待つ。
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    grace_period = "20s"
+    interval = "30s"
+    timeout = "5s"
+    method = "GET"
+    path = "/api/v1/health"
+
+[mounts]
+  source = "bp_data"
+  destination = "/data"
+  initial_size = "1gb"
+  # R2 への複製と同じく7日分 (litestream.yml)。
+  snapshot_retention = 7
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

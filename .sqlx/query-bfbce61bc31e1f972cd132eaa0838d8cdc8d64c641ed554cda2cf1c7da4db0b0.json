@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "DELETE FROM app_tokens WHERE id = ? AND session_generation = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "bfbce61bc31e1f972cd132eaa0838d8cdc8d64c641ed554cda2cf1c7da4db0b0"
+}

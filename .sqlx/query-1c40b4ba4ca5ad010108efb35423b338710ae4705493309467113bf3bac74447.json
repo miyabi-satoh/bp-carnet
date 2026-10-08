@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        UPDATE bp_records\n        SET measured_at = ?, systolic = ?, diastolic = ?, pulse = ?, memo = ?, version = version + 1\n        WHERE id = ? AND user_id = ? AND version = ?\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 8
+    },
+    "nullable": []
+  },
+  "hash": "1c40b4ba4ca5ad010108efb35423b338710ae4705493309467113bf3bac74447"
+}

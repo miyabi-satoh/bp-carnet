@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE email_tokens SET used_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')\n           WHERE token_hash = ? AND purpose = ? AND used_at IS NULL\n             AND expires_at > strftime('%Y-%m-%dT%H:%M:%fZ', 'now')\n           RETURNING user_id AS \"user_id!: i64\", new_email AS \"new_email!: String\"",
+  "describe": {
+    "columns": [
+      {
+        "name": "user_id!: i64",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "new_email!: String",
+        "ordinal": 1,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": [
+      false,
+      true
+    ]
+  },
+  "hash": "053e847f575662b52367a818235d6d5cb899175e3e0e91129727cfe19e815f9f"
+}
