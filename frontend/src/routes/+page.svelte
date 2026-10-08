@@ -21,6 +21,7 @@
 	import { buildReportHref, saveHomeViewBeforeReport, takeHomeViewBeforeReport } from '$lib/report';
 	import { Button } from '$lib/components/ui/button';
 	import NoticeDialog from '$lib/components/notice-dialog.svelte';
+	import AppStoreNotice from '$lib/components/app-store-notice.svelte';
 	import RecordsOverview from '$lib/components/records-overview.svelte';
 	import RecordFormDialog from '$lib/components/record-form-dialog.svelte';
 	import RecordDeleteDialog from '$lib/components/record-delete-dialog.svelte';
@@ -231,6 +232,7 @@
 	tabindex="-1"
 	class="mx-auto flex max-w-2xl flex-col gap-4 p-6 pb-32 outline-none"
 >
+	<AppStoreNotice />
 	<RecordsOverview
 		records={recordsView.records}
 		summary={recordsView.summary}

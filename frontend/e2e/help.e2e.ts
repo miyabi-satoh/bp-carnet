@@ -113,7 +113,7 @@ test.describe('ログインなし', () => {
 		await expect(new HelpIndexPage(page).heading).toBeVisible();
 	});
 
-	test('ホーム画面に追加する項目は、画像の代わりに公式の手順を新しいタブで開くリンクを出す', async ({
+	test('iPhone のアプリ・ホーム画面に追加の項目は、画像の代わりに外のページを新しいタブで開くリンクを出す', async ({
 		page
 	}) => {
 		const topic = new HelpTopicPage(page);
@@ -122,8 +122,8 @@ test.describe('ログインなし', () => {
 			[
 				'home-screen',
 				ja.help_home_screen_title,
-				'詳しい手順 (Apple のサイト)',
-				'https://support.apple.com/ja-jp/guide/iphone/iphea86e5236/ios'
+				ja.common_app_store_link,
+				'https://apps.apple.com/jp/app/id6818718290'
 			],
 			[
 				'home-screen-android',

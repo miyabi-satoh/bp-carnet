@@ -7,7 +7,7 @@ import { errorHelpSlug } from '$lib/api/errors';
 import { findHelpTopic, HELP_TOPICS, loadHelpTopicContent } from './help';
 
 describe('使い方の項目 (アプリ)', () => {
-	it('ホーム画面に追加・内蔵ブラウザの項目を出さず、エラーの案内からもリンクしない', () => {
+	it('アプリを入れる・ホーム画面に追加・内蔵ブラウザの項目を出さず、エラーの案内からもリンクしない', () => {
 		const slugs = HELP_TOPICS.map((topic) => topic.slug);
 		expect(slugs).not.toContain('home-screen');
 		expect(slugs).not.toContain('home-screen-android');

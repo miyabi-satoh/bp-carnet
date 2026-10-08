@@ -12,6 +12,9 @@
 		<link rel="manifest" href="/manifest.webmanifest" />
 		<meta name="theme-color" content="#fbf5ed" />
 		<link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
+		<!-- iPhone・iPad の Safari の上端に、App Store のアプリへの案内 (Smart App Banner) を出す。
+		     ID は $lib/app-store-link.ts の APP_STORE_URL と同じ値。 -->
+		<meta name="apple-itunes-app" content="app-id=6818718290" />
 		<script>
 			// SPA (ssr=false) のため mode-watcher 本体の初期化は Svelte マウント後になり、
 			// それを待つと初回描画でダークモード利用者に白いフラッシュが見える。

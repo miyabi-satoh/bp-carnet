@@ -25,6 +25,7 @@
 		loginWithLine
 	} from '$lib/auth';
 	import { isInAppBrowser } from '$lib/in-app-browser';
+	import AppStoreNotice from '$lib/components/app-store-notice.svelte';
 	import { isIosWebApp } from '$lib/ios-web-app';
 	import { isNativeApp } from '$lib/native-app';
 	import BetaBadge from '$lib/components/beta-badge.svelte';
@@ -220,6 +221,9 @@
 				<p class="text-sm text-muted-foreground">{m.login_subtitle()}</p>
 			</div>
 		</div>
+
+		<!-- ホーム画面から全画面で開いたウェブアプリでは LINE でログインできないので、ログインの前にアプリを案内する。 -->
+		<AppStoreNotice class="mb-4 w-full max-w-80" />
 
 		<!-- LINE・Google・Apple のボタンはフォームの上にあるため、使えるかどうかが分かるまでカードを出さない
 	     (後から差し込むと、入力中のフォームが下にずれる)。その間はスピナーを出す。 -->
