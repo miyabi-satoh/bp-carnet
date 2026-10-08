@@ -2,7 +2,7 @@
 -- 一時DB(BP_CARNET_HOMEを一時ディレクトリに向けて起動したbp-carnet)に対して
 -- generate-spec.ts が node:sqlite で直接流し込む。Rust側の変更は不要。
 --
--- password_hash は "password" の argon2id ハッシュを固定値としてハードコードしている。
+-- password_hash は "zxcvbnm1" の argon2id ハッシュを固定値としてハードコードしている。
 -- ハッシュ文字列自体にsalt/パラメータが埋め込まれているため、hash_password()の
 -- 実装が変わらない限り再生成不要。作り直す場合は対話コマンドで一度ユーザーを作り、
 -- 開発用DBから password_hash 列を採取する:
@@ -11,13 +11,13 @@
 
 -- email_verified は既定が 0 (未確認のサインアップ) で、未確認のユーザーは管理画面の一覧に数えられない。CLI で作ったユーザーと同じく 1 にする。
 INSERT INTO users (username, password_hash, role, email_verified) VALUES
-	('admin', '$argon2id$v=19$m=19456,t=2,p=1$7ve40YOoyZyokwe3oSoRVQ$s0pznuPy5oXx7tDx9ECsB88rj+CdXzf0ZJ7TdlqFL6w', 'admin', 1);
+	('admin', '$argon2id$v=19$m=19456,t=2,p=1$DVh8jbYfZupLwm4WFaKGYw$BSbp7sIUyZd4k5ClS8Rf8Z8hn+J20Fl5mwHt06+uaf8', 'admin', 1);
 
 -- ユーザー管理画面の一覧に、状態の違う行を並べるためのユーザー。
 -- 血圧記録は持たせない (他の画面のショットは admin でログインするため影響しない)。
 INSERT INTO users (username, password_hash, display_name, frozen, email_verified) VALUES
-	('hahaue@example.com', '$argon2id$v=19$m=19456,t=2,p=1$7ve40YOoyZyokwe3oSoRVQ$s0pznuPy5oXx7tDx9ECsB88rj+CdXzf0ZJ7TdlqFL6w', '母', 0, 1),
-	('chichiue@example.com', '$argon2id$v=19$m=19456,t=2,p=1$7ve40YOoyZyokwe3oSoRVQ$s0pznuPy5oXx7tDx9ECsB88rj+CdXzf0ZJ7TdlqFL6w', '父', 1, 1);
+	('hahaue@example.com', '$argon2id$v=19$m=19456,t=2,p=1$DVh8jbYfZupLwm4WFaKGYw$BSbp7sIUyZd4k5ClS8Rf8Z8hn+J20Fl5mwHt06+uaf8', '母', 0, 1),
+	('chichiue@example.com', '$argon2id$v=19$m=19456,t=2,p=1$DVh8jbYfZupLwm4WFaKGYw$BSbp7sIUyZd4k5ClS8Rf8Z8hn+J20Fl5mwHt06+uaf8', '父', 1, 1);
 
 -- measured_at は UTC の RFC3339 文字列(アプリ側の正規化と同じ形式)。固定日時にすると
 -- 実行日から離れるほどグラフのx軸表示が不自然になり、いずれ「今週/今月」ナビゲーションの

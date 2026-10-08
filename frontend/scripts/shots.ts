@@ -98,7 +98,7 @@ async function login(page: Page, baseURL: string, username: string, password: st
 
 /** 無料の読み取りを使い切り、買い足しが出る (本番の構成の) 写真で記録のページを開く。 */
 async function openQuotaExhaustedPhotoPage(page: Page, baseURL: string) {
-	await login(page, baseURL, 'admin', 'password');
+	await login(page, baseURL, 'admin', 'zxcvbnm1');
 	await mockOcrStatus(page, { quotas: [freeQuota(0)], quotaLow: true, topupAvailable: true });
 	await page.goto(`${baseURL}/record/photo`);
 	await page
@@ -134,7 +134,7 @@ async function openPhotoPage(
 	photo: Parameters<typeof samplePhoto>[1],
 	{ read = true }: { read?: boolean } = {}
 ) {
-	await login(page, baseURL, 'admin', 'password');
+	await login(page, baseURL, 'admin', 'zxcvbnm1');
 	await mockOcrExtract(page, response);
 	const file = await samplePhoto(page, photo);
 	const chooser = page.waitForEvent('filechooser');
@@ -186,7 +186,7 @@ const SAMPLE_IMPORT_CSV = [
 
 /** 設定画面の「CSVファイルを読み込む...」で見本のCSVを選び、取り込みのページへ移る。 */
 async function openCsvImport(page: Page, baseURL: string) {
-	await login(page, baseURL, 'admin', 'password');
+	await login(page, baseURL, 'admin', 'zxcvbnm1');
 	await page.goto(`${baseURL}/settings`);
 	const chooser = page.waitForEvent('filechooser');
 	await page.getByRole('button', { name: ja.settings_import_button, exact: true }).click();
@@ -224,7 +224,7 @@ export const shots: Record<string, ShotEntry> = {
 	// ログイン済みでトップページ(統計サマリー+グラフ+履歴一覧+下部アクションバー)を表示した状態。
 	home_with_records: {
 		async run(page, ctx) {
-			await login(page, ctx.baseURL, 'admin', 'password');
+			await login(page, ctx.baseURL, 'admin', 'zxcvbnm1');
 			await waitForChart(page, HOME_CHART_SERIES);
 			await capture(page, ctx, { fullPage: true });
 		}
@@ -234,7 +234,7 @@ export const shots: Record<string, ShotEntry> = {
 	// 設定・タイムゾーン一覧の取得完了後に時刻の欄が描画されるため、それを待ってから撮る。
 	settings_main: {
 		async run(page, ctx) {
-			await login(page, ctx.baseURL, 'admin', 'password');
+			await login(page, ctx.baseURL, 'admin', 'zxcvbnm1');
 			await page.goto(`${ctx.baseURL}/settings`);
 			await page
 				.getByRole('button', { name: ja.settings_morning_start_label })
@@ -247,7 +247,7 @@ export const shots: Record<string, ShotEntry> = {
 	settings_time_picker: {
 		viewports: ['mobile'],
 		async run(page, ctx) {
-			await login(page, ctx.baseURL, 'admin', 'password');
+			await login(page, ctx.baseURL, 'admin', 'zxcvbnm1');
 			await page.goto(`${ctx.baseURL}/settings`);
 			await page
 				.getByRole('button', { name: ja.settings_morning_start_label })
@@ -262,7 +262,7 @@ export const shots: Record<string, ShotEntry> = {
 	settings_change_password: {
 		viewports: ['mobile'],
 		async run(page, ctx) {
-			await login(page, ctx.baseURL, 'admin', 'password');
+			await login(page, ctx.baseURL, 'admin', 'zxcvbnm1');
 			await page.goto(`${ctx.baseURL}/settings/change-password`);
 			await page
 				.getByRole('textbox', { name: ja.settings_change_password_current_label })
@@ -275,7 +275,7 @@ export const shots: Record<string, ShotEntry> = {
 	admin_users: {
 		viewports: ['mobile'],
 		async run(page, ctx) {
-			await login(page, ctx.baseURL, 'admin', 'password');
+			await login(page, ctx.baseURL, 'admin', 'zxcvbnm1');
 			await page.goto(`${ctx.baseURL}/admin/users`);
 			await page.getByRole('listitem').first().waitFor({ timeout: 5000 });
 			await capture(page, ctx, { fullPage: true });
@@ -286,7 +286,7 @@ export const shots: Record<string, ShotEntry> = {
 	admin_users_ocr_limit: {
 		viewports: ['mobile'],
 		async run(page, ctx) {
-			await login(page, ctx.baseURL, 'admin', 'password');
+			await login(page, ctx.baseURL, 'admin', 'zxcvbnm1');
 			await page.goto(`${ctx.baseURL}/admin/users`);
 			const firstUser = page.getByRole('listitem').first();
 			await firstUser.waitFor({ timeout: 5000 });
@@ -304,7 +304,7 @@ export const shots: Record<string, ShotEntry> = {
 	admin_users_add: {
 		viewports: ['mobile'],
 		async run(page, ctx) {
-			await login(page, ctx.baseURL, 'admin', 'password');
+			await login(page, ctx.baseURL, 'admin', 'zxcvbnm1');
 			await page.goto(`${ctx.baseURL}/admin/users`);
 			await page.getByRole('listitem').first().waitFor({ timeout: 5000 });
 			await page.getByRole('button', { name: ja.admin_users_add_button }).click();
@@ -318,7 +318,7 @@ export const shots: Record<string, ShotEntry> = {
 	admin_users_reset_password: {
 		viewports: ['mobile'],
 		async run(page, ctx) {
-			await login(page, ctx.baseURL, 'admin', 'password');
+			await login(page, ctx.baseURL, 'admin', 'zxcvbnm1');
 			await page.goto(`${ctx.baseURL}/admin/users`);
 			const activeUser = page.getByRole('listitem').filter({ hasText: '母' }).first();
 			await activeUser.waitFor({ timeout: 5000 });
@@ -333,7 +333,7 @@ export const shots: Record<string, ShotEntry> = {
 	admin_users_delete: {
 		viewports: ['mobile'],
 		async run(page, ctx) {
-			await login(page, ctx.baseURL, 'admin', 'password');
+			await login(page, ctx.baseURL, 'admin', 'zxcvbnm1');
 			await page.goto(`${ctx.baseURL}/admin/users`);
 			const frozenUser = page
 				.getByRole('listitem')
@@ -351,7 +351,7 @@ export const shots: Record<string, ShotEntry> = {
 	admin_user_detail: {
 		viewports: ['mobile'],
 		async run(page, ctx) {
-			await login(page, ctx.baseURL, 'admin', 'password');
+			await login(page, ctx.baseURL, 'admin', 'zxcvbnm1');
 			await page.goto(`${ctx.baseURL}/admin/users`);
 			const self = page.getByRole('listitem').filter({ hasText: 'admin' }).first();
 			await self.waitFor({ timeout: 5000 });
@@ -366,7 +366,7 @@ export const shots: Record<string, ShotEntry> = {
 	print_report: {
 		viewports: ['desktop'],
 		async run(page, ctx) {
-			await login(page, ctx.baseURL, 'admin', 'password');
+			await login(page, ctx.baseURL, 'admin', 'zxcvbnm1');
 			await page.goto(`${ctx.baseURL}/report`);
 			await waitForChart(page, 4);
 			await page.emulateMedia({ media: 'print' });
@@ -379,7 +379,7 @@ export const shots: Record<string, ShotEntry> = {
 	print_report_mobile: {
 		viewports: ['mobile'],
 		async run(page, ctx) {
-			await login(page, ctx.baseURL, 'admin', 'password');
+			await login(page, ctx.baseURL, 'admin', 'zxcvbnm1');
 			await page.goto(`${ctx.baseURL}/report`);
 			await waitForChart(page, 4);
 			await capture(page, ctx);
@@ -471,7 +471,7 @@ export const shots: Record<string, ShotEntry> = {
 	header_user_menu: {
 		viewports: ['mobile'],
 		async run(page, ctx) {
-			await login(page, ctx.baseURL, 'admin', 'password');
+			await login(page, ctx.baseURL, 'admin', 'zxcvbnm1');
 			await page.getByRole('button', { name: ja.layout_user_menu_label }).click();
 			await page
 				.getByRole('menuitem', { name: ja.common_logout_button })
@@ -484,7 +484,7 @@ export const shots: Record<string, ShotEntry> = {
 	logout_confirm: {
 		viewports: ['mobile'],
 		async run(page, ctx) {
-			await login(page, ctx.baseURL, 'admin', 'password');
+			await login(page, ctx.baseURL, 'admin', 'zxcvbnm1');
 			await page.getByRole('button', { name: ja.layout_user_menu_label }).click();
 			await page.getByRole('menuitem', { name: ja.common_logout_button }).click();
 			await page.getByRole('alertdialog').waitFor({ timeout: 5000 });
@@ -496,7 +496,7 @@ export const shots: Record<string, ShotEntry> = {
 	delete_account_confirm: {
 		viewports: ['mobile'],
 		async run(page, ctx) {
-			await login(page, ctx.baseURL, 'admin', 'password');
+			await login(page, ctx.baseURL, 'admin', 'zxcvbnm1');
 			await page.goto(`${ctx.baseURL}/settings`);
 			await page.getByRole('button', { name: ja.common_delete_account_button }).click();
 			await page.locator('#delete-account-confirmation').waitFor({ timeout: 5000 });
@@ -509,7 +509,7 @@ export const shots: Record<string, ShotEntry> = {
 	delete_account_scheduled: {
 		viewports: ['mobile'],
 		async run(page, ctx) {
-			await login(page, ctx.baseURL, 'admin', 'password');
+			await login(page, ctx.baseURL, 'admin', 'zxcvbnm1');
 			await page.route('**/api/v1/account/deletion', (route) => route.fulfill({ json: {} }));
 			await page.goto(`${ctx.baseURL}/settings`);
 			await page.getByRole('button', { name: ja.common_delete_account_button }).click();
@@ -528,12 +528,12 @@ export const shots: Record<string, ShotEntry> = {
 	settings_change_password_done: {
 		viewports: ['mobile'],
 		async run(page, ctx) {
-			await login(page, ctx.baseURL, 'admin', 'password');
+			await login(page, ctx.baseURL, 'admin', 'zxcvbnm1');
 			await page.route('**/api/v1/account/password', (route) => route.fulfill({ json: {} }));
 			await page.goto(`${ctx.baseURL}/settings/change-password`);
 			await page
 				.getByRole('textbox', { name: ja.settings_change_password_current_label })
-				.fill('password');
+				.fill('zxcvbnm1');
 			await page.locator('#password-new').fill('a-valid-password-12');
 			await page.locator('#password-confirm').fill('a-valid-password-12');
 			await page.getByRole('button', { name: ja.settings_change_password_submit_button }).click();
@@ -548,7 +548,7 @@ export const shots: Record<string, ShotEntry> = {
 	settings_linked_providers: {
 		viewports: ['mobile'],
 		async run(page, ctx) {
-			await login(page, ctx.baseURL, 'admin', 'password');
+			await login(page, ctx.baseURL, 'admin', 'zxcvbnm1');
 			await mockLinkedProviders(page, {
 				passwordUsable: true,
 				linkedProviders: ['line', 'google']
@@ -565,7 +565,7 @@ export const shots: Record<string, ShotEntry> = {
 	settings_about: {
 		viewports: ['mobile'],
 		async run(page, ctx) {
-			await login(page, ctx.baseURL, 'admin', 'password');
+			await login(page, ctx.baseURL, 'admin', 'zxcvbnm1');
 			await page.goto(`${ctx.baseURL}/settings`);
 			const contact = page.getByRole('link', { name: ja.settings_contact_link });
 			await contact.waitFor({ timeout: 5000 });
@@ -578,7 +578,7 @@ export const shots: Record<string, ShotEntry> = {
 	settings_deletion_scheduled: {
 		viewports: ['mobile'],
 		async run(page, ctx) {
-			await login(page, ctx.baseURL, 'admin', 'password');
+			await login(page, ctx.baseURL, 'admin', 'zxcvbnm1');
 			await page.route('**/api/v1/auth/me', async (route) => {
 				const response = await route.fetch();
 				const me = await response.json();
@@ -603,7 +603,7 @@ export const shots: Record<string, ShotEntry> = {
 	unlink_identity_confirm: {
 		viewports: ['mobile'],
 		async run(page, ctx) {
-			await login(page, ctx.baseURL, 'admin', 'password');
+			await login(page, ctx.baseURL, 'admin', 'zxcvbnm1');
 			await mockLinkedProviders(page, {
 				passwordUsable: true,
 				linkedProviders: ['line', 'google']
@@ -620,7 +620,7 @@ export const shots: Record<string, ShotEntry> = {
 	home_period_filter_expanded: {
 		viewports: ['mobile'],
 		async run(page, ctx) {
-			await login(page, ctx.baseURL, 'admin', 'password');
+			await login(page, ctx.baseURL, 'admin', 'zxcvbnm1');
 			await waitForChart(page, HOME_CHART_SERIES);
 			await page.getByText(ja.period_nav_filter_toggle_label, { exact: true }).click();
 			await page.locator('#filter-from').waitFor({ timeout: 5000 });
@@ -633,7 +633,7 @@ export const shots: Record<string, ShotEntry> = {
 	home_no_records: {
 		viewports: ['mobile'],
 		async run(page, ctx) {
-			await login(page, ctx.baseURL, 'admin', 'password');
+			await login(page, ctx.baseURL, 'admin', 'zxcvbnm1');
 			await page.getByText(ja.period_nav_filter_toggle_label, { exact: true }).click();
 			await page.locator('#filter-from').fill('2000-01-01');
 			await page.locator('#filter-to').fill('2000-01-07');
@@ -686,7 +686,7 @@ export const shots: Record<string, ShotEntry> = {
 	record_form_add: {
 		viewports: ['mobile'],
 		async run(page, ctx) {
-			await login(page, ctx.baseURL, 'admin', 'password');
+			await login(page, ctx.baseURL, 'admin', 'zxcvbnm1');
 			await waitForChart(page, HOME_CHART_SERIES);
 			await page.getByRole('button', { name: ja.home_add_record_button }).click();
 			await moveMouseAway(page);
@@ -699,7 +699,7 @@ export const shots: Record<string, ShotEntry> = {
 	record_form_edit: {
 		viewports: ['mobile'],
 		async run(page, ctx) {
-			await login(page, ctx.baseURL, 'admin', 'password');
+			await login(page, ctx.baseURL, 'admin', 'zxcvbnm1');
 			await waitForChart(page, HOME_CHART_SERIES);
 			// aria-label は「{measuredAt} の記録を直す」で日時ごとに変わるため、共通の接尾辞で掴む。
 			await page.getByRole('button', { name: RECORD_EDIT_LABEL_SUFFIX }).first().click();
@@ -757,7 +757,7 @@ export const shots: Record<string, ShotEntry> = {
 	photo_pick: {
 		viewports: ['mobile'],
 		async run(page, ctx) {
-			await login(page, ctx.baseURL, 'admin', 'password');
+			await login(page, ctx.baseURL, 'admin', 'zxcvbnm1');
 			await page.goto(`${ctx.baseURL}/record/photo`);
 			await page
 				.getByText(
@@ -794,7 +794,7 @@ export const shots: Record<string, ShotEntry> = {
 	topup_result: {
 		viewports: ['mobile'],
 		async run(page, ctx) {
-			await login(page, ctx.baseURL, 'admin', 'password');
+			await login(page, ctx.baseURL, 'admin', 'zxcvbnm1');
 			await page.route(
 				(url) => url.pathname.endsWith('/api/v1/payments/ocr-topup/result'),
 				(route) => route.fulfill({ json: { status: 'succeeded' } })
@@ -811,7 +811,7 @@ export const shots: Record<string, ShotEntry> = {
 	tokushoho_page: {
 		async run(page, ctx) {
 			await mockAuthProviders(page, PRODUCTION_AUTH_PROVIDERS);
-			await login(page, ctx.baseURL, 'admin', 'password');
+			await login(page, ctx.baseURL, 'admin', 'zxcvbnm1');
 			await page.goto(`${ctx.baseURL}/tokushoho`);
 			await page.getByRole('article').waitFor({ timeout: 5000 });
 			await capture(page, ctx);
