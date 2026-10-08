@@ -533,7 +533,7 @@ export const shots: Record<string, ShotEntry> = {
 			await page.goto(`${ctx.baseURL}/settings/change-password`);
 			await page
 				.getByRole('textbox', { name: ja.settings_change_password_current_label })
-				.fill('password');
+				.fill('zxcvbnm1');
 			await page.locator('#password-new').fill('a-valid-password-12');
 			await page.locator('#password-confirm').fill('a-valid-password-12');
 			await page.getByRole('button', { name: ja.settings_change_password_submit_button }).click();
