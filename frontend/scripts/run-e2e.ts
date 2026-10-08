@@ -14,9 +14,9 @@ import { KEEP_DATA } from '../e2e/kept-data.ts';
 import { startBackend } from './backend-process.ts';
 
 const ADMIN_USERNAME = 'admin';
-const ADMIN_PASSWORD = 'password';
+const ADMIN_PASSWORD = 'zxcvbnm1';
 const ADMIN_PASSWORD_HASH =
-	'$argon2id$v=19$m=19456,t=2,p=1$7ve40YOoyZyokwe3oSoRVQ$s0pznuPy5oXx7tDx9ECsB88rj+CdXzf0ZJ7TdlqFL6w';
+	'$argon2id$v=19$m=19456,t=2,p=1$DVh8jbYfZupLwm4WFaKGYw$BSbp7sIUyZd4k5ClS8Rf8Z8hn+J20Fl5mwHt06+uaf8';
 
 /** 中断されたときの終了コード (SIGINT で終わったプロセスの慣習)。 */
 const INTERRUPTED_EXIT_CODE = 130;
