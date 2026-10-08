@@ -201,7 +201,7 @@ grep例: `grep -rn "ADR:" src/ frontend/src/`・`grep -rn "FIX:" src/ frontend/s
 ## マージまでの基本フロー
 
 1. 変更をコミット。
-2. Codex レビュー。指摘があれば修正コミットを重ね、指摘がなくなるまで再レビューを繰り返す。
+2. 二重のレビュー (Claude Code の CLAUDE.md「レビュー」、順番は `codex-review` skill「0. 投げる前に」)。指摘があれば修正コミットを重ね、指摘がなくなるまで再レビューを繰り返す。
 3. プッシュして PR 作成。push 時、lefthook の pre-push フック (→ `just hooks-install`) が整形 (`just fmt-check`) を確かめる。PR を作ると、GitHub Actions の CI が `just ci` を流す。レビュー中はプッシュしない。2. のレビューは PR 作成前に完結させる。PR 作成後に積んでよいのは、4.・5. のループで必要になったコミットだけ。
 4. CI の結果を `gh pr checks <番号> --watch` で待つ。落ちたら直してコミットを重ね、3. (プッシュ) へ戻る。
 5. main が進んでいたら (`git fetch` の後の `git rev-list --count HEAD..origin/main` が1以上)、main を取り込んで 3. へ戻る。main のブランチの保護が、CI の通過と main に追いついていることをマージの条件にしている。取り込みでコードが変わったら、その差分を対象に Codex レビューをやり直す (衝突なく取り込めたなら不要)。「main にマージされるコードは Codex レビュー通過済み」を満たすため。
