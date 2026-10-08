@@ -11,7 +11,7 @@
 
 FROM node:24-bookworm-slim AS frontend
 # frontend/package.json の packageManager と揃える。
-RUN npm install -g pnpm@11.3.0
+RUN npm install -g pnpm@12.10.1
 WORKDIR /app/frontend
 # アプリのプラグインは package.json から link: で指すので、中身は使わないが install のために置く。
 COPY mobile/plugins/ ../mobile/plugins/
