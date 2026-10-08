@@ -63,6 +63,11 @@ fn pages() -> Vec<Page> {
             description: "BP Carnet が取り扱う情報の種類、利用の目的、保管と第三者への提供、削除の方法をまとめたプライバシーポリシーです。".into(),
         },
         Page {
+            path: "/pricing".into(),
+            title: format!("料金と購入の条件 — {SITE_NAME}"),
+            description: "BP Carnet で写真の読み取りを買い足すときの価格・支払方法・引き渡しの時期・返金の扱い・動作環境です。".into(),
+        },
+        Page {
             path: "/help".into(),
             title: format!("使い方 — {SITE_NAME}"),
             description: "BP Carnet の使い方の案内です。ログイン、写真や手入力での記録、グラフの見かた、印刷、設定、困ったときの対処を、手順と画面の画像で説明します。".into(),
@@ -225,6 +230,7 @@ mod tests {
             "https://bp.example.com/",
             "https://bp.example.com/terms",
             "https://bp.example.com/privacy",
+            "https://bp.example.com/pricing",
             "https://bp.example.com/help",
             "https://bp.example.com/help/login",
         ]));
@@ -326,6 +332,10 @@ mod tests {
             (
                 "/privacy".to_string(),
                 format!("{} — {app}", msg("privacy_title")),
+            ),
+            (
+                "/pricing".to_string(),
+                format!("{} — {app}", msg("pricing_title")),
             ),
             ("/help".to_string(), format!("{help} — {app}")),
         ];

@@ -29,6 +29,8 @@
 
 	// 表示する金額 (→ docs/payments.md)。Stripe の Price と一致させる。
 	const TOPUP_PRICE_YEN = 300;
+	/** 特定商取引法に基づく表記。事業者の項目は全製品で共通なので、amiiby.com の1ページに置いている。 */
+	const TOKUSHOHO_URL = 'https://amiiby.com/tokushoho/';
 	/** 価格に添える消費税の書き方。インボイスの登録の日から税込み (→ docs/payments.md)。
 	 * 開いたまま日をまたいでも合うよう、開くたびに決める。 */
 	let taxLabel = $state('');
@@ -150,7 +152,9 @@
 				<NewTabLink href={resolve('/terms')}>{m.terms_title()}</NewTabLink
 				>{m.common_list_separator()}<NewTabLink href={resolve('/privacy')}
 					>{m.privacy_title()}</NewTabLink
-				>{m.common_list_separator()}<NewTabLink href={resolve('/tokushoho')}
+				>{m.common_list_separator()}<NewTabLink href={resolve('/pricing')}
+					>{m.pricing_title()}</NewTabLink
+				>{m.common_list_separator()}<NewTabLink href={TOKUSHOHO_URL}
 					>{m.tokushoho_title()}</NewTabLink
 				>
 			</p>

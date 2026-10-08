@@ -33,6 +33,7 @@ const ROUTE_STATUS: Record<string, RouteStatus> = {
 	'/licenses': { gap: '仕様書にまだ書いていない' },
 	'/login': { documented: '01-login.md' },
 	'/payments/ocr-topup/result': { documented: '07-record-photo.md' },
+	'/pricing': { documented: '07-record-photo.md' },
 	'/privacy': { documented: '01-login.md' },
 	'/record/photo': { documented: '07-record-photo.md' },
 	'/report': { documented: '03-print-report.md' },
