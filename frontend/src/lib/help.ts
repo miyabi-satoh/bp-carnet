@@ -131,8 +131,8 @@ const ALL_HELP_SECTIONS: readonly HelpSection[] = [
 				appBody: true
 			},
 			{
-				slug: 'iphone-app',
-				title: m.help_iphone_app_title,
+				slug: 'home-screen',
+				title: m.help_home_screen_title,
 				webOnly: true
 			},
 			{

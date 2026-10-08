@@ -120,9 +120,9 @@ test.describe('ログインなし', () => {
 		// 外のサイトには行かず、リンク先と開き方だけを確かめる。リンクの名前は本文 ($lib/help/ja/*.md) のもの。
 		const guides = [
 			[
-				'iphone-app',
-				ja.help_iphone_app_title,
-				'App Store で見る',
+				'home-screen',
+				ja.help_home_screen_title,
+				ja.common_app_store_link,
 				'https://apps.apple.com/jp/app/id6818718290'
 			],
 			[

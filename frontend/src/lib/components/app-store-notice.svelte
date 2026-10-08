@@ -5,6 +5,9 @@
 	import { Button } from '$lib/components/ui/button';
 	import XIcon from '@lucide/svelte/icons/x';
 
+	/** 置く画面ごとの外側の余白・幅。 */
+	let { class: className }: { class?: string } = $props();
+
 	const DISMISSED_KEY = 'app-store-notice-dismissed';
 
 	/** 閉じたことは、この端末に覚える。出すかどうかが端末 (ホーム画面のウェブアプリか) で決まる案内のため。 */
@@ -33,7 +36,7 @@
 {#if visible}
 	<section
 		aria-labelledby="app-store-notice-title"
-		class="flex items-start gap-2 rounded-md border bg-card py-3 pr-1 pl-4"
+		class={['flex items-start gap-2 rounded-md border bg-card py-3 pr-1 pl-4', className]}
 	>
 		<div class="flex flex-1 flex-col gap-2">
 			<h2 id="app-store-notice-title" class="text-sm font-bold">{m.app_store_notice_title()}</h2>
@@ -43,7 +46,7 @@
 			<!-- App Store のページは外のサイト。SvelteKit のルートではないので resolve() は使わない。 -->
 			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 			<Button href={APP_STORE_URL} variant="outline" class="self-start">
-				{m.app_store_notice_link()}
+				{m.common_app_store_link()}
 			</Button>
 		</div>
 		<Button

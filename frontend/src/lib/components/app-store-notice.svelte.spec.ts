@@ -20,7 +20,7 @@ describe('AppStoreNotice', () => {
 			.element(screen.getByRole('heading', { name: m.app_store_notice_title() }))
 			.toBeVisible();
 		await expect
-			.element(screen.getByRole('link', { name: m.app_store_notice_link() }))
+			.element(screen.getByRole('link', { name: m.common_app_store_link() }))
 			.toHaveAttribute('href', APP_STORE_URL);
 	});
 
