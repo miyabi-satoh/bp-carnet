@@ -9,7 +9,7 @@ export type HelpTopic = {
 	/** URL (`/help/<slug>`)・本文のファイル名・画像のファイル名に使う。 */
 	slug: string;
 	title: () => string;
-	/** ウェブ版 (ブラウザ) だけの話で、アプリでは出さない。ホーム画面に追加・内蔵ブラウザの案内は
+	/** ウェブ版 (ブラウザ) だけの話で、アプリでは出さない。アプリを入れる・ホーム画面に追加・内蔵ブラウザの案内は
 	 * アプリでは要らず、Android など他のプラットフォームの名前も出てしまうため (App Review Guidelines 2.3.10)。 */
 	webOnly?: true;
 	/** アプリでは、本文を `<slug>.app.md` から読む。操作の手順がアプリとウェブで違う項目 (読み取りの買い足しは、
@@ -131,8 +131,8 @@ const ALL_HELP_SECTIONS: readonly HelpSection[] = [
 				appBody: true
 			},
 			{
-				slug: 'home-screen',
-				title: m.help_home_screen_title,
+				slug: 'iphone-app',
+				title: m.help_iphone_app_title,
 				webOnly: true
 			},
 			{
