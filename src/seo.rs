@@ -39,7 +39,7 @@ const HELP_TOPICS: [(&str, &str); 21] = [
     ),
     ("trouble-photo", "写真が読み取れないとき"),
     ("trouble-ocr-budget", "無料の読み取りを使い切ったとき"),
-    ("home-screen", "ホーム画面に追加するには (iPhone)"),
+    ("home-screen", "iPhone のアプリを入れるには"),
     ("home-screen-android", "ホーム画面に追加するには (Android)"),
 ];
 

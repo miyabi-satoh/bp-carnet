@@ -2,29 +2,33 @@
 	import HelpSteps from '$lib/components/help-steps.svelte';
 	import HelpStep from '$lib/components/help-step.svelte';
 	import HelpExternalLink from '$lib/components/help-external-link.svelte';
+	import { APP_STORE_URL } from '$lib/app-store-link';
+	import * as m from '$lib/paraglide/messages.js';
 </script>
 
-<!-- ブラウザのメニューはアプリの外なので画像を撮れない。表記はブラウザの版で変わるため、細かい操作は公式の手順 (Apple サポート・Chrome ヘルプ) に任せる。 -->
+<!-- App Store とホーム画面の操作はアプリの外なので画像を撮れない。 -->
 
 <HelpSteps>
 
 <HelpStep n={1} image={false}>
 
-Safari でこのアプリを開きます。共有のボタンを押し、「ホーム画面に追加」を選びます。
+App Store から BP Carnet のアプリを入れます。
 
-<HelpExternalLink href="https://support.apple.com/ja-jp/guide/iphone/iphea86e5236/ios">詳しい手順 (Apple のサイト)</HelpExternalLink>
+<HelpExternalLink href={APP_STORE_URL}>{m.common_app_store_link()}</HelpExternalLink>
 
 </HelpStep>
 
 <HelpStep n={2} image={false}>
 
-「Webアプリとして開く」のスイッチが出たら、オフにします。オンのままだと、LINE でログインできません。
+アプリを開き、ブラウザで使っていたのと同じ方法でログインします。記録も、買い足した読み取りの枠も、そのまま使えます。
 
 </HelpStep>
 
 <HelpStep n={3} image={false}>
 
-ホーム画面にできたアイコンを押すと、アプリが開きます。
+Safari から「ホーム画面に追加」したアイコンがあれば、消してかまいません。同じ名前のアイコンが2つ並ぶと、どちらを開いたか分かりにくくなります。
+
+アプリを入れずにホーム画面に追加して使うときは、「Webアプリとして開く」のスイッチをオフにして追加します。オンのままだと、LINE でログインできません。
 
 </HelpStep>
 
