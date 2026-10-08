@@ -65,7 +65,7 @@ fn pages() -> Vec<Page> {
         Page {
             path: "/pricing".into(),
             title: format!("料金と購入の条件 — {SITE_NAME}"),
-            description: "BP Carnet で写真の読み取りを買い足すときの価格・支払方法・引き渡しの時期・返金の扱い・動作環境です。".into(),
+            description: "BP Carnet で写真の読み取りを買い足すときの価格と、使える環境です。".into(),
         },
         Page {
             path: "/help".into(),

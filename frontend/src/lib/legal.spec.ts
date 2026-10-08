@@ -36,10 +36,9 @@ describe('料金のページの販売価格', () => {
 	});
 });
 
-describe('料金のページの支払方法', () => {
-	it('ウェブとアプリの両方の支払い方法を載せる', () => {
+describe('料金のページの販売価格 (アプリ)', () => {
+	it('アプリ内課金の価格は、App Store の価格によると載せる', () => {
 		const { body } = render(legalDocumentComponent('pricing', 'ja'));
-		expect(body).toContain('Stripe');
-		expect(body).toContain('アプリ内課金');
+		expect(body).toContain('App Store の価格');
 	});
 });
