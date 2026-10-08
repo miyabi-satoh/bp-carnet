@@ -195,7 +195,14 @@ mod tests {
 
     #[test]
     fn every_public_page_gets_title_description_and_ogp() {
-        for path in ["/", "/terms", "/privacy", "/help", "/help/login"] {
+        for path in [
+            "/",
+            "/terms",
+            "/privacy",
+            "/pricing",
+            "/help",
+            "/help/login",
+        ] {
             let tags = head_tags(URL, path);
             assert!(!is_noindex(path), "{path}");
             for needle in [

@@ -38,7 +38,7 @@ export const PUBLIC_ROUTES: readonly string[] = [
 	'/reset-password',
 	'/signup',
 	'/terms',
-	// 特定商取引法の表記は、プライバシーポリシーから運営者の氏名の載せ先として指すので、登録前にも読めるようにする。
+	// 特定商取引法の表記は、amiiby.com の共通の表記から指されているので、登録前にも読めるようにする。
 	'/tokushoho',
 	'/verify-email'
 ];
