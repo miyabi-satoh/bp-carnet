@@ -10,8 +10,8 @@
       "internalID" : "5F2D8C41",
       "localizations" : [
         {
-          "description" : "写真の読み取りを買い足します。",
-          "displayName" : "写真の読み取りの買い足し",
+          "description" : "写真の読み取りを購入します。",
+          "displayName" : "写真の読み取りの購入",
           "locale" : "ja"
         }
       ],

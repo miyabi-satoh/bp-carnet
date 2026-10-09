@@ -155,12 +155,12 @@ export class PhotoPage {
 		return this.page.getByText(ja.error_ocr_disabled, { exact: true });
 	}
 
-	/** 「読み取りを購入」のボタン。 */
+	/** 「読み取りを購入...」のボタン。 */
 	get topupButton(): Locator {
 		return this.page.getByRole('button', { name: ja.photo_page_topup_button, exact: true });
 	}
 
-	/** 「読み取りを購入」で確認のダイアログを開く。 */
+	/** 「読み取りを購入...」で確認のダイアログを開く。 */
 	async openTopup(): Promise<TopupConfirmDialog> {
 		await this.topupButton.click();
 		return new TopupConfirmDialog(this.page);
