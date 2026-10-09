@@ -46,9 +46,8 @@ updates:
       - dependency-name: "typescript"
         update-types: ["version-update:semver-major"]
       # @vite-pwa/sveltekit 1.1.0 は SvelteKit 3 に対応しておらず、kit 3 ではビルドが通っても
-      # service worker が作られない (vite-pwa/sveltekit#111 で対応中)。adapter-static 4 は kit 3 でしか
-      # 動かず、vite-plugin-pwa 2 は @vite-pwa/sveltekit の対応版と合わせて上げる。対応版が出たら
-      # この3つの ignore を消して、手動で一緒に上げること。
+      # service worker が作られない。adapter-static 4 は kit 3 でしか動かず、vite-plugin-pwa 2 は
+      # @vite-pwa/sveltekit の対応版と合わせて上げるので、この3つは一緒に止める。
       - dependency-name: "@sveltejs/kit"
         update-types: ["version-update:semver-major"]
       - dependency-name: "@sveltejs/adapter-static"
