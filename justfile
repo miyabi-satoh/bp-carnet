@@ -224,6 +224,11 @@ licenses:
 licenses-check:
     cd {{ frontend_dir }} && node scripts/generate-ios-licenses.ts --check && node scripts/check-server-licenses.ts
 
+[doc('iPhone アプリの Swift のパッケージが、入れてある Capacitor のプラグインと食い違っていないかを見る')]
+[group('検査')]
+ios-packages-check:
+    cd {{ frontend_dir }} && pnpm exec cap update ios && node scripts/check-ios-packages.ts
+
 [doc('仕様書に書き漏れた画面が無いかを見る (原稿の置き場を渡す)')]
 [group('検査')]
 [unix]
@@ -264,7 +269,7 @@ test: ensure-frontend-build
 # e2e は build の後に置き、その時点のフロントで流す
 [doc('検査を全部流す (CI が PR ごとに流す)')]
 [group('検査')]
-ci: fmt-check lint check api-types-check licenses-check test build e2e-local
+ci: fmt-check lint check api-types-check licenses-check ios-packages-check test build e2e-local
 
 [doc('ビルドの成果物を消す')]
 [group('ビルド')]
