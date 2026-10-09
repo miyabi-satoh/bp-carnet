@@ -226,7 +226,7 @@ licenses-check:
 
 [doc('iPhone アプリの Swift のパッケージが、入れてある Capacitor のプラグインと食い違っていないかを見る')]
 [group('検査')]
-ios-packages-check:
+ios-packages-check: ensure-frontend-build
     cd {{ frontend_dir }} && pnpm exec cap update ios && node scripts/check-ios-packages.ts
 
 [doc('仕様書に書き漏れた画面が無いかを見る (原稿の置き場を渡す)')]

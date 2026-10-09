@@ -18,6 +18,9 @@ const RESOLVED = join(
 	'App/App.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved'
 );
 
+const RESOLVE_HINT =
+	'mac で xcodebuild -resolvePackageDependencies -project mobile/ios/App/App.xcodeproj -scheme App を流し、Package.resolved をコミットする';
+
 // プレリリース (`-beta.1` など) は比べ方が変わるので読まない。今の依存には出てこない。
 const PLAIN_VERSION = /^\d+(\.\d+){0,2}$/;
 
@@ -28,12 +31,16 @@ interface Pin {
 
 const problems: string[] = [];
 
-const changed = execFileSync('git', ['status', '--porcelain', '--', CAP_APP_SPM], {
-	cwd: REPO_ROOT,
-	encoding: 'utf8'
-}).trim();
+// `cap update ios` は、自前のプラグインの Package.swift の capacitor-swift-pm の版も Capacitor に合わせて書き換える。
+const changed = execFileSync(
+	'git',
+	['status', '--porcelain', '--', CAP_APP_SPM, join(REPO_ROOT, 'mobile/plugins')],
+	{ cwd: REPO_ROOT, encoding: 'utf8' }
+).trim();
 if (changed !== '') {
-	problems.push(`cap update ios で書き換わった (書き換わったものをコミットする):\n${changed}`);
+	problems.push(
+		`cap update ios で書き換わった (手元で just ios-packages-check を流し、書き換わったものをコミットする):\n${changed}`
+	);
 }
 
 const pins = new Map(
@@ -52,13 +59,17 @@ const manifests = [
 ];
 for (const dir of manifests) {
 	const manifest = readFileSync(join(dir, 'Package.swift'), 'utf8');
-	for (const [, url, requirement] of manifest.matchAll(
-		/\.package\(url:\s*"([^"]+)",\s*(.+?)\)\s*,?\s*$/gm
-	)) {
-		const pinned = pins.get(normalizeUrl(url));
-		const where = `${dir.slice(REPO_ROOT.length + 1)}/Package.swift の ${url}`;
-		if (!pins.has(normalizeUrl(url))) {
-			problems.push(`${where}: Package.resolved に固定が無い (Xcode でパッケージを解決し直す)`);
+	const file = `${dir.slice(REPO_ROOT.length + 1)}/Package.swift`;
+	const dependencies = [...manifest.matchAll(/\.package\(url:\s*"([^"]+)",\s*(.+?)\)\s*,?\s*$/gm)];
+	if (dependencies.length !== (manifest.match(/\.package\(url:/g) ?? []).length) {
+		problems.push(`${file}: .package(url: ...) の書き方を読めないものがある (この検査に足す)`);
+	}
+	for (const [, url, requirement] of dependencies) {
+		const key = normalizeUrl(url);
+		const pinned = pins.get(key);
+		const where = `${file} の ${url}`;
+		if (!pins.has(key)) {
+			problems.push(`${where}: Package.resolved に固定が無い (${RESOLVE_HINT})`);
 			continue;
 		}
 		const range = parseRequirement(requirement);
@@ -70,7 +81,7 @@ for (const dir of manifests) {
 			);
 		} else if (!(compare(pinned, range.min) >= 0 && compare(pinned, range.below) < 0)) {
 			problems.push(
-				`${where}: ${requirement} を求めるが、Package.resolved は ${pinned} (Xcode でパッケージを解決し直す)`
+				`${where}: ${requirement} を求めるが、Package.resolved は ${pinned} (${RESOLVE_HINT})`
 			);
 		}
 	}
