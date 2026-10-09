@@ -6,9 +6,9 @@
 import type { Component } from 'svelte';
 import { baseLocale, getLocale } from '$lib/paraglide/runtime.js';
 
-// 特商法 (特定商取引法に基づく表記) と料金のページは買い足し (有料化) 用の情報開示。規約・ポリシーと違い
+// 料金のページは買い足し (有料化) 用の情報開示。規約・ポリシーと違い
 // 同意の対象ではないので、変えても規約の版 (src/terms.rs の VERSION) は上げない。
-export type LegalDocument = 'terms' | 'privacy' | 'tokushoho' | 'pricing';
+export type LegalDocument = 'terms' | 'privacy' | 'pricing';
 
 const sources = import.meta.glob<Component>('./legal/*/*.md', { import: 'default', eager: true });
 

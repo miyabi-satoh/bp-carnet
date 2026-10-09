@@ -2,7 +2,7 @@ import { render } from 'svelte/server';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { legalDocumentComponent, type LegalDocument } from '$lib/legal';
 
-const DOCUMENTS: readonly LegalDocument[] = ['terms', 'privacy', 'tokushoho', 'pricing'];
+const DOCUMENTS: readonly LegalDocument[] = ['terms', 'privacy', 'pricing'];
 
 describe('legalDocumentComponent', () => {
 	it('本文のリンクは、URL の後ろの文まで取り込まず、nofollow も付けない', () => {
