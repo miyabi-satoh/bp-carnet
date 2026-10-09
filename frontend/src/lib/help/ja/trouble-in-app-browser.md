@@ -10,13 +10,13 @@
 
 <HelpStep n={1} image={false}>
 
-LINE やメールのリンクを押すと、アプリの中の簡易な画面（内蔵ブラウザ）で開くことがあります。この画面では、LINE・Google・Apple でログインできません。
+LINE やメールのリンクを押すと、アプリの中の簡易な画面（内蔵ブラウザー）で開くことがあります。この画面では、LINE・Google・Apple でログインできません。
 
 </HelpStep>
 
 <HelpStep n={2} image={false}>
 
-画面のメニュー（︙ や共有のマーク）から「ブラウザで開く」（iPhone は「Safari で開く」）を選びます。
+画面のメニュー（︙ や共有のマーク）から「ブラウザーで開く」（iPhone は「Safari で開く」）を選びます。
 
 </HelpStep>
 

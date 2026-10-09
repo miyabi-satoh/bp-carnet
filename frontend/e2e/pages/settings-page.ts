@@ -41,7 +41,7 @@ export class SettingsPage {
 		});
 	}
 
-	/** 「写真の読み取り」の欄の「読み取りを買い足す」で確認のダイアログを開く。 */
+	/** 「写真の読み取り」の欄の「読み取りを購入」で確認のダイアログを開く。 */
 	async openTopup(): Promise<TopupConfirmDialog> {
 		await this.ocrSection
 			.getByRole('button', { name: ja.settings_ocr_topup_button, exact: true })
