@@ -44,7 +44,6 @@ const ROUTE_STATUS: Record<string, RouteStatus> = {
 	'/settings/import': { documented: '04-settings.md' },
 	'/signup': { documented: '01-login.md' },
 	'/terms': { documented: '01-login.md' },
-	'/tokushoho': { documented: '07-record-photo.md' },
 	'/verify-email': { documented: '01-login.md' }
 };
 

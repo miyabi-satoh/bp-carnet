@@ -816,17 +816,6 @@ export const shots: Record<string, ShotEntry> = {
 		}
 	},
 
-	// 特定商取引法に基づく表記。ログインしてから開くページ。
-	tokushoho_page: {
-		async run(page, ctx) {
-			await mockAuthProviders(page, PRODUCTION_AUTH_PROVIDERS);
-			await login(page, ctx.baseURL, 'admin', 'zxcvbnm1');
-			await page.goto(`${ctx.baseURL}/tokushoho`);
-			await page.getByRole('article').waitFor({ timeout: 5000 });
-			await capture(page, ctx);
-		}
-	},
-
 	// 選んだ写真を読み取る前に確かめる段階。「読み取る」を押すまで読み取らない。
 	photo_confirm: {
 		viewports: ['mobile'],

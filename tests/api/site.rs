@@ -174,3 +174,18 @@ async fn robots_txt_points_at_the_sitemap(pool: SqlitePool) {
     assert_eq!(status, StatusCode::OK);
     assert!(body.contains("Sitemap: https://bp.example.com/sitemap.xml"));
 }
+
+#[sqlx::test]
+async fn tokushoho_moves_permanently_to_the_shared_page(pool: SqlitePool) {
+    let app = test_app_with_public_url(pool).await;
+
+    let response = send(&app, get("/tokushoho", None)).await;
+    assert_eq!(response.status(), StatusCode::MOVED_PERMANENTLY);
+    assert_eq!(
+        response
+            .headers()
+            .get(header::LOCATION)
+            .and_then(|v| v.to_str().ok()),
+        Some("https://amiiby.com/tokushoho/")
+    );
+}
