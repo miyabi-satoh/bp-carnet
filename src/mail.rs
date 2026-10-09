@@ -15,7 +15,7 @@ use crate::config::{MailConfig, SmtpTls};
 /// 1回限りのリンク (確認・再設定) の下に添える、リンクを開けないときの案内。
 /// 長い URL はメールアプリによって折り返され、押せなくなることがあるため。
 pub const LINK_HELP: &str =
-    "リンクを開けない場合は、URL をコピーしてブラウザのアドレス欄に貼り付けてください。\n";
+    "リンクを開けない場合は、URL をコピーしてブラウザーのアドレス欄に貼り付けてください。\n";
 
 /// SMTP の認証に使うパスワードの環境変数。機微情報のため config.toml には置かない。
 pub const PASSWORD_ENV: &str = "SMTP_PASSWORD";

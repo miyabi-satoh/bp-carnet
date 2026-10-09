@@ -128,7 +128,7 @@ export class PhotoPage {
 		return this.page.getByText(ja.ocr_quota_free_title, { exact: true });
 	}
 
-	/** 残りの枠の見出し「買い足した読み取り」(買い足した枠を使っているとき)。 */
+	/** 残りの枠の見出し「購入した読み取り」(購入した枠を使っているとき)。 */
 	get paidQuotaTitle(): Locator {
 		return this.page.getByText(ja.ocr_quota_paid_title, { exact: true });
 	}
@@ -155,12 +155,12 @@ export class PhotoPage {
 		return this.page.getByText(ja.error_ocr_disabled, { exact: true });
 	}
 
-	/** 「読み取りを買い足す」のボタン。 */
+	/** 「読み取りを購入...」のボタン。 */
 	get topupButton(): Locator {
 		return this.page.getByRole('button', { name: ja.photo_page_topup_button, exact: true });
 	}
 
-	/** 「読み取りを買い足す」で確認のダイアログを開く。 */
+	/** 「読み取りを購入...」で確認のダイアログを開く。 */
 	async openTopup(): Promise<TopupConfirmDialog> {
 		await this.topupButton.click();
 		return new TopupConfirmDialog(this.page);
