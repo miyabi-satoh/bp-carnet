@@ -232,7 +232,6 @@
 	"topup_result_failed_description": "料金は請求されていません。時間をおいて、もう一度お試しください。",
 	"topup_result_error_description": "結果を確認できませんでした。時間をおいて、写真で記録の画面から確かめてください。",
 	"topup_result_back_to_photo_button": "写真で記録に戻る",
-	"topup_result_retry_button": "もう一度試す",
 	"terms_consent_providers": "はじめてログインすると、{terms}と{privacy}に同意したことになります (米国の事業者への個人情報の提供を含みます)。",
 	"terms_consent_signup": "送信すると{terms}と{privacy}に同意したことになります (米国の事業者への個人情報の提供を含みます)。",
 	"email_link_expired_title": "このリンクは使えません",
@@ -552,7 +551,6 @@
 	"same_record_dialog_title": "同じ記録がすでにあります",
 	"same_record_dialog_description": "同じ日時・同じ値の記録が登録済みです。同じ写真をもう一度登録していないか確かめてください。登録すると、同じ記録が2件になります。",
 	"same_record_dialog_confirm_button": "登録する",
-	"same_record_dialog_cancel_button": "キャンセル",
 	"record_form_dialog_discard_title": "入力した内容を消して閉じますか？",
 	"record_form_dialog_discard_button": "閉じる"
 }

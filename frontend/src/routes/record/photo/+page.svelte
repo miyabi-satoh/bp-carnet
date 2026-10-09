@@ -30,7 +30,6 @@
 		shiftMemoRowsYear,
 		photoFileHandoff,
 		type MemoRow,
-		type OcrQuota,
 		type OcrReading
 	} from '$lib/ocr';
 	import {
@@ -41,6 +40,7 @@
 	import * as m from '$lib/paraglide/messages.js';
 	import { currentYearIn, localToday, toLocalDateTime } from '$lib/period';
 	import { LatestRequest } from '$lib/latest-request';
+	import { OcrStatusState } from '$lib/ocr-status.svelte';
 	import { photoTakenAt } from '$lib/photo-taken-at';
 	import { recordFormSubmitLabel, requestManualEntry, splitMeasuredAt } from '$lib/record-form';
 	import { hasSameRecord, saveRecord, type CreateRecordRequest } from '$lib/records';
@@ -72,34 +72,25 @@
 	type Stage = 'pick' | 'confirm' | 'reading' | 'error' | 'result';
 
 	let stage = $state<Stage>('pick');
+	/** 遅れて返った古い応答で、新しい値を上書きしない。取り直しに失敗しても、同意したことは忘れない。 */
+	const ocrStatus = new OcrStatusState({ keepKnownConsent: true });
 	/** 読み取りの枠を使う順に並べたもの。無制限・無効・取得できないときは `null` で、残りの枠を出さない (docs/ocr.md)。 */
-	let quotas = $state<OcrQuota[] | null>(null);
+	let quotas = $derived(ocrStatus.status.quotas);
 	/** 全部の枠を足した残りが少ないか。少なければゲージを注意の色にする。 */
-	let quotaLow = $state(false);
+	let quotaLow = $derived(ocrStatus.status.quotaLow);
 	/** 読み取りを買い足せるか (Stripe 有効で、無料の枠に上限がある)。「読み取りを買い足す」は残りの量によらず出す
 	 * (量で出し消しすると、買った直後に消えて不具合に見えるため。docs/ocr.md)。 */
-	let topupAvailable = $state(false);
+	let topupAvailable = $derived(ocrStatus.status.topupAvailable);
 	/** 読み取りが無効と分かっている (`enabled: false`)。取得できないときは無効とみなさない (サーバーが読み取りの段階で断る)。 */
-	let ocrDisabled = $state(false);
+	let ocrDisabled = $derived(ocrStatus.status.enabled === false);
 	let topupDialog = $state<ReturnType<typeof TopupConfirmDialog> | null>(null);
 	/** 写真を Gemini API に送ることに同意しているか。分からない (取得できない) ときは `null` で、
 	 * 同意済みとは扱わない (読み取る前に聞く)。 */
-	let consented = $state<boolean | null>(null);
+	let consented = $derived(ocrStatus.status.consented);
 	let consentDialog = $state<ReturnType<typeof OcrConsentDialog> | null>(null);
 
-	/** 遅れて返った古い応答で、新しい値を上書きしない。 */
-	const ocrStatusRequest = new LatestRequest();
 	function refreshOcrStatus() {
-		const isLatest = ocrStatusRequest.begin();
-		void fetchOcrStatus().then((status) => {
-			if (!isLatest()) return;
-			ocrDisabled = status.enabled === false;
-			quotas = status.quotas;
-			quotaLow = status.quotaLow;
-			topupAvailable = status.topupAvailable;
-			// 取り直しに失敗しても、同意したことは忘れない。
-			if (status.consented !== null) consented = status.consented;
-		});
+		void ocrStatus.refresh();
 	}
 	/** アプリで買い足したとき (ウェブは Stripe へ移り、結果の画面から戻る)。使い切りで読み取れなかった後なら、
 	 * 選んだ写真のまま「読み取る」の段階に戻す。 */
@@ -221,7 +212,7 @@
 	});
 
 	onDestroy(() => {
-		ocrStatusRequest.cancel();
+		ocrStatus.cancel();
 		ocrRequest.cancel();
 		setPhoto(null);
 		memoConfirmation.reset();
@@ -333,7 +324,7 @@
 		// ページを開いてすぐ押すと、状態の取得が間に合っていない。同意済みの人に聞き直さないよう、待って決める。
 		if (consented === null) {
 			const status = await fetchOcrStatus();
-			if (consented === null) consented = status.consented;
+			if (consented === null) ocrStatus.setConsented(status.consented);
 		}
 		if (consented) {
 			void runOcr();
@@ -343,7 +334,7 @@
 	}
 
 	function consentGiven() {
-		consented = true;
+		ocrStatus.setConsented(true);
 		void runOcr();
 	}
 
@@ -366,7 +357,7 @@
 
 			if (!result.ok && result.code === 'ocr_consent_required') {
 				// ほかの端末で取り消していた。写真はそのままにして、同意を求め直す。
-				consented = false;
+				ocrStatus.setConsented(false);
 				stage = 'confirm';
 				consentDialog?.show();
 				return;

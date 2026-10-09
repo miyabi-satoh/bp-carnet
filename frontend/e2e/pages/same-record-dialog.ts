@@ -18,7 +18,7 @@ export class SameRecordDialog {
 
 	get cancelButton(): Locator {
 		return this.root.getByRole('button', {
-			name: ja.same_record_dialog_cancel_button,
+			name: ja.common_cancel_button,
 			exact: true
 		});
 	}

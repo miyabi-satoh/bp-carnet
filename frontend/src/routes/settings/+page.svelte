@@ -51,7 +51,8 @@
 	import { appVersionLabel, isNativeApp } from '$lib/native-app';
 	import { CSV_FILE_ACCEPT, importFileHandoff } from '$lib/import';
 	import { takeImportResult } from '$lib/import-step';
-	import { fetchOcrStatus, withdrawOcrConsent, type OcrQuota, type OcrStatus } from '$lib/ocr';
+	import { withdrawOcrConsent } from '$lib/ocr';
+	import { OcrStatusState } from '$lib/ocr-status.svelte';
 	import { debugRefundAvailable, requestDebugRefund } from '$lib/app-store-purchase';
 
 	let loading = $state(true);
@@ -326,15 +327,17 @@
 		}
 	}
 
+	/** 遅れて返った古い応答 (開いたときの取得と、買い足した後の取り直し) で、新しい値を上書きしない。 */
+	const ocrStatus = new OcrStatusState();
 	/** 写真を Gemini API に送ることに同意しているか。同意しているときだけ、取り消す行を出す
 	 * (docs/ocr.md)。 */
-	let ocrConsented = $state(false);
+	let ocrConsented = $derived(ocrStatus.status.consented === true);
 	let withdrawingOcrConsent = $state(false);
 	/** 読み取りの枠を使う順に。無制限なら `null` で出さない (docs/ocr.md)。 */
-	let ocrQuotas = $state<OcrQuota[] | null>(null);
-	let ocrQuotaLow = $state(false);
+	let ocrQuotas = $derived(ocrStatus.status.quotas);
+	let ocrQuotaLow = $derived(ocrStatus.status.quotaLow);
 	/** 読み取りを買い足せるか。残りによらず、いつでも買える (失効が無いので先に買っても損をしない)。 */
-	let ocrTopupAvailable = $state(false);
+	let ocrTopupAvailable = $derived(ocrStatus.status.topupAvailable);
 	let topupDialog = $state<ReturnType<typeof TopupConfirmDialog> | null>(null);
 	/** 開発用の返金の申し出 (Debug ビルドのアプリだけ)。Sandbox で返金の通知を確かめるため。 */
 	let debugRefund = $state(false);
@@ -359,18 +362,11 @@
 			showError(m.settings_ocr_consent_withdraw_error_title(), result.message);
 			return;
 		}
-		ocrConsented = false;
+		ocrStatus.setConsented(false);
 		consentWithdrawnDialog?.show(
 			m.settings_ocr_consent_withdrawn_title(),
 			m.settings_ocr_consent_withdrawn_message()
 		);
-	}
-
-	function applyOcrStatus(status: OcrStatus) {
-		ocrConsented = status.consented === true;
-		ocrQuotas = status.quotas;
-		ocrQuotaLow = status.quotaLow;
-		ocrTopupAvailable = status.topupAvailable;
 	}
 
 	onMount(() => {
@@ -381,8 +377,7 @@
 			debugRefundAvailable().then((available) => (debugRefund = available));
 			appVersionLabel().then((label) => (versionLabel = label));
 		}
-		fetchOcrStatus().then(async (status) => {
-			applyOcrStatus(status);
+		ocrStatus.refresh().then(async () => {
 			// 写真で記録の「ほかの枠を見る」から来たら、節が描かれてから節へ移る。
 			if (page.url.hash === '#ocr') {
 				await tick();
@@ -788,7 +783,4 @@
 <NoticeDialog bind:this={importedDialog} />
 <NoticeDialog bind:this={exportedDialog} />
 <NoticeDialog bind:this={consentWithdrawnDialog} />
-<TopupConfirmDialog
-	bind:this={topupDialog}
-	onpurchased={() => void fetchOcrStatus().then(applyOcrStatus)}
-/>
+<TopupConfirmDialog bind:this={topupDialog} onpurchased={() => void ocrStatus.refresh()} />

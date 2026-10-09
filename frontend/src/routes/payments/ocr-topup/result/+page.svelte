@@ -134,7 +134,7 @@
 					{m.topup_result_back_to_photo_button()}
 				</Button>
 				<Button type="button" onclick={backToPhoto}>
-					{m.topup_result_retry_button()}
+					{m.common_retry_button()}
 				</Button>
 			</ButtonRow>
 		{:else}
