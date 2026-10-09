@@ -183,11 +183,7 @@ async fn google_callback_rejects_emails_google_does_not_vouch_for(pool: SqlitePo
         count_identities(&pool, LoginProvider::Google, None).await,
         0
     );
-    let users: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users")
-        .fetch_one(&pool)
-        .await
-        .expect("count users");
-    assert_eq!(users, 1);
+    assert_eq!(count_users(&pool).await, 1);
 }
 
 #[sqlx::test]

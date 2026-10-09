@@ -120,7 +120,7 @@ pub async fn revoke_link_logged(
 /// 英数字だけで作る。
 const STATE_NONCE_LEN: usize = 43;
 
-/// `state` を作る (LINE・Apple)。
+/// `state` を作る (Google・LINE・Apple)。
 pub fn generate_state() -> String {
     random_alphanumeric(STATE_NONCE_LEN)
 }

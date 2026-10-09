@@ -1102,9 +1102,11 @@ async fn grant_domestic(pool: &SqlitePool, column: &str, id: &str) -> Option<i64
 }
 
 async fn ocr_budget_yen_of(pool: &SqlitePool, username: &str) -> Option<i64> {
-    sqlx::query_scalar::<_, Option<i64>>("SELECT ocr_budget_yen FROM users WHERE username = ?")
-        .bind(username)
-        .fetch_one(pool)
-        .await
-        .expect("failed to read ocr_budget_yen")
+    sqlx::query_scalar!(
+        "SELECT ocr_budget_yen FROM users WHERE username = ?",
+        username
+    )
+    .fetch_one(pool)
+    .await
+    .expect("failed to read ocr_budget_yen")
 }

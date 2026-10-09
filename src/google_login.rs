@@ -15,7 +15,6 @@ use serde::Deserialize;
 
 use crate::config::non_empty_env;
 use crate::external_login::ProviderError;
-use crate::token::random_url_safe;
 use crate::upstream::{http_client, parse_success};
 
 /// ログで呼び出し元を見分けるための名前 (`upstream::success_body`)。
@@ -211,26 +210,9 @@ impl GoogleIdToken {
     }
 }
 
-/// CSRF (login-CSRF) 対策の `state` パラメータを生成する。
-pub fn generate_state() -> String {
-    random_url_safe(32)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn generated_state_is_url_safe_and_not_repeated() {
-        let state = generate_state();
-        assert!(
-            state
-                .chars()
-                .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_'),
-            "{state}"
-        );
-        assert_ne!(state, generate_state());
-    }
 
     #[test]
     fn disabled_client_has_no_authorization_url() {
