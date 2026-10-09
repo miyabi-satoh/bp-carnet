@@ -49,7 +49,9 @@ const manifests = [
 ];
 for (const dir of manifests) {
 	const manifest = readFileSync(join(dir, 'Package.swift'), 'utf8');
-	for (const [, url, requirement] of manifest.matchAll(/\.package\(url:\s*"([^"]+)",\s*(.+?)\)\s*,?\s*$/gm)) {
+	for (const [, url, requirement] of manifest.matchAll(
+		/\.package\(url:\s*"([^"]+)",\s*(.+?)\)\s*,?\s*$/gm
+	)) {
 		const pinned = pins.get(normalizeUrl(url));
 		const where = `${dir.slice(REPO_ROOT.length + 1)}/Package.swift の ${url}`;
 		if (pinned === undefined) {
