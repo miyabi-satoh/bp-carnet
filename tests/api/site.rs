@@ -179,13 +179,16 @@ async fn robots_txt_points_at_the_sitemap(pool: SqlitePool) {
 async fn tokushoho_moves_permanently_to_the_shared_page(pool: SqlitePool) {
     let app = test_app_with_public_url(pool).await;
 
-    let response = send(&app, get("/tokushoho", None)).await;
-    assert_eq!(response.status(), StatusCode::MOVED_PERMANENTLY);
-    assert_eq!(
-        response
-            .headers()
-            .get(header::LOCATION)
-            .and_then(|v| v.to_str().ok()),
-        Some("https://amiiby.com/tokushoho/")
-    );
+    for path in ["/tokushoho", "/tokushoho/"] {
+        let response = send(&app, get(path, None)).await;
+        assert_eq!(response.status(), StatusCode::MOVED_PERMANENTLY, "{path}");
+        assert_eq!(
+            response
+                .headers()
+                .get(header::LOCATION)
+                .and_then(|v| v.to_str().ok()),
+            Some("https://amiiby.com/tokushoho/"),
+            "{path}"
+        );
+    }
 }

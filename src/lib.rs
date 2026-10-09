@@ -81,6 +81,13 @@ use crate::state::AppState;
 /// 特定商取引法に基づく表記。運営者の製品で共通のページ (frontend の `TOKUSHOHO_URL` と同じ値)。
 const TOKUSHOHO_URL: &str = "https://amiiby.com/tokushoho/";
 
+async fn tokushoho_redirect() -> impl axum::response::IntoResponse {
+    (
+        axum::http::StatusCode::MOVED_PERMANENTLY,
+        [(header::LOCATION, TOKUSHOHO_URL)],
+    )
+}
+
 /// エラーとその原因 (source) チェーンを1つの文字列にする。`thiserror` の `#[error(...)]` は
 /// 最上位のメッセージしか出さないため、`toml::de::Error` が持つ行番号等の詳細を落とさないように辿る。
 pub fn error_chain(err: &(dyn std::error::Error + 'static)) -> String {
@@ -196,15 +203,8 @@ pub async fn build_app(
         .route("/robots.txt", get(static_files::robots))
         // 特定商取引法の表記は amiiby.com の共通の表記に置く。この URL を開いた人と検索エンジンを
         // そこへ送るため、恒久的な移動 (301) で返す。
-        .route(
-            "/tokushoho",
-            get(|| async {
-                (
-                    axum::http::StatusCode::MOVED_PERMANENTLY,
-                    [(header::LOCATION, TOKUSHOHO_URL)],
-                )
-            }),
-        )
+        .route("/tokushoho", get(tokushoho_redirect))
+        .route("/tokushoho/", get(tokushoho_redirect))
         .fallback(static_files::handler)
         // リクエストのログにはクエリを含めずパスだけを残す。
         .layer(TraceLayer::new_for_http().make_span_with(

@@ -134,8 +134,9 @@ export default defineConfig({
 				// 先読みの対象は既定のまま (日本語フォントの woff2 は含まれない)。ビルド時の
 				// `prerendered/**` が一致しないという警告は、事前生成するページの無い SPA では常に出る。
 				// Google ログインのリダイレクトや CSV のダウンロードなど、`/api` への画面遷移は
-				// index.html に差し替えずサーバーへ届ける。
-				navigateFallbackDenylist: [/^\/api\//]
+				// index.html に差し替えずサーバーへ届ける。特定商取引法の表記 (`/tokushoho`) も、サーバーの
+				// 301 で amiiby.com へ送るために届ける。
+				navigateFallbackDenylist: [/^\/api\//, /^\/tokushoho\/?$/]
 			}
 		}),
 
