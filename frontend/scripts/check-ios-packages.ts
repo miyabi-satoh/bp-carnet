@@ -18,6 +18,9 @@ const RESOLVED = join(
 	'App/App.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved'
 );
 
+// プレリリース (`-beta.1` など) は比べ方が変わるので読まない。今の依存には出てこない。
+const PLAIN_VERSION = /^\d+(\.\d+){0,2}$/;
+
 interface Pin {
 	location: string;
 	state: { version?: string };
@@ -43,7 +46,7 @@ const pins = new Map(
 const capAppManifest = readFileSync(join(CAP_APP_SPM, 'Package.swift'), 'utf8');
 const manifests = [
 	CAP_APP_SPM,
-	...[...capAppManifest.matchAll(/\.package\(name:\s*"[^"]+",\s*path:\s*"([^"]+)"\)/g)].map((m) =>
+	...[...capAppManifest.matchAll(/\.package\(name:\s*"[^"]+",\s*path:\s*"([^"]+)"/g)].map((m) =>
 		resolve(CAP_APP_SPM, m[1])
 	)
 ];
@@ -54,13 +57,17 @@ for (const dir of manifests) {
 	)) {
 		const pinned = pins.get(normalizeUrl(url));
 		const where = `${dir.slice(REPO_ROOT.length + 1)}/Package.swift の ${url}`;
-		if (pinned === undefined) {
-			problems.push(`${where}: Package.resolved に版の固定が無い (Xcode でパッケージを解決し直す)`);
+		if (!pins.has(normalizeUrl(url))) {
+			problems.push(`${where}: Package.resolved に固定が無い (Xcode でパッケージを解決し直す)`);
 			continue;
 		}
 		const range = parseRequirement(requirement);
 		if (range === undefined) {
 			problems.push(`${where}: 求める版の書き方 (${requirement}) を読めない (この検査に足す)`);
+		} else if (pinned === undefined || !PLAIN_VERSION.test(pinned)) {
+			problems.push(
+				`${where}: Package.resolved の固定 (${pinned ?? '版でなくブランチかコミット'}) を読めない (この検査に足す)`
+			);
 		} else if (!(compare(pinned, range.min) >= 0 && compare(pinned, range.below) < 0)) {
 			problems.push(
 				`${where}: ${requirement} を求めるが、Package.resolved は ${pinned} (Xcode でパッケージを解決し直す)`
@@ -80,6 +87,8 @@ function normalizeUrl(url: string): string {
 
 /** SwiftPM の書き方を、`min` 以上 `below` 未満の範囲にする。このリポジトリに出てくる書き方だけを読む。 */
 function parseRequirement(text: string): { min: string; below: string } | undefined {
+	const version = text.match(/"([^"]+)"/)?.[1];
+	if (version === undefined || !PLAIN_VERSION.test(version)) return undefined;
 	const exact = text.match(/^exact:\s*"([^"]+)"$/);
 	if (exact) return { min: exact[1], below: bump(exact[1], 2) };
 	const major = text.match(/^(?:from:\s*"([^"]+)"|\.upToNextMajor\(from:\s*"([^"]+)"\))$/);
