@@ -53,7 +53,7 @@ describe('購入結果ページ', () => {
 
 		await expect.element(screen.getByText(m.topup_result_failed_title())).toBeVisible();
 		await expect
-			.element(screen.getByRole('button', { name: m.topup_result_retry_button() }))
+			.element(screen.getByRole('button', { name: m.common_retry_button() }))
 			.toBeVisible();
 		await expect
 			.element(screen.getByRole('button', { name: m.topup_result_back_to_photo_button() }))

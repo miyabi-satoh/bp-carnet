@@ -1,8 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import { pushState } from '$app/navigation';
-	import { page } from '$app/state';
 	import { busyCloseGuard } from '$lib/dialog';
+	import { HistoryOverlay } from '$lib/history-overlay.svelte';
 	import { LeaveGuard } from '$lib/leave-guard.svelte';
 	import * as m from '$lib/paraglide/messages.js';
 	import type { CreateRecordRequest } from '$lib/records';
@@ -54,8 +53,6 @@
 		onfinished?: () => void;
 	} = $props();
 
-	let open = $state(false);
-
 	let measuredOnDate = $state('');
 	let time = $state('');
 	let systolic = $state('');
@@ -78,52 +75,25 @@
 	}
 
 	const guard = new LeaveGuard(
-		() => open && currentValues() !== initialValues,
+		() => overlay.open && currentValues() !== initialValues,
 		() => submitting
 	);
 	const closeGuard = busyCloseGuard(() => submitting);
 
-	/** 自分で閉じて、開いたときに積んだ履歴を戻している途中か (戻る操作が届くまで)。$state にしないのは、
-	 * effect の中で読むだけで、変わったことで effect を走らせる必要が無いため。 */
-	let leaving = false;
-	/** このシートを一度でも開いたか。開いた後に「進む」で印の残った履歴に入ったときだけ戻る。
-	 * 作られた時点で印が残っているのは、開いたまま別のページへ移り、ブラウザの戻る操作で戻ってきたとき。
-	 * そこで戻ると、戻ってきたページを飛ばしてさらに前へ行ってしまう。 */
-	let openedHere = false;
-
 	// 端末の戻る操作でシートの履歴から出たら閉じる。閉じられないときは履歴を積み直して開いたままにする:
 	// 送信中、確認を開いている (戻る操作はそれだけを閉じる)、入力している (閉じる前に確認する)。
-	$effect(() => {
-		if (page.state.recordForm) {
-			// 閉じた後の「進む」で、印の残った履歴に入った。開き直さず、その履歴から戻る。
-			// 留まると、画面は同じなのに履歴が1つ余分に残り、次の「戻る」が空振りする。
-			// `close()` が自分で戻している間 (`open` を落としてから戻る操作が届くまで) は、二重に戻らない。
-			if (!open && !leaving && openedHere) history.back();
-			return;
-		}
-		if (!open) {
-			leaving = false;
-			return;
-		}
+	const overlay = new HistoryOverlay('recordForm', () => {
 		const busy = submitting;
 		const confirming = guard.dialogOpen;
 		const dirty = currentValues() !== initialValues;
-		if (!busy && !confirming && !dirty) {
-			open = false;
-			return;
-		}
-		pushState('', { ...page.state, recordForm: true });
-		if (busy || confirming) return;
-		guard.confirm(close);
+		if (!busy && !confirming && !dirty) return true;
+		if (!busy && !confirming) guard.confirm(close);
+		return false;
 	});
 
 	/** シートを閉じ、開いたときに積んだ履歴を戻す。 */
 	export function close() {
-		open = false;
-		if (page.state.recordForm) {
-			leaving = true;
-			history.back();
-		}
+		overlay.close();
 	}
 
 	/** 閉じるボタン・戻るボタン・Escape・外側のクリックで閉じるとき。入力していれば確認する。 */
@@ -137,10 +107,7 @@
 		generation += 1;
 		({ measuredOnDate, time, systolic, diastolic, pulse, memo } = initial);
 		initialValues = currentValues();
-		// 戻る・進む操作で `recordForm` の残った履歴に入っていても、閉じたときに前の画面へ戻らないよう必ず積む。
-		pushState('', { ...page.state, recordForm: true });
-		open = true;
-		openedHere = true;
+		overlay.show();
 	}
 
 	/** 開いたまま、値を入れ直す (ほかで変わった記録を最新にするとき)。入力途中の値は捨てる。
@@ -160,7 +127,7 @@
 
 <Dialog.Root
 	bind:open={
-		() => open,
+		() => overlay.open,
 		(value) => {
 			if (!value) requestClose();
 		}

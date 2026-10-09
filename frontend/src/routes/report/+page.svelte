@@ -4,6 +4,7 @@
 	import { resolve } from '$app/paths';
 	import { buildChartData, parseSeriesParam, type ChartSeriesKey } from '$lib/bp-chart';
 	import { GENERIC_ERROR_MESSAGE } from '$lib/api/errors';
+	import { LatestRequest } from '$lib/latest-request';
 	import * as m from '$lib/paraglide/messages.js';
 	import {
 		formatDateLabel,
@@ -80,15 +81,16 @@
 	const wideOnlyClass = 'hidden sm:table-cell print:table-cell';
 	const narrowOnlyClass = 'sm:hidden print:hidden';
 
-	/** 取得結果を state に反映してよいかどうかを `isCancelled()` で確認しながら進める。
-	 * `fromParam`/`toParam` が短時間に連続で変わると複数の取得が並行し得るため、後から
-	 * 発行されたリクエストが先に完了して表示を更新した後に、古いリクエストの応答が
-	 * 遅れて届いて上書きしてしまうのを防ぐ。 */
-	async function loadRecords(from: string, to: string, isCancelled: () => boolean) {
+	/** `fromParam`/`toParam` が短時間に続けて変わると取得が並行しうるので、遅れて届いた古い期間の応答で
+	 * 新しい期間の表示を上書きしない。 */
+	const loadRequest = new LatestRequest();
+
+	async function loadRecords(from: string, to: string) {
+		const isLatest = loadRequest.begin();
 		loading = true;
 		loadErrorMessage = '';
 		const result = await fetchRecordsWithSummary(from, to);
-		if (isCancelled()) return;
+		if (!isLatest()) return;
 		loading = false;
 		if (!result.ok) {
 			loadErrorMessage = result.message;
@@ -99,11 +101,9 @@
 		bpSummary = result.summary;
 	}
 
-	/** 失敗した取得をやり直す。やり直しの間に期間が変わったら、その結果は捨てる。 */
+	/** 失敗した取得をやり直す。やり直しの間に期間が変わったら、その結果は捨てる (期間の取得が新しく始まるため)。 */
 	function retryLoad() {
-		const from = fromParam;
-		const to = toParam;
-		return loadRecords(from, to, () => from !== fromParam || to !== toParam);
+		return loadRecords(fromParam, toParam);
 	}
 
 	/** 紙面 (A4横) に出すグラフの大きさ (`BpChart` の `printSize`)。幅は用紙の297mmから
@@ -112,17 +112,10 @@
 	const printChartSize = { width: 630, height: 192 };
 
 	// 初回表示、および `fromParam`/`toParam` (URLクエリ) が変わるたびにデータを取得し直す。
-	// 短時間に続けて変わると前回の取得がまだ進行中のことがあるため、cleanup で cancelled を
-	// 立てて古い方の取得を打ち切る (loadRecords 参照)。
 	// 印刷の画面は自動では開かない。「印刷する」ボタンで開く。
 	$effect(() => {
-		const from = fromParam;
-		const to = toParam;
-		let cancelled = false;
-		loadRecords(from, to, () => cancelled);
-		return () => {
-			cancelled = true;
-		};
+		loadRecords(fromParam, toParam);
+		return () => loadRequest.cancel();
 	});
 </script>
 

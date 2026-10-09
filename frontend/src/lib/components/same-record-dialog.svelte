@@ -35,7 +35,7 @@
 			<AlertDialog.Description>{m.same_record_dialog_description()}</AlertDialog.Description>
 		</AlertDialog.Header>
 		<AlertDialog.Footer>
-			<AlertDialog.Cancel>{m.same_record_dialog_cancel_button()}</AlertDialog.Cancel>
+			<AlertDialog.Cancel>{m.common_cancel_button()}</AlertDialog.Cancel>
 			<AlertDialog.Action onclick={() => answer(true)}>
 				{m.same_record_dialog_confirm_button()}
 			</AlertDialog.Action>

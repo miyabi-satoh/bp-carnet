@@ -18,7 +18,6 @@ use crate::config::CharClass;
 use crate::error::{AppError, AppJson, ErrorResponse};
 use crate::external_login;
 use crate::forwarded::{self, ClientIp};
-use crate::google_login;
 use crate::oauth_cookie;
 use crate::oauth_identity::{self, ExternalAccount, FindOrCreateError, Provider, RevocationTokens};
 use crate::settings;
@@ -344,7 +343,7 @@ async fn google_login(State(state): State<AppState>) -> Response {
         return Redirect::to(&login_error_url(errors.disabled)).into_response();
     }
 
-    let oauth_state = google_login::generate_state();
+    let oauth_state = external_login::generate_state();
     let code_verifier = external_login::generate_code_verifier();
     let code_challenge = external_login::code_challenge_s256(&code_verifier);
 
