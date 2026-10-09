@@ -22,9 +22,9 @@ export class HistoryOverlay {
 	 * 戻ってから開き直したときなどで、そこで戻ると戻ってきたページを飛ばしてさらに前へ行ってしまう。 */
 	#openedHere = false;
 
-	/** `canCloseOnBack` は、開いたまま戻る操作で印から出たときに呼ぶ。閉じてよければ `true` を返す。
-	 * 閉じられないなら `keepOpen()` で印を積み直して `false` を返す。渡さなければいつも閉じる。 */
-	constructor(key: OverlayStateKey, canCloseOnBack: () => boolean = () => true) {
+	/** `onBackWhileOpen` は、開いたまま戻る操作で印から出たときに呼ぶ。閉じるなら `true` を返す。
+	 * `false` なら印を積み直して開いたままにする。渡さなければいつも閉じる。 */
+	constructor(key: OverlayStateKey, onBackWhileOpen: () => boolean = () => true) {
 		this.#key = key;
 		$effect(() => {
 			if (this.marked) {
@@ -39,7 +39,8 @@ export class HistoryOverlay {
 				return;
 			}
 			// 端末の戻る操作で印の履歴から出た (`back()` もここを通る)。
-			if (canCloseOnBack()) this.open = false;
+			if (onBackWhileOpen()) this.open = false;
+			else this.#keepOpen();
 		});
 	}
 
@@ -50,13 +51,12 @@ export class HistoryOverlay {
 
 	/** 印を積んで開く。戻る・進む操作で印の残った履歴に入っていても、閉じたときに前の画面へ戻らないよう必ず積む。 */
 	show() {
-		this.keepOpen();
+		this.#keepOpen();
 		this.open = true;
 		this.#openedHere = true;
 	}
 
-	/** 戻る操作で印から出たが閉じられないとき、印を積み直して開いたままにする。 */
-	keepOpen() {
+	#keepOpen() {
 		pushState('', { ...page.state, [this.#key]: true });
 	}
 

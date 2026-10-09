@@ -87,7 +87,6 @@
 		const confirming = guard.dialogOpen;
 		const dirty = currentValues() !== initialValues;
 		if (!busy && !confirming && !dirty) return true;
-		overlay.keepOpen();
 		if (!busy && !confirming) guard.confirm(close);
 		return false;
 	});
