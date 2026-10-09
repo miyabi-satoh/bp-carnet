@@ -162,7 +162,7 @@
 	"login_apple_button": "Appleでサインイン",
 	"login_line_ios_web_app_notice": "ホーム画面から開いたアプリでは、LINE でログインできません。ブラウザーで開くか、{services} でログインしてください。",
 	"login_line_ios_web_app_notice_browser_only": "ホーム画面から開いたアプリでは、LINE でログインできません。ブラウザーで開いてください。",
-	"login_in_app_browser_notice": "この画面では、{services}でログインできません。メニュー（︙ や共有のマーク）から「ブラウザーで開く」（iPhone は「Safari で開く」）を選んでください。",
+	"login_in_app_browser_notice": "この画面では、{services}でログインできません。メニュー（︙ や共有のマーク）から、ブラウザー（iPhone は Safari）で開く項目を選んでください。",
 	"login_in_app_browser_copy_button": "このページのリンクをコピー",
 	"login_in_app_browser_copied": "コピーしました。Safari や Chrome のアドレス欄に貼り付けて開いてください。",
 	"login_in_app_browser_copy_failed": "コピーできませんでした。メニューから、ブラウザーで開いてください。",
