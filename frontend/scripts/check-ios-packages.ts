@@ -34,7 +34,7 @@ const problems: string[] = [];
 // `cap update ios` は、自前のプラグインの Package.swift の capacitor-swift-pm の版も Capacitor に合わせて書き換える。
 const changed = execFileSync(
 	'git',
-	['status', '--porcelain', '--', CAP_APP_SPM, join(REPO_ROOT, 'mobile/plugins')],
+	['status', '--porcelain', '--', CAP_APP_SPM, 'mobile/plugins/*/Package.swift'],
 	{ cwd: REPO_ROOT, encoding: 'utf8' }
 ).trim();
 if (changed !== '') {
