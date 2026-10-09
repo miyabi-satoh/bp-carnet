@@ -5,11 +5,14 @@ name: CI
 # マージの前に main へ追いつくことも保護で求めるので、同じ内容をもう一度確かめても情報が増えない。
 on:
   # ADR: paths-ignore で文書だけの PR を飛ばさない。必須のチェックが走らないと、その PR はマージできなくなる。
+  # 文書だけの PR は、ジョブを起動したうえで中の重い手順を飛ばす (下の changes)。
   pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
+  # paths-filter が PR の変わったファイルを API で取る
+  pull-requests: read
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -25,32 +28,59 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # just ci が読む .md は frontend の中のもの (mdsvex で画面にする規約類・使い方と、prettier の整形の検査) だけなので、
+      # それ以外の .md だけが変わったなら just ci の結果は変わらない。
+      - uses: dorny/paths-filter@v4
+        id: changes
+        if: github.event_name == 'pull_request'
+        with:
+          predicate-quantifier: some-with-excludes
+          filters: |
+            code:
+              - '**'
+              - '!**/*.md'
+            read_md:
+              - 'frontend/**'
+
+      - name: Decide whether to run the checks
+        id: scope
+        shell: bash
+        run: echo "run=${{ github.event_name != 'pull_request' || steps.changes.outputs.code == 'true' || steps.changes.outputs.read_md == 'true' }}" >> "$GITHUB_OUTPUT"
+
       - uses: dtolnay/rust-toolchain@stable
+        if: steps.scope.outputs.run == 'true'
         with:
           components: rustfmt, clippy
 
       - uses: Swatinem/rust-cache@v2
+        if: steps.scope.outputs.run == 'true'
 
       - uses: extractions/setup-just@v4
+        if: steps.scope.outputs.run == 'true'
 
       - uses: pnpm/action-setup@v6
+        if: steps.scope.outputs.run == 'true'
         with:
           package_json_file: frontend/package.json
 
       - uses: actions/setup-node@v7
+        if: steps.scope.outputs.run == 'true'
         with:
           node-version: 24
           cache: pnpm
           cache-dependency-path: frontend/pnpm-lock.yaml
 
       - name: Install frontend dependencies
+        if: steps.scope.outputs.run == 'true'
         working-directory: frontend
         run: pnpm install --frozen-lockfile
 
       # vitest のコンポーネントテストと e2e が chromium で動くため。
       - name: Install Playwright browser (chromium)
+        if: steps.scope.outputs.run == 'true'
         working-directory: frontend
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Run CI checks
+        if: steps.scope.outputs.run == 'true'
         run: just ci
