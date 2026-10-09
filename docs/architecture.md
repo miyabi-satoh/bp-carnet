@@ -54,7 +54,7 @@
 
 SPA の素の `index.html` はどのパスも同じ枠なので、`src/seo.rs` が `index.html` を返すときに `</head>` の直前へタグを差し込む (フロントのビルドは触らない)。
 
-- 索引させるのは `/`・`/terms`・`/privacy`・`/help`・`/help/<slug>` だけ。title・description・canonical (`public_url` + パス)・OGP を出し、`/sitemap.xml` に載せる。
+- 索引させるのは `/`・`/terms`・`/privacy`・`/pricing`・`/help`・`/help/<slug>` だけ。title・description・canonical (`public_url` + パス)・OGP を出し、`/sitemap.xml` に載せる。
 - それ以外 (ログインが要る画面・`/login`・存在しないパス) は `<meta name="robots" content="noindex">` と `X-Robots-Tag: noindex`。
   - 存在しないパスも 200 で `index.html` を返す。ルーティングはブラウザ側にあり、サーバーは有効なパスの一覧を持たないため。
   - `/login` は、未ログインの `/` がログイン画面になるのと重複するので索引させない。

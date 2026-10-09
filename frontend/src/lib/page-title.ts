@@ -15,6 +15,8 @@ export function pageTitle(routeId: string | null, slug?: string): string {
 			return `${m.terms_title()} — ${app}`;
 		case '/privacy':
 			return `${m.privacy_title()} — ${app}`;
+		case '/pricing':
+			return `${m.pricing_title()} — ${app}`;
 		case '/licenses':
 			return `${m.licenses_title()} — ${app}`;
 		case '/help':

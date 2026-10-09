@@ -807,6 +807,15 @@ export const shots: Record<string, ShotEntry> = {
 		}
 	},
 
+	// 料金と購入の条件。amiiby.com の特定商取引法の表記から指すので、ログインせずに開ける。
+	pricing_page: {
+		async run(page, ctx) {
+			await page.goto(`${ctx.baseURL}/pricing`);
+			await page.getByRole('article').waitFor({ timeout: 5000 });
+			await capture(page, ctx);
+		}
+	},
+
 	// 特定商取引法に基づく表記。ログインしてから開くページ。
 	tokushoho_page: {
 		async run(page, ctx) {

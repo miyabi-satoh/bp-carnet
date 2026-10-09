@@ -56,8 +56,11 @@ describe('TopupConfirmDialog', () => {
 			.element(page.getByRole('link', { name: new RegExp(m.privacy_title()) }))
 			.toHaveAttribute('href', '/privacy');
 		await expect
+			.element(page.getByRole('link', { name: new RegExp(m.pricing_title()) }))
+			.toHaveAttribute('href', '/pricing');
+		await expect
 			.element(page.getByRole('link', { name: new RegExp(m.tokushoho_title()) }))
-			.toHaveAttribute('href', '/tokushoho');
+			.toHaveAttribute('href', 'https://amiiby.com/tokushoho/');
 	});
 
 	it('同意すると Checkout の URL へ遷移する', async () => {

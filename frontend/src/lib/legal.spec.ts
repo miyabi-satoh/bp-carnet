@@ -2,7 +2,7 @@ import { render } from 'svelte/server';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { legalDocumentComponent, type LegalDocument } from '$lib/legal';
 
-const DOCUMENTS: readonly LegalDocument[] = ['terms', 'privacy', 'tokushoho'];
+const DOCUMENTS: readonly LegalDocument[] = ['terms', 'privacy', 'tokushoho', 'pricing'];
 
 describe('legalDocumentComponent', () => {
 	it('本文のリンクは、URL の後ろの文まで取り込まず、nofollow も付けない', () => {
@@ -19,7 +19,7 @@ describe('legalDocumentComponent', () => {
 	});
 });
 
-describe('特商法の販売価格', () => {
+describe('料金のページの販売価格', () => {
 	afterEach(() => {
 		vi.useRealTimers();
 	});
@@ -27,11 +27,18 @@ describe('特商法の販売価格', () => {
 	it('インボイスの登録の日から、免税事業者の表示を税込みに切り替える', () => {
 		vi.useFakeTimers();
 		vi.setSystemTime(new Date('2026-11-30T23:59:59+09:00'));
-		expect(render(legalDocumentComponent('tokushoho', 'ja')).body).toContain('免税事業者');
+		expect(render(legalDocumentComponent('pricing', 'ja')).body).toContain('免税事業者');
 
 		vi.setSystemTime(new Date('2026-12-01T00:00:00+09:00'));
-		const { body } = render(legalDocumentComponent('tokushoho', 'ja'));
+		const { body } = render(legalDocumentComponent('pricing', 'ja'));
 		expect(body).toContain('300\u00a0円（税込み）');
 		expect(body).not.toContain('免税事業者');
+	});
+});
+
+describe('料金のページの販売価格 (アプリ)', () => {
+	it('アプリ内課金の価格は、App Store の価格によると載せる', () => {
+		const { body } = render(legalDocumentComponent('pricing', 'ja'));
+		expect(body).toContain('App Store の価格');
 	});
 });
