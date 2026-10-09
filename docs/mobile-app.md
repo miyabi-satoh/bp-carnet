@@ -9,6 +9,7 @@
 - `mobile/ios`: Xcode のプロジェクト。`mobile/ios/App/App/public` (同梱する画面) は `cap sync` が `frontend/build` から写す生成物。
 - `frontend/capacitor.config.ts`: Capacitor の設定。`ios.path` で `mobile/ios` を指す。
   - 設定とプラグインの依存は `frontend/package.json` の側に置く。Capacitor は `cap sync` を走らせる側の `package.json` からプラグインを探すため。
+  - プラグインを上げたら、`cap sync ios` が書く `mobile/ios/App/CapApp-SPM/Package.swift` と、Xcode が解決し直す `Package.resolved` もコミットする。`just ci` の `ios-packages-check` が、どちらかの入れ漏れを止める。
 - `mobile/plugins/native-login`: Google・LINE・Apple のログインを呼ぶ自前のプラグイン (Swift)。JS 側は `frontend/src/lib/native-login.ts`。
 - `mobile/plugins/app-store-purchase`: アプリ内課金 (StoreKit 2)。JS 側は `frontend/src/lib/app-store-purchase.ts` (→ docs/payments.md)。
 - `frontend/src/lib/native-app.ts`: アプリの中かどうかの判定と、ネイティブの機能の呼び分け。

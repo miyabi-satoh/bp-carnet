@@ -652,11 +652,12 @@ just api-types-check # 上記2ファイルの再生成漏れを検査 (書き換
 just sqlx-prepare # sqlx::query! 系マクロのオフラインキャッシュ (.sqlx/) を再生成
 just licenses    # iPhone アプリの部品のライセンス表示を作り直す (要ネット。→ docs/third-party-licenses.md)
 just licenses-check # ライセンス表示が今の依存と合っているかと、サーバーの依存に AGPL などが無いかを検査 (書き換えない)
+just ios-packages-check # iPhone アプリの Swift のパッケージが Capacitor のプラグインと合っているかを検査 (cap update ios で Package.swift は書き換える)
 just spec <dir>  # 画面ごとの仕様書に実写を差し込んで生成し、mo に追加する (要: mo。原稿はリポジトリの外)
 just fmt         # コード整形 (cargo fmt + prettier)
 just lint        # Lint (clippy + eslint/prettier check)
 just check       # 型検査 (cargo check + svelte-check)
-just ci          # fmt-check → lint → check → api-types-check → licenses-check → test → build → e2e-local を一括実行
+just ci          # fmt-check → lint → check → api-types-check → licenses-check → ios-packages-check → test → build → e2e-local を一括実行
 just clean       # ビルド成果物を削除
 ```
 
