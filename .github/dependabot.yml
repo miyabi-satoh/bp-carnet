@@ -45,3 +45,13 @@ updates:
       # semver-major を無視する。対応が入ったらこの ignore ごと削除して手動で上げること。
       - dependency-name: "typescript"
         update-types: ["version-update:semver-major"]
+      # @vite-pwa/sveltekit 1.1.0 は SvelteKit 3 に対応しておらず、kit 3 ではビルドが通っても
+      # service worker が作られない (vite-pwa/sveltekit#111 で対応中)。adapter-static 4 は kit 3 でしか
+      # 動かず、vite-plugin-pwa 2 は @vite-pwa/sveltekit の対応版と合わせて上げる。対応版が出たら
+      # この3つの ignore を消して、手動で一緒に上げること。
+      - dependency-name: "@sveltejs/kit"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@sveltejs/adapter-static"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "vite-plugin-pwa"
+        update-types: ["version-update:semver-major"]
