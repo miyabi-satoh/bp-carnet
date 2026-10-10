@@ -24,8 +24,8 @@ pub const MODEL_ENV: &str = "GEMINI_MODEL";
 /// `GEMINI_MODEL` が無いときに使うモデル。
 ///
 /// ADR: モデルと思考の量 ([`THINKING_LEVEL`]) は組で選ぶ。手元の写真15枚 (液晶・27行の手書きメモなど) を
-/// 7通りの組で読み比べ、正しさを保ったまま速い組にした。前の `gemini-3.6-flash` (思考は既定の medium) は
-/// メモ 約24秒・液晶 約10秒、この組は メモ 約9秒・液晶 約4秒で、正しく読めた行の割合は変わらなかった。
+/// 7通りの組で読み比べ、正しく読めた行の割合がいちばん高い組と並び、その中でいちばん速かった組にした
+/// (27行のメモ 約9秒・液晶 約4秒)。
 const DEFAULT_MODEL: &str = "gemini-3.8-flash";
 /// `generateContent` の `thinkingConfig.thinkingLevel`。応答までの時間の大半は思考が占める。
 ///
@@ -46,8 +46,9 @@ const GEMINI_ENDPOINT: &str = "https://generativelanguage.googleapis.com/v1beta/
 
 /// ADR: `generateContent` の `maxOutputTokens`。思考 (thinking) のトークンもこの上限に含まれ
 /// (https://ai.google.dev/gemini-api/docs/thinking)、足りないと JSON が途中で切れて解析に失敗する。
-/// 27行の手書きメモで思考が 2千〜6.5千トークンと揺れ、出力 (1.2千〜2.2千) と合わせて 8192 に
-/// 届いた回があったため、実測の最大の4倍ほどにする。上限を上げても課金は実際に生成した分だけ。
+/// 27行の手書きメモの出力は 約1.2千トークン。今の組 ([`DEFAULT_MODEL`]・[`THINKING_LEVEL`]) では思考は
+/// ほぼ出ないが、`GEMINI_MODEL` で思考の多いモデルに差し替えると数千トークン出るので、それでも切れない
+/// 大きさにする。上限を上げても課金は実際に生成した分だけ。
 const MAX_OUTPUT_TOKENS: u32 = 32_768;
 
 /// 血圧計液晶の OCR を Gemini に依頼するサービス。`api_key` が `None` なら無効化されており、

@@ -143,7 +143,7 @@
 	"photo_lightbox_hint": "2本指で広げると拡大できます",
 	"photo_page_pick_photo_button": "写真を選ぶ",
 	"photo_page_reading": "読み取り中...",
-	"photo_page_reading_estimate": "読み取りには10〜30秒ほどかかります。手帳のページは、行が多いほど長くかかります。",
+	"photo_page_reading_estimate": "読み取りには5〜15秒ほどかかります。手帳のページは、行が多いほど長くかかります。",
 	"photo_page_read_button": "読み取る",
 	"photo_page_confirm_note": "この写真でよければ「{button}」を押します。違う写真なら選び直します。",
 	"photo_page_no_values": "血圧値を読み取れませんでした。",

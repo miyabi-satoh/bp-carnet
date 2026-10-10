@@ -27,7 +27,7 @@
 - 思考の量は `thinkingConfig.thinkingLevel: low`。応答までの時間の大半を思考が占めるため (選んだ理由は `src/ocr.rs` の `DEFAULT_MODEL`・`THINKING_LEVEL`)。
   - モデルを差し替えるときは、思考の量との組で読み比べてから決める。
 - `maxOutputTokens` は 32768。
-  - 思考 (thinking) のトークンもこの上限に入り、足りないと JSON が途中で切れるため大きめにしている。
+  - 思考 (thinking) のトークンもこの上限に入り、足りないと JSON が途中で切れる。思考の多いモデルに差し替えても切れない大きさにしている。
 - タイムアウトは 90 秒。
 
 ## 返す形 (`OcrResult`)
