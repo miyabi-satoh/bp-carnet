@@ -15,7 +15,7 @@ import { dataDir } from '../scripts/repo-paths.ts';
 
 const IMAGES_DIR = path.join(dataDir(), 'ocr-test-images');
 
-/** Gemini の応答を待つ時間。手書きの記録は行が多く、数十秒かかることがある。 */
+/** Gemini の応答を待つ時間。サーバーが Gemini を待つ上限 (90秒、`src/ocr.rs`) に合わせる。 */
 const OCR_TIMEOUT_MS = 90_000;
 
 /** `handwritten-log.jpg` に書かれた記録の行数。一部の行しか読めなかったときに気づけるよう、件数まで確かめる。 */
