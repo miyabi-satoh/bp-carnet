@@ -542,9 +542,9 @@ just staging-start && just report --url https://<検証用の app>.fly.dev --app
 ```
 
 - 出るもの:
-  - Fly: Machine の状態、起動・停止の回数、最後の終了。
+  - Fly: Machine の状態、起動・再開・一時停止・停止の回数、最後の終了。
   - アプリ: 起動を待った時間、確認済みのユーザー数、最終アクセスごとの人数、OCR の使用額、削除予約。
-- **アプリへの問い合わせは Machine を起こす** (本番だけ。検証用は起きない)。 止まっている間の回数を数えたいときは、先に `--no-wake` で見る。
+- **アプリへの問い合わせは Machine を起こす** (本番だけ。検証用は起きない)。 起こす前の回数を見たいときは、先に `--no-wake` で見る。
 - パスワードは環境変数で渡す (引数に書くと `ps` に出るため)。管理者は ID/PW でログインできる必要がある (Google 専用のアカウントでは使えない)。
 - 日ごとの推移 (新規登録・記録件数) は出ない。管理 API が返さないため。要るときは、集計用の管理 API を足す。
 - Fly の Event Logs は直近の数件しか残らないので、起動・停止の回数は「見えた範囲」の数。
@@ -559,7 +559,7 @@ fly ssh console --app <app> -C "sqlite3 -readonly /data/bp-tracker.db 'select ve
 
 - 手で書き換えない。アプリの確かめを通らない変更になる。直すのはアプリ・管理画面・マイグレーションで行う。
 - どうしても書くときは、`setpriv --reuid=10001 --regid=10001 --clear-groups` を前に付けてアプリと同じ UID で開く (root で書くと、アプリが DB の一時ファイルを読めなくなる)。
-- Machine が止まっていると入れない。先に `fly machine start <machine-id> --app <app>` (検証用は `just staging-start`) で起こす。
+- Machine が起きていない (一時停止・停止) と入れない。先に `fly machine start <machine-id> --app <app>` (検証用は `just staging-start`) で起こす。
 
 #### 写真の読み取りの無料枠・単価を変える
 
