@@ -413,9 +413,10 @@ just deploy
 
 GitHub Actions (`.github/workflows/daily-restart.yml`) が、毎日 3時すぎ (日本時間) に本番の Machine を起動し直す。
 
-- 一時停止の間は、経過時間で待つタイマーが進まない。起動のたびに1回走る処理が、起動し直さない限り何日も走らなくなるため。
+- 起動したときと、その後24時間ごとに走る処理が2つある。一時停止の間は24時間を数えるタイマーが進まないので、起動し直さないと2回目以降が何日も来ない。
   - 期限を過ぎたアカウントなどの掃除 (`src/account.rs` の `purge_expired_periodically`)。
   - Litestream の日ごとのスナップショット。間隔が延びると、戻せる期間が7日より短くなる。
+- メンテナンスモードの作業 (→「ある時点へ戻す」) が3時すぎにかかるときは、先に `gh workflow disable daily-restart.yml` で止め、終わったら `gh workflow enable daily-restart.yml` で戻す。
 - GitHub のシークレット `FLY_API_TOKEN` に、本番の app だけを操作できるトークンを入れる。
   ```sh
   fly tokens create deploy --app <本番の app> --name "GitHub Actions daily-restart" | gh secret set FLY_API_TOKEN --repo <リポジトリ>
@@ -513,7 +514,7 @@ Machine を止めると `fly ssh console` で入れず、中で DB を消して�
 - メンテナンス中はアプリが応答しないので、ヘルスチェックが落ち、画面も開けない。
   - 1 の `fly secrets set` は、ヘルスチェックを待って時間切れのエラーで終わることがある。Machine が起動し直していれば、メンテナンスモードには入っている (`fly logs` に「MAINTENANCE=1 のため」が出る)。
 - `fly secrets set MAINTENANCE=1` が時間切れになっても、Fly.io 側の処理は続き、Machine のリースが残る。その間の `fly secrets unset` は「lease currently held」で失敗するので、リースの期限 (最長で数分) を待ってからやり直す。
-- 通信が無いと Machine が一時停止する (`auto_stop_machines`。本番と検証用の両方)。一時停止したら `fly machine start <machine-id> --app <app>` (検証用は `just staging-start`) で起動し直し (メンテナンスモードのまま起動する)、途中だった手順からやり直す。
+- 通信が無いと Machine が一時停止する (`auto_stop_machines`。本番と検証用の両方)。一時停止したら `fly machine start <machine-id> --app <app>` (検証用は `just staging-start`) で再開し、途中だった手順からやり直す。
   - 4 の途中で止まったら、`rm -f /data/restored.db*` で作りかけの DB を消してから 4 をやり直す。
   - 5 を済ませる前に 6 へ進まない。
 - 戻した DB の権限は、アプリが起動時に 600 に直す (`src/db.rs`)。

@@ -78,7 +78,7 @@ cloud-image-prune:
 report *args:
     node scripts/ops-report.mjs {{ args }}
 
-# 検証用はアクセスでは起きない (deploy/cloud/fly.staging.toml)。しばらく通信が無ければ止まる
+# 検証用はアクセスでは起きない (deploy/cloud/fly.staging.toml)。しばらく通信が無ければ一時停止する
 [doc('検証用の app を起こす')]
 [group('デプロイ')]
 staging-start:
