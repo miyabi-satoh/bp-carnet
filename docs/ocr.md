@@ -17,13 +17,15 @@
 
 - 環境変数 `GEMINI_API_KEY` があるときだけ有効。
   - 無ければ `POST /ocr` は 503 (`ocr_disabled`)、`GET /ocr/status` は `enabled: false` を返し、画面は機能を隠す。
-- モデルは既定 `gemini-3.6-flash`。環境変数 `GEMINI_MODEL` で差し替えられる。
+- モデルは既定 `gemini-3.8-flash`。環境変数 `GEMINI_MODEL` で差し替えられる。
 
 ## Gemini への送り方
 
 - `generateContent` (v1beta) に、写真 (`inline_data`、base64) とプロンプト `PROMPT_AUTO` を1回で送る。
 - 写真の種類はモデルに判定させる。単発・複数行でエンドポイントやプロンプトを分けない。
 - 構造化出力を使う: `responseMimeType: application/json` と `responseSchema` (`ocr_schema`)、`temperature: 0`。
+- 思考の量は `thinkingConfig.thinkingLevel: low`。応答までの時間の大半を思考が占めるため (選んだ理由は `src/ocr.rs` の `DEFAULT_MODEL`・`THINKING_LEVEL`)。
+  - モデルを差し替えるときは、思考の量との組で読み比べてから決める。
 - `maxOutputTokens` は 32768。
   - 思考 (thinking) のトークンもこの上限に入り、足りないと JSON が途中で切れるため大きめにしている。
 - タイムアウトは 90 秒。

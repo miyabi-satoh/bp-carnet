@@ -22,7 +22,17 @@ pub const API_KEY_ENV: &str = "GEMINI_API_KEY";
 /// 使う Gemini のモデル名を差し替える環境変数 (任意)。
 pub const MODEL_ENV: &str = "GEMINI_MODEL";
 /// `GEMINI_MODEL` が無いときに使うモデル。
-const DEFAULT_MODEL: &str = "gemini-3.6-flash";
+///
+/// ADR: モデルと思考の量 ([`THINKING_LEVEL`]) は組で選ぶ。手元の写真15枚 (液晶・27行の手書きメモなど) を
+/// 7通りの組で読み比べ、正しさを保ったまま速い組にした。前の `gemini-3.6-flash` (思考は既定の medium) は
+/// メモ 約24秒・液晶 約10秒、この組は メモ 約9秒・液晶 約4秒で、正しく読めた行の割合は変わらなかった。
+const DEFAULT_MODEL: &str = "gemini-3.8-flash";
+/// `generateContent` の `thinkingConfig.thinkingLevel`。応答までの時間の大半は思考が占める。
+///
+/// ADR: `low` にする。`gemini-3.6-flash` で `low`・`minimal` に下げると、2列に書いたメモの読む順が乱れて
+/// 日付の付け間違いが増えたが、`gemini-3.8-flash` の `low` では増えなかった。`gemini-3.5-flash-lite` は
+/// さらに速いが、行を読み落とした写真があった。
+const THINKING_LEVEL: &str = "low";
 
 /// Gemini の `generateContent` エンドポイント (v1beta)。モデル名だけ差し替える。
 ///
@@ -38,7 +48,6 @@ const GEMINI_ENDPOINT: &str = "https://generativelanguage.googleapis.com/v1beta/
 /// (https://ai.google.dev/gemini-api/docs/thinking)、足りないと JSON が途中で切れて解析に失敗する。
 /// 27行の手書きメモで思考が 2千〜6.5千トークンと揺れ、出力 (1.2千〜2.2千) と合わせて 8192 に
 /// 届いた回があったため、実測の最大の4倍ほどにする。上限を上げても課金は実際に生成した分だけ。
-/// 思考の量を下げる (`thinkingLevel`) 方法は、読み取りの精度を落としうるので採らない。
 const MAX_OUTPUT_TOKENS: u32 = 32_768;
 
 /// 血圧計液晶の OCR を Gemini に依頼するサービス。`api_key` が `None` なら無効化されており、
@@ -228,6 +237,9 @@ fn request_body(image_bytes: &[u8], mime_type: &str) -> GeminiRequest {
             response_schema: ocr_schema(),
             temperature: 0.0,
             max_output_tokens: MAX_OUTPUT_TOKENS,
+            thinking_config: GeminiThinkingConfig {
+                thinking_level: THINKING_LEVEL,
+            },
         },
     }
 }
@@ -499,6 +511,14 @@ struct GeminiGenerationConfig {
     temperature: f64,
     #[serde(rename = "maxOutputTokens")]
     max_output_tokens: u32,
+    #[serde(rename = "thinkingConfig")]
+    thinking_config: GeminiThinkingConfig,
+}
+
+#[derive(Debug, Serialize)]
+struct GeminiThinkingConfig {
+    #[serde(rename = "thinkingLevel")]
+    thinking_level: &'static str,
 }
 
 #[derive(Debug, Default, Deserialize)]
@@ -648,6 +668,16 @@ struct OcrPayload {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn request_body_asks_for_low_thinking() {
+        let body = serde_json::to_value(request_body(b"image", "image/jpeg"))
+            .expect("request body should serialize");
+        assert_eq!(
+            body["generationConfig"]["thinkingConfig"]["thinkingLevel"],
+            "low"
+        );
+    }
 
     fn gemini_envelope(inner_json: &str) -> String {
         format!(
