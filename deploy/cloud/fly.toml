@@ -16,10 +16,11 @@ kill_timeout = 130
 [http_service]
   internal_port = 3000
   force_https = true
-  # ADR: 通信が無いと Machine を止める (費用を抑えるため。検証用と同じ)。
-  # 止まると、メモリ上のログインの試行回数の制限と写真の読み取りの途中の状態が消え、止まった後の最初のアクセスは
-  # 起動を待つ。
-  auto_stop_machines = "stop"
+  # ADR: 通信が無いと Machine を一時停止する (費用を抑えるため。検証用と同じ)。
+  # 止める ("stop") と最初のアクセスが起動を約3秒待つが、一時停止からの再開は1秒かからない。
+  # 一時停止の間は経過時間で待つタイマーが進まないので、1日に1回、起動し直す (DEVELOPMENT.md「毎日の再起動」)。
+  # メモリ上のログインの試行回数の制限 (10分) も、一時停止の間は進まず、そのぶん解けるのが遅れる。
+  auto_stop_machines = "suspend"
   auto_start_machines = true
   min_machines_running = 0
 

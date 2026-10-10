@@ -1,6 +1,6 @@
 // Fly.io 上の本番の稼働・利用状況を、1コマンドで表示する (`just report`)。
 //
-// 1. Fly の状態 (読み取りのみ、Machine を起こさない): 起動・停止の回数、最後の終了コード。
+// 1. Fly の状態 (読み取りのみ、Machine を起こさない): 起動・再開・一時停止・停止の回数、最後の終了コード。
 // 2. アプリの状態 (Machine を起こす。`--no-wake` で省く): 起動を待つ時間、ユーザー数、
 //    最終アクセスごとの人数、OCR の使用額、削除予約。管理者でログインして
 //    `GET /api/v1/admin/users` を1回叩くだけで、血圧の記録そのものは読まない。
@@ -53,7 +53,9 @@ function flySection() {
 		const lastExit = events.find((e) => e.type === 'exit');
 		console.log(`  Machine ${machine.id}: ${machine.state} (${machine.region})`);
 		console.log(
-			`  起動 24時間 ${within('start', 1, 'started')} 回 / 7日 ${within('start', 7, 'started')} 回、` +
+			// 一時停止からの再開も `start` で出る。
+			`  起動・再開 24時間 ${within('start', 1, 'started')} 回 / 7日 ${within('start', 7, 'started')} 回、` +
+				`一時停止 24時間 ${within('suspension', 1, 'suspended')} 回 / 7日 ${within('suspension', 7, 'suspended')} 回、` +
 				`停止 24時間 ${within('stop', 1)} 回 / 7日 ${within('stop', 7)} 回` +
 				` (Fly が保持する直近 ${events.length} 件の範囲)`
 		);
@@ -81,7 +83,7 @@ async function appSection() {
 		console.log(`  health: 失敗 (${health?.status ?? '接続できない'})`);
 		return;
 	}
-	console.log(`  health: ok (${seconds} 秒。止まっていたなら、起動を待った時間を含む)`);
+	console.log(`  health: ok (${seconds} 秒。起きていなかったなら、起動・再開を待った時間を含む)`);
 
 	const user = process.env.BP_REPORT_USER;
 	const password = process.env.BP_REPORT_PASSWORD;

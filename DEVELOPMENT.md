@@ -142,8 +142,9 @@ bp.amiiby.com を Fly.io の東京リージョン (`nrt`) で動かす手順。
   - Volume は1台のサーバーのディスクにあり、そのサーバーが壊れると失われるため。
 - app は2つ。同じイメージを載せる。
   - 本番 (`deploy/cloud/fly.toml`)
-  - 検証用 (`deploy/cloud/fly.staging.toml`): 本番の前に載せて確かめる。アクセスでは起きないので、使うときに `just staging-start` で起こす。しばらく通信が無ければ止まる。
+  - 検証用 (`deploy/cloud/fly.staging.toml`): 本番の前に載せて確かめる。アクセスでは起きないので、使うときに `just staging-start` で起こす。
   - 以下の `<本番の app>`・`<検証用の app>` は、それぞれの `fly.toml` の `app`。
+- どちらの app も、しばらく通信が無いと Machine が一時停止する (`auto_stop_machines = "suspend"`)。本番は次のアクセスで再開し、1日に1回、起動し直す (→「毎日の再起動」)。
 - イメージは Docker Desktop で作り、`registry.fly.io` へ送る。amd64 の Windows でも、Apple Silicon の Mac でもよい。
   - 出来るイメージは同じ amd64 (`just cloud-image` が `--platform linux/amd64` を付ける)。
   - Apple Silicon の Mac は amd64 をエミュレーションするため、初回は遅い (10分を超えた)。キャッシュが効く2回目以降は短い。
@@ -408,6 +409,21 @@ just deploy
 - 載せ替えの間 (数十秒) は止まる。Volume が1つなので、新旧を並べて切り替えられない。
 - `fly secrets set` や `fly secrets import` でシークレットを変えても、Machine が起動し直す。
 
+#### 毎日の再起動
+
+GitHub Actions (`.github/workflows/daily-restart.yml`) が、毎日 3時すぎ (日本時間) に本番の Machine を起動し直す。
+
+- 起動したときと、その後24時間ごとに走る処理が2つある。一時停止の間は24時間を数えるタイマーが進まないので、起動し直さないと2回目以降が何日も来ない。
+  - 期限を過ぎたアカウントなどの掃除 (`src/account.rs` の `purge_expired_periodically`)。
+  - Litestream の日ごとのスナップショット。間隔が延びると、戻せる期間が7日より短くなる。
+- メンテナンスモードの作業 (→「ある時点へ戻す」) が3時すぎにかかるときは、先に `gh workflow disable daily-restart.yml` で止め、終わったら `gh workflow enable daily-restart.yml` で戻す。
+- GitHub のシークレット `FLY_API_TOKEN` に、本番の app だけを操作できるトークンを入れる。
+  ```sh
+  fly tokens create deploy --app <本番の app> --name "GitHub Actions daily-restart" | gh secret set FLY_API_TOKEN --repo <リポジトリ>
+  ```
+- 失敗すると、GitHub からメールが届く。手で流すときは `gh workflow run daily-restart.yml`。
+- GitHub は、リポジトリに60日動きが無いと定期実行を止める。止まったら、Actions の画面で有効に戻す。
+
 #### 複製と復元
 
 - 変更は1秒ごとに R2 へ送られる。日ごとのスナップショットを7日分残し、それより古い分は消える (`litestream.yml`)。
@@ -498,7 +514,7 @@ Machine を止めると `fly ssh console` で入れず、中で DB を消して�
 - メンテナンス中はアプリが応答しないので、ヘルスチェックが落ち、画面も開けない。
   - 1 の `fly secrets set` は、ヘルスチェックを待って時間切れのエラーで終わることがある。Machine が起動し直していれば、メンテナンスモードには入っている (`fly logs` に「MAINTENANCE=1 のため」が出る)。
 - `fly secrets set MAINTENANCE=1` が時間切れになっても、Fly.io 側の処理は続き、Machine のリースが残る。その間の `fly secrets unset` は「lease currently held」で失敗するので、リースの期限 (最長で数分) を待ってからやり直す。
-- 通信が無いと Machine が止まる (`auto_stop_machines`。本番と検証用の両方)。止まったら `fly machine start <machine-id> --app <app>` (検証用は `just staging-start`) で起動し直し (メンテナンスモードのまま起動する)、途中だった手順からやり直す。
+- 通信が無いと Machine が一時停止する (`auto_stop_machines`。本番と検証用の両方)。一時停止したら `fly machine start <machine-id> --app <app>` (検証用は `just staging-start`) で再開し、途中だった手順からやり直す。
   - 4 の途中で止まったら、`rm -f /data/restored.db*` で作りかけの DB を消してから 4 をやり直す。
   - 5 を済ませる前に 6 へ進まない。
 - 戻した DB の権限は、アプリが起動時に 600 に直す (`src/db.rs`)。
@@ -526,12 +542,12 @@ just staging-start && just report --url https://<検証用の app>.fly.dev --app
 ```
 
 - 出るもの:
-  - Fly: Machine の状態、起動・停止の回数、最後の終了。
+  - Fly: Machine の状態、起動・再開・一時停止・停止の回数、最後の終了。
   - アプリ: 起動を待った時間、確認済みのユーザー数、最終アクセスごとの人数、OCR の使用額、削除予約。
-- **アプリへの問い合わせは Machine を起こす** (本番だけ。検証用は起きない)。 止まっている間の回数を数えたいときは、先に `--no-wake` で見る。
+- **アプリへの問い合わせは Machine を起こす** (本番だけ。検証用は起きない)。 起こす前の回数を見たいときは、先に `--no-wake` で見る。
 - パスワードは環境変数で渡す (引数に書くと `ps` に出るため)。管理者は ID/PW でログインできる必要がある (Google 専用のアカウントでは使えない)。
 - 日ごとの推移 (新規登録・記録件数) は出ない。管理 API が返さないため。要るときは、集計用の管理 API を足す。
-- Fly の Event Logs は直近の数件しか残らないので、起動・停止の回数は「見えた範囲」の数。
+- Fly の Event Logs は直近の数件しか残らないので、回数は「見えた範囲」の数。
 
 #### DB の中を見る
 
@@ -543,7 +559,7 @@ fly ssh console --app <app> -C "sqlite3 -readonly /data/bp-tracker.db 'select ve
 
 - 手で書き換えない。アプリの確かめを通らない変更になる。直すのはアプリ・管理画面・マイグレーションで行う。
 - どうしても書くときは、`setpriv --reuid=10001 --regid=10001 --clear-groups` を前に付けてアプリと同じ UID で開く (root で書くと、アプリが DB の一時ファイルを読めなくなる)。
-- Machine が止まっていると入れない。先に `fly machine start <machine-id> --app <app>` (検証用は `just staging-start`) で起こす。
+- Machine が起きていない (一時停止・停止) と入れない。先に `fly machine start <machine-id> --app <app>` (検証用は `just staging-start`) で起こす。
 
 #### 写真の読み取りの無料枠・単価を変える
 

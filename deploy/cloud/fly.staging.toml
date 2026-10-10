@@ -16,9 +16,9 @@ kill_timeout = 130
 [http_service]
   internal_port = 3000
   force_https = true
-  # ADR: アクセスでは起こさず、使うときだけ `just staging-start` で起こす (しばらく通信が無ければ止まる)。
+  # ADR: アクセスでは起こさず、使うときだけ `just staging-start` で起こす (しばらく通信が無ければ一時停止する)。
   # 誰でもアカウントを作れ、メールの送信と写真の読み取りに実際の費用がかかるので、外の人が使える入口にしない。
-  auto_stop_machines = "stop"
+  auto_stop_machines = "suspend"
   auto_start_machines = false
   min_machines_running = 0
 

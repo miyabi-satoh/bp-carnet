@@ -1,0 +1,42 @@
+name: Daily restart
+
+# 本番の Machine を1日に1回、起動し直す (DEVELOPMENT.md「毎日の再起動」)。
+on:
+  schedule:
+    # 03:17 JST。使われにくい時間にする。毎時0分は GitHub の混雑で遅れやすいので外す。
+    - cron: "17 18 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: daily-restart
+  cancel-in-progress: false
+
+env:
+  FLY_APP: bp-carnet
+
+jobs:
+  restart:
+    # フォークにはシークレットが無く、毎日失敗するだけになる。
+    if: github.repository == 'miyabi-satoh/bp-carnet'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: superfly/flyctl-actions/setup-flyctl@v1
+
+      - name: Restart the machine
+        # shell を書くと pipefail が付き、fly machine list の失敗 (トークンの失効など) がそこで止まる。
+        shell: bash
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          machine="$(fly machine list --app "$FLY_APP" --quiet | tr -d '[:space:]')"
+          if [ -z "$machine" ]; then
+            echo "::error::$FLY_APP に Machine が見つかりません"
+            exit 1
+          fi
+          # 一時停止中の Machine は restart できないので、先に起こす (起動中でも成功する)。
+          fly machine start "$machine" --app "$FLY_APP"
+          # 既定の SIGINT でなく、fly.toml の kill_signal と同じ SIGTERM で止める。待ち時間は restart の上限の60秒。
+          fly machine restart "$machine" --app "$FLY_APP" --signal SIGTERM --time 60
