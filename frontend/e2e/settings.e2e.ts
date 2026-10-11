@@ -10,7 +10,7 @@ import {
 import { addDays, todayIn } from './date-helpers';
 import { userTest as test, expect, NO_LOGIN } from './fixtures';
 import { clearLogin, ja, waitForApiResponse } from './helpers';
-import { freeQuota, mockOcrStatus, paidQuota } from './ocr-mocks';
+import { freeQuota, mockOcrStatus, overrideOcrStatus, paidQuota } from './ocr-mocks';
 import { HomePage } from './pages/home-page';
 import { LoginPage } from './pages/login-page';
 import { SettingsPage } from './pages/settings-page';
@@ -166,10 +166,7 @@ test.describe('ブラウザのタイムゾーンが個人設定と違う端末',
 test('写真を送ることへの同意を、設定から取り消せる', async ({ page }) => {
 	// 枠の一覧があると同意の前から欄が出るので、枠の無い状態にそろえる (読み取りが有効な構成でも同じ結果にする)。
 	// 同意の状態は、サーバーの本物の応答のまま。
-	await page.route('**/api/v1/ocr/status', async (route) => {
-		const response = await route.fetch();
-		await route.fulfill({ response, json: { ...(await response.json()), quotas: null } });
-	});
+	await overrideOcrStatus(page, { quotas: null });
 	const settings = new SettingsPage(page);
 	await settings.open();
 	// 同意していなければ、取り消すものが無いので欄を出さない。

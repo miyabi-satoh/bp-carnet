@@ -1,11 +1,16 @@
 // 設定画面の「このアプリについて」。
+import { mockAuthProviders } from './auth-mocks';
 import { test, expect } from './fixtures';
 import { ja } from './helpers';
 import { SettingsPage } from './pages/settings-page';
 
+const CONTACT_URL = 'https://example.com/contact/';
+
 test('使い方・規約・プライバシーポリシー・第三者のソフトウェア・問い合わせ先へのリンクを並べ、問い合わせ先は別のタブで開く', async ({
 	page
 }) => {
+	// 問い合わせ先はサーバーの設定で決まるので、どのサーバーに当てても同じ値で答える。
+	await mockAuthProviders(page, { contactUrl: CONTACT_URL });
 	const settings = new SettingsPage(page);
 	await settings.open();
 
@@ -14,10 +19,7 @@ test('使い方・規約・プライバシーポリシー・第三者のソフ�
 	await expect(settings.aboutLink(ja.licenses_title)).toHaveAttribute('href', '/licenses');
 	await expect(settings.aboutLink(ja.help_title)).toHaveAttribute('href', '/help');
 	const contact = settings.aboutLink(ja.settings_contact_link);
-	// 問い合わせ先はサーバーの設定で決まる (`[server] contact_url`)。
-	const { contactUrl } = await (await page.request.get('/api/v1/auth/providers')).json();
-	expect(contactUrl).toMatch(/^https:\/\//);
-	await expect(contact).toHaveAttribute('href', contactUrl);
+	await expect(contact).toHaveAttribute('href', CONTACT_URL);
 	await expect(contact).toHaveAttribute('target', '_blank');
 });
 
