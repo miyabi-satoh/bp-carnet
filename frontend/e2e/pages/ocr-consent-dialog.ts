@@ -11,7 +11,7 @@ export class OcrConsentDialog {
 
 	/** 送り先 (Google の Gemini API) の行。 */
 	get recipient(): Locator {
-		return this.root.getByText(ja.ocr_consent_item_recipient, { exact: true });
+		return this.root.getByText(ja.consent_dialog_body_item_recipient, { exact: true });
 	}
 
 	get agreeButton(): Locator {

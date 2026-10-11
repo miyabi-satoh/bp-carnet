@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
-	import NewTabLink from '$lib/components/new-tab-link.svelte';
+	import ConsentDialogBody from '$lib/components/consent-dialog-body.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { SAMPLE_LINES } from '$lib/import-table';
@@ -55,47 +54,27 @@
 >
 	<!-- 枠の外を押しただけでは閉じない。うっかり閉じると、選んだファイルを選び直すことになるため。 -->
 	<Dialog.Content onInteractOutside={(e) => e.preventDefault()}>
-		<Dialog.Header>
-			<Dialog.Title>{m.file_read_consent_title()}</Dialog.Title>
-			<Dialog.Description>
-				{kind === 'table' ? m.file_read_consent_table_lead() : m.file_read_consent_document_lead()}
-			</Dialog.Description>
-		</Dialog.Header>
-
-		<ul class="flex flex-col gap-2 text-sm">
-			<li>{m.ocr_consent_item_recipient()}</li>
-			<li>
-				{kind === 'table'
-					? m.file_read_consent_table_item_data({ lines: SAMPLE_LINES })
-					: m.file_read_consent_document_item_data()}
-			</li>
-			<li>
-				{kind === 'table'
-					? m.file_read_consent_table_item_purpose()
-					: m.file_read_consent_document_item_purpose()}
-			</li>
-		</ul>
-		<ul class="flex flex-col gap-2 text-sm text-muted-foreground">
-			<li>
-				<!-- Google が改善に使わないのは、運営者が有料の条件で使っているため (privacy.md)。 -->
-				{m.file_read_consent_item_not_stored()}{m.ocr_consent_item_not_trained()}
-			</li>
-			<li>{m.file_read_consent_item_quota()}</li>
-		</ul>
-
-		<form onsubmit={agree}>
-			<p class="text-xs leading-relaxed text-muted-foreground">
-				<NewTabLink href={resolve('/privacy')}>{m.privacy_title()}</NewTabLink>
-			</p>
-
-			<!-- `<form>` の中に置くと Dialog.Content の grid gap が効かないため、上余白を自前で持つ
-			     (`ocr-consent-dialog.svelte` と同じ)。 -->
-			<Dialog.Footer class="mt-4">
+		<ConsentDialogBody
+			title={m.file_read_consent_title()}
+			lead={kind === 'table'
+				? m.file_read_consent_table_lead()
+				: m.file_read_consent_document_lead()}
+			data={kind === 'table'
+				? m.file_read_consent_table_item_data({ lines: SAMPLE_LINES })
+				: m.file_read_consent_document_item_data()}
+			purpose={kind === 'table'
+				? m.file_read_consent_table_item_purpose()
+				: m.file_read_consent_document_item_purpose()}
+			notStored={m.file_read_consent_item_not_stored()}
+			note={m.file_read_consent_item_quota()}
+			onsubmit={agree}
+		>
+			{#snippet footer()}
 				<Button type="button" variant="outline" onclick={decline}>
 					{m.file_read_consent_decline_button()}
 				</Button>
 				<Button type="submit">{m.file_read_consent_agree_button()}</Button>
-			</Dialog.Footer>
-		</form>
+			{/snippet}
+		</ConsentDialogBody>
 	</Dialog.Content>
 </Dialog.Root>

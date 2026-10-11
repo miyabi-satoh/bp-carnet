@@ -76,7 +76,7 @@ export async function mockTableColumns(
 }
 
 /** 1行が1回の測定の表の、列の意味。`columns` は列の番号 (0 始まり)。 */
-export function tableColumns(columns: {
+function tableColumns(columns: {
 	date: number;
 	systolic: number;
 	diastolic: number;
@@ -91,6 +91,11 @@ export function tableColumns(columns: {
 		groups: [{ time: null, pulse: null, memo: null, period: null, ...columns }]
 	};
 }
+
+/** OMRON connect が書き出す形の CSV の見出しと、その列の意味。見出しと列の番号は対なので、並べて置く。 */
+export const OMRON_CSV_HEADER =
+	'測定日,タイムゾーン,最高血圧（mmHg）,最低血圧（mmHg）,脈拍（bpm）,機種';
+export const OMRON_CSV_COLUMNS = tableColumns({ date: 0, systolic: 2, diastolic: 3, pulse: 4 });
 
 /** PDF の読み取り (`POST /ocr/document`) の応答を差し替える。 */
 export async function mockDocumentRead(

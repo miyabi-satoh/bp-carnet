@@ -10,7 +10,8 @@ import {
 	mockDocumentRead,
 	mockOcrStatus,
 	mockTableColumns,
-	tableColumns
+	OMRON_CSV_COLUMNS,
+	OMRON_CSV_HEADER
 } from './ocr-mocks';
 import { SettingsPage } from './pages/settings-page';
 
@@ -22,14 +23,8 @@ function omronCsv(rows: number): string {
 		const date = new Date(Date.UTC(2025, 0, 1 + i)).toISOString().slice(0, 10);
 		return `${date} 7:08,Asia/Tokyo,${120 + (i % 20)},80,65,HEM-7346T`;
 	});
-	return [
-		'測定日,タイムゾーン,最高血圧（mmHg）,最低血圧（mmHg）,脈拍（bpm）,機種',
-		...lines,
-		''
-	].join('\n');
+	return [OMRON_CSV_HEADER, ...lines, ''].join('\n');
 }
-
-const OMRON_COLUMNS = tableColumns({ date: 0, systolic: 2, diastolic: 3, pulse: 4 });
 
 async function pickFile(page: Page, file: { name: string; mimeType: string; buffer: Buffer }) {
 	const settings = new SettingsPage(page);
@@ -50,7 +45,7 @@ test('他のアプリの CSV は、先頭の数行だけを送ることに同意
 	page
 }) => {
 	await mockOcrStatus(page);
-	await mockTableColumns(page, { json: OMRON_COLUMNS });
+	await mockTableColumns(page, { json: OMRON_CSV_COLUMNS });
 	const importPage = await pickFile(page, {
 		name: 'omron.csv',
 		mimeType: 'text/csv',
@@ -85,7 +80,7 @@ test('他のアプリの CSV は、先頭の数行だけを送ることに同意
 
 test('送ることに同意しなければ、何も送らずにファイルを選ぶところへ戻る', async ({ page }) => {
 	await mockOcrStatus(page);
-	await mockTableColumns(page, { json: OMRON_COLUMNS });
+	await mockTableColumns(page, { json: OMRON_CSV_COLUMNS });
 	const requests = collectReadRequests(page);
 	const importPage = await pickFile(page, {
 		name: 'omron.csv',
@@ -100,7 +95,7 @@ test('送ることに同意しなければ、何も送らずにファイルを�
 
 test('血圧の記録の表でないファイルは、読み取れなかったと伝える', async ({ page }) => {
 	await mockOcrStatus(page);
-	await mockTableColumns(page, { json: { ...OMRON_COLUMNS, readable: false, groups: [] } });
+	await mockTableColumns(page, { json: { ...OMRON_CSV_COLUMNS, readable: false, groups: [] } });
 	const importPage = await pickFile(page, {
 		name: 'items.csv',
 		mimeType: 'text/csv',
@@ -153,7 +148,11 @@ test('読み取りが使えないときは、このアプリの CSV でないこ
 		buffer: Buffer.from(omronCsv(3))
 	});
 
-	await expect(page.getByText(/このアプリで書き出したCSVファイルではないようです/)).toBeVisible();
+	await expect(
+		importPage.error(
+			ja.import_error_csv_missing_columns.replace('{columns}', 'measuredAt, systolic, diastolic')
+		)
+	).toBeVisible();
 	await expect(importPage.fileReadConsent.root).toBeHidden();
 });
 

@@ -8,6 +8,20 @@ type RecordListItem = components['schemas']['RecordListItem'];
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
+/** オフセット付きの日時 (`2026-02-05T07:08:00+09:00`・`2026-02-05 07:08:00 +0900`・末尾が `Z`) を瞬間にする。
+ * オフセットが無ければ `null`。 */
+export function instantWithOffset(text: string): Date | null {
+	const match =
+		/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?)\s*(Z|[+-]\d{2}:?\d{2})$/i.exec(
+			text
+		);
+	if (!match) return null;
+	const offset =
+		match[3].toUpperCase() === 'Z' ? 'Z' : match[3].replace(/^([+-]\d{2}):?(\d{2})$/, '$1:$2');
+	const date = new Date(`${match[1]}T${match[2]}${offset}`);
+	return Number.isNaN(date.getTime()) ? null : date;
+}
+
 /** 瞬間 `date` を、`timeZone` での `YYYY-MM-DDTHH:MM` (API の `localMeasuredAt` の形) にする。 */
 export function toLocalDateTime(date: Date, timeZone: string): string {
 	const parts = new Intl.DateTimeFormat('en-US', {

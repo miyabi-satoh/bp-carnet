@@ -2482,6 +2482,16 @@
               }
             }
           },
+          "400": {
+            "description": "リクエストボディが不正 (JSON として解釈できない等)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "未ログイン",
             "content": {
@@ -2494,6 +2504,16 @@
           },
           "409": {
             "description": "同じユーザーの読み取りがまだ終わっていない (`ocr_in_progress`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Content-Type が application/json でない",
             "content": {
               "application/json": {
                 "schema": {
@@ -4720,7 +4740,7 @@
       },
       "OcrReading": {
         "type": "object",
-        "description": "血圧値 1 件分の読み取り結果。単発読み取り (`OcrResult::reading`) と手書きメモの\n行ごとの読み取り結果 (`OcrResult::readings`) の両方で共用する。`measured_on`/`time`/`note`\nは手書きメモでのみ使う (単発読み取りでは常に `None`)。",
+        "description": "血圧値 1 件分の読み取り結果。単発読み取り (`OcrResult::reading`)、手書きメモの行ごとの読み取り結果\n(`OcrResult::readings`)、PDF の行ごとの読み取り結果 (`DocumentReadings::readings`) で共用する。\n血圧・脈拍・`confidence` のほかは、単発読み取りでは常に `None`。",
         "required": [
           "systolic",
           "diastolic",
@@ -4744,7 +4764,7 @@
               "string",
               "null"
             ],
-            "description": "\"MM-DD\" 形式。手書きメモでのみ使う。",
+            "description": "手書きメモでは \"MM-DD\" 形式。PDF では、年が書かれていれば \"YYYY-MM-DD\"、無ければ \"MM-DD\"。",
             "example": "09-05"
           },
           "memo": {
@@ -4752,20 +4772,20 @@
               "string",
               "null"
             ],
-            "description": "手帳でその行に添えて書かれた文章 (体調・服薬など)。記録のメモ欄に取り込む。\n手書きメモでのみ使う。"
+            "description": "その行に添えて書かれた文章 (体調・服薬など)。記録のメモ欄に取り込む。"
           },
           "note": {
             "type": [
               "string",
               "null"
             ],
-            "description": "この行について Gemini が補足したいこと (判読できない字・曖昧な時刻表現等)。\n手書きメモでのみ使う。"
+            "description": "この行について Gemini が補足したいこと (判読できない字・曖昧な時刻表現等)。"
           },
           "period": {
             "oneOf": [
               {
                 "$ref": "#/components/schemas/OcrPeriod",
-                "description": "手帳でその行に添えて書かれた朝・夜 (「朝」「起床時」「夜」「就寝前」など)。時刻の無い行に\n仮の時刻を振るときに使う。書かれていない・どちらとも取れない行は `None`。手書きメモでのみ使う。"
+                "description": "その行に添えて書かれた朝・夜 (「朝」「起床時」「夜」「就寝前」など)。時刻の無い行に\n仮の時刻を振るときに使う。書かれていない・どちらとも取れない行は `None`。"
               },
               {
                 "type": "null"
@@ -4787,7 +4807,7 @@
               "string",
               "null"
             ],
-            "description": "\"HH:MM\" 形式。手書きメモでのみ使う。時刻が読み取れない行は `None` のまま\n(でっち上げない)。",
+            "description": "\"HH:MM\" 形式。時刻が読み取れない行は `None` のまま (でっち上げない)。",
             "example": "07:30"
           }
         }

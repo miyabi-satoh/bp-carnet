@@ -2,22 +2,18 @@
 
 use super::*;
 
-/// 写真の欄の (欄の名前, MIME タイプ, 中身)。
-type ImageField<'a> = (&'a str, &'a str, &'a [u8]);
+/// 送るファイルの欄の (欄の名前, MIME タイプ, 中身)。
+type UploadField<'a> = (&'a str, &'a str, &'a [u8]);
 
 /// `multipart/form-data` のリクエストを組み立てる。`field` が `None` ならフィールドを
 /// 一つも含まない (空の) ボディにする。
-fn multipart_image_request(
-    uri: &str,
-    cookie: Option<&str>,
-    field: Option<ImageField>,
-) -> Request<Body> {
+fn multipart_request(uri: &str, cookie: Option<&str>, field: Option<UploadField>) -> Request<Body> {
     const BOUNDARY: &str = "bp-carnet-test-boundary";
     let mut body = Vec::new();
     if let Some((name, mime_type, bytes)) = field {
         body.extend_from_slice(format!("--{BOUNDARY}\r\n").as_bytes());
         body.extend_from_slice(
-            format!("Content-Disposition: form-data; name=\"{name}\"; filename=\"photo\"\r\n")
+            format!("Content-Disposition: form-data; name=\"{name}\"; filename=\"upload\"\r\n")
                 .as_bytes(),
         );
         body.extend_from_slice(format!("Content-Type: {mime_type}\r\n\r\n").as_bytes());
@@ -77,7 +73,7 @@ async fn ocr_extract_requires_consent(pool: SqlitePool) {
 
     let response = send(
         &app,
-        multipart_image_request(
+        multipart_request(
             "/api/v1/ocr",
             Some(&cookie),
             Some(("image", "image/jpeg", b"dummy-image-bytes")),
@@ -130,7 +126,7 @@ async fn ocr_extract_checks_login_before_reading_the_body(pool: SqlitePool) {
     let oversized = vec![0u8; 10 * 1024 * 1024 + 1];
     let response = send(
         &app,
-        multipart_image_request(
+        multipart_request(
             "/api/v1/ocr",
             None,
             Some(("image", "image/jpeg", &oversized)),
@@ -147,7 +143,7 @@ async fn ocr_extract_returns_503_when_disabled(pool: SqlitePool) {
 
     let response = send(
         &app,
-        multipart_image_request(
+        multipart_request(
             "/api/v1/ocr",
             Some(&cookie),
             Some(("image", "image/jpeg", b"not a real jpeg")),
@@ -167,7 +163,7 @@ async fn ocr_extract_rejects_unusable_images_before_calling_gemini(pool: SqliteP
     let cookie = login_and_get_cookie(&app, "admin", "password").await;
 
     let oversized = vec![0u8; 10 * 1024 * 1024 + 1];
-    let cases: [(&str, Option<ImageField>, StatusCode, &str); 3] = [
+    let cases: [(&str, Option<UploadField>, StatusCode, &str); 3] = [
         (
             "no image field",
             None,
@@ -188,11 +184,7 @@ async fn ocr_extract_rejects_unusable_images_before_calling_gemini(pool: SqliteP
         ),
     ];
     for (case, field, status, code) in cases {
-        let response = send(
-            &app,
-            multipart_image_request("/api/v1/ocr", Some(&cookie), field),
-        )
-        .await;
+        let response = send(&app, multipart_request("/api/v1/ocr", Some(&cookie), field)).await;
         assert_error_case(response, status, code, case).await;
     }
 }
@@ -208,7 +200,7 @@ async fn ocr_extract_rejects_when_the_free_budget_is_used_up(pool: SqlitePool) {
 
     let response = send(
         &app,
-        multipart_image_request(
+        multipart_request(
             "/api/v1/ocr",
             Some(&cookie),
             Some(("image", "image/jpeg", b"dummy-image-bytes")),
@@ -242,7 +234,7 @@ async fn file_reading_returns_503_when_disabled(pool: SqlitePool) {
 
     let response = send(
         &app,
-        multipart_image_request(
+        multipart_request(
             "/api/v1/ocr/document",
             Some(&cookie),
             Some(("file", "application/pdf", b"%PDF-1.7 dummy")),
@@ -291,7 +283,7 @@ async fn read_document_rejects_unusable_files_before_calling_gemini(pool: Sqlite
 
     let mut oversized = b"%PDF-".to_vec();
     oversized.resize(10 * 1024 * 1024 + 1, 0);
-    let cases: [(&str, Option<ImageField>, StatusCode, &str); 3] = [
+    let cases: [(&str, Option<UploadField>, StatusCode, &str); 3] = [
         (
             "no file field",
             None,
@@ -314,7 +306,7 @@ async fn read_document_rejects_unusable_files_before_calling_gemini(pool: Sqlite
     for (case, field, status, code) in cases {
         let response = send(
             &app,
-            multipart_image_request("/api/v1/ocr/document", Some(&cookie), field),
+            multipart_request("/api/v1/ocr/document", Some(&cookie), field),
         )
         .await;
         assert_error_case(response, status, code, case).await;
@@ -347,7 +339,7 @@ async fn file_reading_rejects_when_the_budget_is_used_up(pool: SqlitePool) {
 
     let response = send(
         &app,
-        multipart_image_request(
+        multipart_request(
             "/api/v1/ocr/document",
             Some(&cookie),
             Some(("file", "application/pdf", b"%PDF-1.7 dummy")),

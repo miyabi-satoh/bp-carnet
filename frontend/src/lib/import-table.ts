@@ -2,11 +2,12 @@ import type { components } from '$lib/api/schema';
 import {
 	fillPlaceholderTimes,
 	importRowStatus,
+	measuredAtFields,
 	parseCsvTable,
 	settleNewRows,
 	type ImportRow
 } from '$lib/import';
-import { isValidDateTime, toLocalDateTime } from '$lib/period';
+import { instantWithOffset, isValidDateTime, toLocalDateTime } from '$lib/period';
 import { splitMeasuredAt } from '$lib/record-form';
 import type { PeriodThresholds } from '$lib/settings';
 
@@ -144,20 +145,6 @@ function clockTime(text: string): { hour: number; minute: number } | null | unde
 	return { hour, minute };
 }
 
-/** オフセット付きの日時 (`2026-02-05T07:08:00+09:00`・`2026-02-05 07:08:00 +0900`・末尾が `Z`) を瞬間にする。
- * オフセットが無ければ `null`。 */
-export function instantWithOffset(text: string): Date | null {
-	const match =
-		/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?)\s*(Z|[+-]\d{2}:?\d{2})$/i.exec(
-			text
-		);
-	if (!match) return null;
-	const offset =
-		match[3].toUpperCase() === 'Z' ? 'Z' : match[3].replace(/^([+-]\d{2}):?(\d{2})$/, '$1:$2');
-	const date = new Date(`${match[1]}T${match[2]}${offset}`);
-	return Number.isNaN(date.getTime()) ? null : date;
-}
-
 /** 他のアプリの日付と時刻の欄を、個人設定のタイムゾーンでの日付・時刻の2欄にする。
  * - 時刻が無ければ時刻を空で返す (仮の時刻は後で振る、`fillPlaceholderTimes`)。
  * - 秒は捨てる。他のアプリは秒まで書くものが多く、秒のある行を読めない日時にすると全行が取り込めなくなるため
@@ -239,10 +226,7 @@ function rowFromGroup(
 	);
 	return {
 		keep: true,
-		// 読めない日時は空にする。日時の欄も空で出るので、記録フォームと同じ「入力してください」になる。
-		measuredOnDate: measuredAt?.measuredOnDate ?? '',
-		time: measuredAt?.time ?? '',
-		timeIsPlaceholder: measuredAt !== null && measuredAt.time === '',
+		...measuredAtFields(measuredAt),
 		periodHint: group.period ?? undefined,
 		systolic,
 		diastolic,
@@ -259,7 +243,7 @@ export function parseTableImport(
 	timeZone: string,
 	periods: PeriodThresholds
 ): ImportRow[] {
-	const table = parseCsvTable(text.replace(/^\uFEFF/, ''), DELIMITERS[columns.delimiter]);
+	const table = parseCsvTable(text, DELIMITERS[columns.delimiter]);
 	const rows = table.slice(columns.headerLines).flatMap((cols) => {
 		// 朝と夜が横に並ぶ表のメモの列は1日に1つで、測定ごとの列ではない。同じ列を指す測定が複数あれば、
 		// その行の最初の記録にだけメモを付ける (同じメモを朝と夜の両方に付けない)。

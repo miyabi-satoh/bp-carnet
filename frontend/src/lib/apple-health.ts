@@ -1,6 +1,5 @@
 import { importRowStatus, settleNewRows, type ImportRow } from '$lib/import';
-import { instantWithOffset } from '$lib/import-table';
-import { toLocalDateTime } from '$lib/period';
+import { instantWithOffset, toLocalDateTime } from '$lib/period';
 import { splitMeasuredAt } from '$lib/record-form';
 
 /** Apple の「ヘルスケア」が書き出したデータ (`書き出したデータ.zip`、中の `export.xml`) から、血圧の記録を

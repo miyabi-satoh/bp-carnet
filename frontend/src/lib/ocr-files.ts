@@ -1,5 +1,5 @@
 import { client } from '$lib/api/client';
-import { type ApiResult, GENERIC_ERROR_MESSAGE, unwrap, unwrapRequest } from '$lib/api/errors';
+import { type ApiResult, unwrapRequest } from '$lib/api/errors';
 import type { TableColumns } from '$lib/import-table';
 import type { OcrReading } from '$lib/ocr';
 
@@ -21,13 +21,7 @@ export function fetchTableColumns(sample: string): Promise<ApiResult<{ data: Tab
 export async function readDocument(file: File): Promise<ApiResult<{ data: OcrReading[] }>> {
 	const formData = new FormData();
 	formData.append('file', file, 'document.pdf');
-	let response: Awaited<ReturnType<typeof postDocument>>;
-	try {
-		response = await postDocument(formData);
-	} catch {
-		return { ok: false, message: GENERIC_ERROR_MESSAGE() };
-	}
-	const result = unwrap(response);
+	const result = await unwrapRequest(postDocument(formData));
 	return result.ok ? { ok: true, data: result.data.readings } : result;
 }
 

@@ -32,8 +32,9 @@ import {
 	monitorResult,
 	notebookResult,
 	noValuesResult,
+	OMRON_CSV_COLUMNS,
+	OMRON_CSV_HEADER,
 	samplePhoto,
-	tableColumns,
 	type NotebookRow
 } from './ocr-mocks';
 
@@ -635,7 +636,7 @@ userTest.describe('手順', () => {
 		const today = todayIn(await fetchTimeZone(page.request));
 		// 血圧計のアプリが書き出す形の CSV (1行が1回の測定)。列の意味は Gemini を呼ばずに答える。
 		const csv = [
-			'測定日,タイムゾーン,最高血圧（mmHg）,最低血圧（mmHg）,脈拍（bpm）,機種',
+			OMRON_CSV_HEADER,
 			...[-3, -2, -1].flatMap((offset) => {
 				const date = addDays(today, offset);
 				return [
@@ -646,9 +647,7 @@ userTest.describe('手順', () => {
 			''
 		].join('\n');
 		await mockOcrStatus(page);
-		await mockTableColumns(page, {
-			json: tableColumns({ date: 0, systolic: 2, diastolic: 3, pulse: 4 })
-		});
+		await mockTableColumns(page, { json: OMRON_CSV_COLUMNS });
 
 		const settings = await openSettings(page, 'import-other-apps-1');
 		const accountId = settings.username(user.username);

@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
+	import ConsentDialogBody from '$lib/components/consent-dialog-body.svelte';
 	import LoadingButton from '$lib/components/loading-button.svelte';
-	import NewTabLink from '$lib/components/new-tab-link.svelte';
 	import NoticeDialog from '$lib/components/notice-dialog.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import * as Dialog from '$lib/components/ui/dialog';
@@ -51,40 +50,24 @@
 
 <Dialog.Root bind:open>
 	<Dialog.Content {...closeGuard}>
-		<Dialog.Header>
-			<Dialog.Title>{m.ocr_consent_title()}</Dialog.Title>
-			<Dialog.Description>{m.ocr_consent_lead()}</Dialog.Description>
-		</Dialog.Header>
-
-		<ul class="flex flex-col gap-2 text-sm">
-			<li>{m.ocr_consent_item_recipient()}</li>
-			<li>{m.ocr_consent_item_data()}</li>
-			<li>{m.ocr_consent_item_purpose()}</li>
-		</ul>
-		<ul class="flex flex-col gap-2 text-sm text-muted-foreground">
-			<li>
-				<!-- Google が改善に使わないのは、運営者が有料の条件で使っているため (privacy.md)。 -->
-				{m.ocr_consent_item_not_stored()}{m.ocr_consent_item_not_trained()}
-			</li>
-			<li>{m.ocr_consent_item_withdraw()}</li>
-		</ul>
-
-		<form onsubmit={agree}>
-			<p class="text-xs leading-relaxed text-muted-foreground">
-				<NewTabLink href={resolve('/privacy')}>{m.privacy_title()}</NewTabLink>
-			</p>
-
-			<!-- `<form>` の中に置くと Dialog.Content の grid gap が効かないため、上余白を自前で持つ
-			     (DialogFormFooter と同じ)。取り消しのボタンは「使わない」にするので、DialogFormFooter は使わない。 -->
-			<Dialog.Footer class="mt-4">
+		<ConsentDialogBody
+			title={m.ocr_consent_title()}
+			lead={m.ocr_consent_lead()}
+			data={m.ocr_consent_item_data()}
+			purpose={m.ocr_consent_item_purpose()}
+			notStored={m.ocr_consent_item_not_stored()}
+			note={m.ocr_consent_item_withdraw()}
+			onsubmit={agree}
+		>
+			{#snippet footer()}
 				<Button type="button" variant="outline" disabled={saving} onclick={decline}>
 					{m.ocr_consent_decline_button()}
 				</Button>
 				<LoadingButton type="submit" loading={saving}>
 					{m.ocr_consent_agree_button()}
 				</LoadingButton>
-			</Dialog.Footer>
-		</form>
+			{/snippet}
+		</ConsentDialogBody>
 	</Dialog.Content>
 </Dialog.Root>
 

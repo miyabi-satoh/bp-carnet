@@ -2,7 +2,7 @@
 
 use axum::Json;
 use axum::extract::multipart::MultipartError;
-use axum::extract::{DefaultBodyLimit, State};
+use axum::extract::{DefaultBodyLimit, Multipart, State};
 use axum::http::StatusCode;
 use serde::Serialize;
 use utoipa::ToSchema;
@@ -24,7 +24,7 @@ const OCR_MAX_UPLOAD_BYTES: usize = 10 * 1024 * 1024;
 /// 境界文字列などのオーバーヘッドを画像本体に上乗せするため、`OCR_MAX_UPLOAD_BYTES`
 /// ちょうどに設定すると、画像自体はギリギリ上限内のリクエストまでこのレイヤーで
 /// 弾かれてしまう。余裕を持たせ、実際の上限判定はハンドラ内の明示チェックに委ねる
-/// (このレイヤーで弾かれた場合も `multipart_error_to_app_error` で `ocr_image_too_large`
+/// (このレイヤーで弾かれた場合も `read_upload_field` で `ocr_image_too_large`
 /// に変換されるため、どちらの経路でもクライアントから見た応答は同じになる)。
 const OCR_BODY_LIMIT_BYTES: usize = OCR_MAX_UPLOAD_BYTES + 64 * 1024;
 
@@ -154,27 +154,8 @@ async fn ocr_extract(
     // 写真を受け取る前に確かめる (同意の無い写真は、サーバーのメモリにも置かない)。
     ocr_consent::ensure_consented(&state.pool, user.id).await?;
 
-    let mut image_bytes: Option<Vec<u8>> = None;
-    let mut mime_type: Option<String> = None;
-
-    while let Some(field) = multipart
-        .next_field()
-        .await
-        .map_err(multipart_error_to_app_error)?
-    {
-        if field.name() != Some("image") {
-            continue;
-        }
-        mime_type = field.content_type().map(str::to_string);
-        let bytes = field.bytes().await.map_err(multipart_error_to_app_error)?;
-        image_bytes = Some(bytes.to_vec());
-        break;
-    }
-
-    let image_bytes = image_bytes.ok_or_else(|| AppError::InvalidMultipart {
-        status: axum::http::StatusCode::BAD_REQUEST,
-        message: "image field is required".to_string(),
-    })?;
+    let (mime_type, image_bytes) =
+        read_upload_field(&mut multipart, "image", || AppError::OcrImageTooLarge).await?;
     if image_bytes.is_empty() {
         return Err(AppError::InvalidMultipart {
             status: axum::http::StatusCode::BAD_REQUEST,
@@ -200,20 +181,15 @@ async fn ocr_extract(
     let _in_flight = state.ocr_in_flight.begin(user.id)?;
     ocr_usage::ensure_budget(&state.pool, user.id, state.ocr_free_budget_yen).await?;
 
-    match state.ocr.extract(&image_bytes, &mime_type).await {
-        Ok(result) => {
-            record_spent(&state, user.id, &result.usage).await;
-            Ok(Json(result))
-        }
-        Err(err) => {
-            // 応答が届いて課金された回 (解釈に失敗した・MAX_TOKENS で打ち切られた) も額を足す。
-            // 足さないと、毎回その失敗になる写真で累計が進まないまま費用がかかり続ける。
-            if let Some(usage) = err.billed_usage() {
-                record_spent(&state, user.id, usage).await;
-            }
-            Err(err.into())
-        }
-    }
+    let result = state
+        .ocr
+        .extract(&image_bytes, &mime_type)
+        .await
+        .map(|result| {
+            let usage = result.usage;
+            (result, usage)
+        });
+    Ok(Json(spend(&state, user.id, result).await?))
 }
 
 #[utoipa::path(
@@ -248,8 +224,30 @@ async fn withdraw_ocr_consent(
     Ok(StatusCode::NO_CONTENT)
 }
 
+/// 使った額を引いて、結果を返す。応答が届いて課金された失敗 (解釈に失敗した・MAX_TOKENS で打ち切られた) でも引く。
+/// 引かないと、毎回その失敗になる写真・ファイルで累計が進まないまま費用がかかり続ける
+/// (docs/ocr.md「使った額の数え方」)。
+pub(super) async fn spend<T>(
+    state: &AppState,
+    user_id: i64,
+    result: Result<(T, OcrUsage), OcrError>,
+) -> Result<T, OcrError> {
+    match result {
+        Ok((value, usage)) => {
+            record_spent(state, user_id, &usage).await;
+            Ok(value)
+        }
+        Err(err) => {
+            if let Some(usage) = err.billed_usage() {
+                record_spent(state, user_id, usage).await;
+            }
+            Err(err)
+        }
+    }
+}
+
 /// 使った額を累計に足す。足せなくても、読み取れた結果 (や失敗の内容) は返す (足せなかった分は無料になるだけ)。
-pub(super) async fn record_spent(state: &AppState, user_id: i64, usage: &OcrUsage) {
+async fn record_spent(state: &AppState, user_id: i64, usage: &OcrUsage) {
     let milli_yen = state
         .ocr_pricing
         .cost_milli_yen(usage.input_tokens, usage.output_tokens);
@@ -260,20 +258,37 @@ pub(super) async fn record_spent(state: &AppState, user_id: i64, usage: &OcrUsag
     }
 }
 
-/// `multipart/form-data` のボディ読み取り時のエラーを `AppError` に変換する。
-/// `axum::extract::DefaultBodyLimit` (このルーターでは `OCR_BODY_LIMIT_BYTES`) を
-/// 超えた場合も `MultipartError` としてここに来るが、その場合は `status()` が
-/// `413 PAYLOAD_TOO_LARGE` を返すため、汎用の `invalid_request_body` ではなく
-/// 意味の通る `ocr_image_too_large` に寄せる (`OCR_MAX_UPLOAD_BYTES` 超過の
-/// 明示チェックと同じコードになるようにするため)。
-fn multipart_error_to_app_error(err: MultipartError) -> AppError {
-    if err.status() == StatusCode::PAYLOAD_TOO_LARGE {
-        return AppError::OcrImageTooLarge;
+/// `multipart/form-data` から `name` の欄を1つ読み、(`Content-Type`, 中身) を返す。
+///
+/// `axum::extract::DefaultBodyLimit` を超えた場合も `MultipartError` として来るが、その場合は `status()` が
+/// `413 PAYLOAD_TOO_LARGE` を返すため、汎用の `invalid_request_body` ではなく `too_large` を返す
+/// (ハンドラの中の大きさの検査と同じコードになるようにするため)。
+pub(super) async fn read_upload_field(
+    multipart: &mut Multipart,
+    name: &str,
+    too_large: impl Fn() -> AppError,
+) -> Result<(Option<String>, Vec<u8>), AppError> {
+    let to_app_error = |err: MultipartError| {
+        if err.status() == StatusCode::PAYLOAD_TOO_LARGE {
+            return too_large();
+        }
+        AppError::InvalidMultipart {
+            status: err.status(),
+            message: err.body_text(),
+        }
+    };
+    while let Some(field) = multipart.next_field().await.map_err(to_app_error)? {
+        if field.name() != Some(name) {
+            continue;
+        }
+        let content_type = field.content_type().map(str::to_string);
+        let bytes = field.bytes().await.map_err(to_app_error)?;
+        return Ok((content_type, bytes.to_vec()));
     }
-    AppError::InvalidMultipart {
-        status: err.status(),
-        message: err.body_text(),
-    }
+    Err(AppError::InvalidMultipart {
+        status: StatusCode::BAD_REQUEST,
+        message: format!("{name} field is required"),
+    })
 }
 
 /// `OcrError::Disabled` はハンドラ冒頭の `state.ocr.enabled()` チェックで弾いているため
