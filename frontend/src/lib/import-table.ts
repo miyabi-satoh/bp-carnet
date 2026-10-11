@@ -198,8 +198,6 @@ export function tableMeasuredAt(
 	return { measuredOnDate, time: `${pad(time.hour)}:${pad(time.minute)}` };
 }
 
-/** 数値の欄を、記録フォームが読む形 (10進の整数) にそろえる。`120.0` の小数点以下の 0 と、
- * 後ろに付いた単位 (`120 mmHg`) を除く。それ以外 (`120.5` など) はそのまま返し、行のエラーとして直してもらう。 */
 /** 脈拍の欄。測っていないことを `0` や `-` で書くアプリがあるので、未入力として読む
  * (そのままだと、脈拍を測らなかった行がすべてエラーになる)。 */
 function tablePulse(cell: string): string {
@@ -207,6 +205,8 @@ function tablePulse(cell: string): string {
 	return /^(0+|[-‐－ー—]+)$/.test(value) ? '' : value;
 }
 
+/** 数値の欄を、記録フォームが読む形 (10進の整数) にそろえる。`120.0` の小数点以下の 0 と、
+ * 後ろに付いた単位 (`120 mmHg`) を除く。それ以外 (`120.5` など) はそのまま返し、行のエラーとして直してもらう。 */
 function tableNumber(cell: string): string {
 	const trimmed = cell.normalize('NFKC').trim();
 	const match = /^(\d+)(?:\.0+)?\s*(?:mmHg|bpm|拍\/分|回\/分)?$/i.exec(trimmed);

@@ -81,7 +81,7 @@
 
 	let consentDialog = $state<ReturnType<typeof FileReadConsentDialog> | null>(null);
 	/** 同意を待っている読み取り。同意したら実行し、断ったら捨てる。 */
-	let pendingRead: (() => Promise<void>) | null = null;
+	let pendingRead: { label: string; read: () => Promise<void> } | null = null;
 	/** 読み込みの世代。古い読み込みの結果で state を上書きしないため。 */
 	const importRequest = new LatestRequest();
 
@@ -192,8 +192,13 @@
 			return;
 		}
 		const sample = tableSample(text);
-		if (sample === '') {
+		if (sample.trim() === '') {
 			fail(own.error);
+			return;
+		}
+		// テキストでないファイル (Excel のブック・画像など) は、文字化けした断片を送らずに断る。
+		if (text.includes('\0')) {
+			fail(m.import_error_not_text());
 			return;
 		}
 		// 読み取りが無効なら、このアプリの CSV でないことだけを伝える。
@@ -203,7 +208,7 @@
 			fail(blocked);
 			return;
 		}
-		askConsent('table', async () => {
+		askConsent('table', m.import_page_reading_columns(), async () => {
 			const result = await fetchTableColumns(sample);
 			if (!isLatest()) return;
 			if (!result.ok) fail(result.message);
@@ -232,7 +237,7 @@
 			fail(blocked);
 			return;
 		}
-		askConsent('document', async () => {
+		askConsent('document', m.import_page_reading_by_ai(), async () => {
 			const result = await readDocument(file);
 			if (!isLatest()) return;
 			if (!result.ok) fail(result.message);
@@ -262,19 +267,19 @@
 		}
 	}
 
-	/** ファイルを Gemini に送る前に、送るものを示して同意を得る。同意したら `read` を実行する。 */
-	function askConsent(kind: 'table' | 'document', read: () => Promise<void>) {
-		pendingRead = read;
+	/** ファイルを Gemini に送る前に、送るものを示して同意を得る。同意したら、`label` を出して `read` を実行する。 */
+	function askConsent(kind: 'table' | 'document', label: string, read: () => Promise<void>) {
+		pendingRead = { label, read };
 		consentDialog?.show(kind);
 	}
 
 	async function runPendingRead() {
-		const read = pendingRead;
+		const pending = pendingRead;
 		pendingRead = null;
-		if (!read) return;
-		readingLabel = m.import_page_reading_by_ai();
+		if (!pending) return;
+		readingLabel = pending.label;
 		try {
-			await read();
+			await pending.read();
 		} catch {
 			fail(GENERIC_ERROR_MESSAGE());
 		}

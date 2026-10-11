@@ -112,6 +112,22 @@ test('血圧の記録の表でないファイルは、読み取れなかった�
 	await expect(importPage.pickFileButton).toBeVisible();
 });
 
+test('テキストでないファイル (Excel のブックなど) は、送らずに選び直すよう伝える', async ({
+	page
+}) => {
+	await mockOcrStatus(page);
+	const requests = collectReadRequests(page);
+	const importPage = await pickFile(page, {
+		name: 'book.xlsx',
+		mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+		buffer: Buffer.from([0x50, 0x4b, 0x03, 0x04, 0x14, 0x00, 0x06, 0x00, 0x08, 0x00, 0x00, 0x00])
+	});
+
+	await expect(importPage.error(ja.import_error_not_text)).toBeVisible();
+	await expect(importPage.fileReadConsent.root).toBeHidden();
+	expect(requests).toHaveLength(0);
+});
+
 test('読み取りが使えないときは、このアプリの CSV でないことを伝え、同意は求めない', async ({
 	page
 }) => {
