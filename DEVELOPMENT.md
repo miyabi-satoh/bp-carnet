@@ -145,9 +145,7 @@ bp.amiiby.com を Fly.io の東京リージョン (`nrt`) で動かす手順。
   - 検証用 (`deploy/cloud/fly.staging.toml`): 本番の前に載せて確かめる。アクセスでは起きないので、使うときに `just staging-start` で起こす。
   - 以下の `<本番の app>`・`<検証用の app>` は、それぞれの `fly.toml` の `app`。
 - どちらの app も、しばらく通信が無いと Machine が一時停止する (`auto_stop_machines = "suspend"`)。本番は次のアクセスで再開し、1日に1回、起動し直す (→「毎日の再起動」)。
-- イメージは GitHub Actions (`.github/workflows/deploy.yml`) か、手元の Docker Desktop で作り、`registry.fly.io` へ送る (→「更新」)。手元は amd64 の Windows でも、Apple Silicon の Mac でもよい。
-  - 出来るイメージは同じ amd64 (`just cloud-image` が `--platform linux/amd64` を付ける)。
-  - Apple Silicon の Mac は amd64 をエミュレーションするため、初回は遅い (10分を超えた)。キャッシュが効く2回目以降は短い。
+- イメージは GitHub Actions (`.github/workflows/deploy.yml`) が作り、`registry.fly.io` へ送って載せる (→「更新」)。
   - frontend と Rust のビルドは `deploy/cloud/Dockerfile` の中で行う。
 - `deploy/cloud/` のファイル:
   - `config.production.toml`・`config.staging.toml`: アプリの設定。イメージに入れ、起動のたびに `start.sh` が `/data/config.toml` へ写す。
@@ -157,13 +155,15 @@ bp.amiiby.com を Fly.io の東京リージョン (`nrt`) で動かす手順。
 
 ### 初回セットアップ
 
-#### 1. ビルドするマシンの準備
+#### 1. 手元のマシンの準備
 
-- Docker Desktop、just (1.44 以上) を入れる。
-- flyctl を入れ、ログインする (ブラウザが開く)。
+- just (1.44 以上) を入れる。
+- flyctl と GitHub CLI を入れ、ログインする (ブラウザが開く)。
   ```sh
   fly auth login
+  gh auth login
   ```
+- 以下の `<リポジトリ>` は、GitHub の `<持ち主>/<リポジトリ名>`。
 
 #### 2. Cloudflare R2 の準備
 
@@ -293,13 +293,15 @@ OCR_JPY_PER_USD=...
 
 #### 6. 検証用に載せて確かめる
 
-リポジトリのルートで実行する。
+GitHub のシークレットに検証用の app のトークンを入れてから、GitHub Actions で載せる。
 
 ```sh
-just deploy-staging
+fly tokens create deploy --app <検証用の app> --name "GitHub Actions" | gh secret set FLY_API_TOKEN_STAGING --repo <リポジトリ>
+gh workflow run deploy.yml -f target=staging
+gh run watch   # 一覧から、いま流した実行を選ぶ
 ```
 
-- イメージを作り (`just cloud-image`)、`registry.fly.io/<検証用の app>:<コミット>` として送り、`fly deploy --image` で載せる。
+- イメージを作り、`registry.fly.io/<検証用の app>:<コミット>` として送り、`fly deploy --image` で載せる。
 - 止まっていた Machine は、載せた後も止まったまま。この節の確かめの前に `just staging-start` で起こす。
 - 起動したかはログで確かめる。
   ```sh
@@ -369,8 +371,11 @@ R2 のダッシュボードで、検証用のバケットにファイルが増�
 
 #### 7. 本番に載せる
 
+GitHub のシークレットに本番の app のトークンを入れてから、GitHub Actions で載せる。毎日の再起動 (→「毎日の再起動」) も同じトークンを使う。
+
 ```sh
-just deploy
+fly tokens create deploy --app <本番の app> --name "GitHub Actions" | gh secret set FLY_API_TOKEN --repo <リポジトリ>
+gh workflow run deploy.yml -f target=production
 ```
 
 初回だけ、続けて次を行う。
@@ -397,7 +402,7 @@ just deploy
 
 #### 更新
 
-検証用で確かめてから本番に載せる。イメージは GitHub Actions (`.github/workflows/deploy.yml`) が作る。
+検証用で確かめてから本番に載せる。
 
 ```sh
 gh workflow run deploy.yml -f target=staging
@@ -410,11 +415,6 @@ gh workflow run deploy.yml -f target=production
 - 載せるのは main。マージの前に検証用で確かめるときは、`--ref <ブランチ>` を付ける (本番には付けられない)。
 - 同じコミットを検証用と本番に続けて載せると、本番のビルドは検証用のときのキャッシュを使い、短く済む。
 - 載せたイメージのタグは、実行の Summary に出る (→「前の版に戻す」)。
-- 手元の Docker Desktop で作って載せることもできる (`just deploy-staging`・`just deploy`。→「1. ビルドするマシンの準備」)。
-- 初回だけ、GitHub のシークレットに app ごとのトークンを入れる。本番の `FLY_API_TOKEN` は、毎日の再起動と同じもの。
-  ```sh
-  fly tokens create deploy --app <検証用の app> --name "GitHub Actions deploy" | gh secret set FLY_API_TOKEN_STAGING --repo <リポジトリ>
-  ```
 - DB のマイグレーションは起動時に自動で適用される。
 - 載せ替えの間 (数十秒) は止まる。Volume が1つなので、新旧を並べて切り替えられない。
 - `fly secrets set` や `fly secrets import` でシークレットを変えても、Machine が起動し直す。
@@ -427,10 +427,7 @@ GitHub Actions (`.github/workflows/daily-restart.yml`) が、毎日 3時すぎ (
   - 期限を過ぎたアカウントなどの掃除 (`src/account.rs` の `purge_expired_periodically`)。
   - Litestream の日ごとのスナップショット。間隔が延びると、戻せる期間が7日より短くなる。
 - メンテナンスモードの作業 (→「ある時点へ戻す」) が3時すぎにかかるときは、先に `gh workflow disable daily-restart.yml` で止め、終わったら `gh workflow enable daily-restart.yml` で戻す。
-- GitHub のシークレット `FLY_API_TOKEN` に、本番の app だけを操作できるトークンを入れる。本番に載せる workflow (→「更新」) も同じトークンを使う。
-  ```sh
-  fly tokens create deploy --app <本番の app> --name "GitHub Actions daily-restart" | gh secret set FLY_API_TOKEN --repo <リポジトリ>
-  ```
+- GitHub のシークレット `FLY_API_TOKEN` (本番の app だけを操作できるトークン。→ 初回セットアップ 7.) を使う。
 - 失敗すると、GitHub からメールが届く。手で流すときは `gh workflow run daily-restart.yml`。
 - GitHub は、リポジトリに60日動きが無いと定期実行を止める。止まったら、Actions の画面で有効に戻す。
 
@@ -590,16 +587,6 @@ fly secrets set --app <app> OCR_INPUT_USD_PER_MILLION_TOKENS=<値> OCR_OUTPUT_US
 - 単価は Google の価格に合わせる。合わせないと、1人ごとの累計の金額が実際とずれて数えられる。
 - 手元の開発では、`config.toml` の `[ocr] free_budget_yen`・`topup_grant_yen`・`[ocr.pricing]` でも与えられる (→ config.example.toml)。環境変数があればそちらを使う。
 
-#### ディスクの空きを作る
-
-```sh
-just cloud-image-prune
-docker image ls
-docker image rm <要らない版>
-```
-
-- `just cloud-image-prune` は Docker のビルドキャッシュを全部消す (他のプロジェクトの分も)。次のビルドは最初から作り直しになる。
-
 #### 困ったときに見るところ
 
 | 症状 | 見るところ |
@@ -620,7 +607,7 @@ docker image rm <要らない版>
 | ログインの試行がすぐ上限に達する | 接続元を取り違えている (→ 初回セットアップ 6.「接続元を確かめる」) |
 | 記録の登録などが 403 になる | `config.*.toml` の `proxy_headers = "fly"`。Cloudflare のプロキシを挟んでいないか |
 | サインアップの確認メールが届かない | Resend でドメインの確認が済んでいるか (DKIM の TXT・`send.bp`・`rsend.bp` の CNAME。→ 初回セットアップ 4.)、`fly logs` に送信のエラーが出ていないか |
-| `fly deploy` が Machine を2台作ろうとする | `--ha=false` を付けたか (`just deploy` は付けている) |
+| `fly deploy` が Machine を2台作ろうとする | `--ha=false` を付けたか (`deploy.yml` は付けている) |
 
 ## 設定とデータの置き場所
 
