@@ -4,7 +4,8 @@
 # ビルドは GitHub Actions (.github/workflows/deploy.yml) が行う。
 #
 # ビルドコンテキストはリポジトリのルート。除外するものは Dockerfile.dockerignore。
-# pnpm のストアと cargo のレジストリ・target はキャッシュマウントに置き、イメージには入れない。
+# pnpm のストアと cargo のレジストリ・target はキャッシュマウントに置き、層に入れない。
+# GitHub Actions が持ち越す層のキャッシュ (deploy.yml) に、大きい target を載せないため。
 
 FROM node:24-bookworm-slim AS frontend
 # frontend/package.json の packageManager と揃える。

@@ -35,8 +35,8 @@ test('読み取りや本番への載せ方など、ふだん使うコマンド�
 		'fly logs --app bp-carnet',
 		'fly scale show --app bp-carnet',
 		'fly releases --app bp-carnet',
-		'just deploy',
-		'just deploy-staging',
+		'gh workflow run deploy.yml -f target=production',
+		'just staging-start',
 		'echo butterfly scale count'
 	]) {
 		assert.equal(blockedSegment(command), undefined, command);

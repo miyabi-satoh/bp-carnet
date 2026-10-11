@@ -157,11 +157,13 @@ bp.amiiby.com を Fly.io の東京リージョン (`nrt`) で動かす手順。
 
 #### 1. 手元のマシンの準備
 
-- just (1.44 以上) と GitHub CLI (`gh`) を入れる。
-- flyctl を入れ、ログインする (ブラウザが開く)。
+- just (1.44 以上) を入れる。
+- flyctl と GitHub CLI を入れ、ログインする (ブラウザが開く)。
   ```sh
   fly auth login
+  gh auth login
   ```
+- 以下の `<リポジトリ>` は、GitHub の `<持ち主>/<リポジトリ名>`。
 
 #### 2. Cloudflare R2 の準備
 
@@ -294,7 +296,7 @@ OCR_JPY_PER_USD=...
 GitHub のシークレットに検証用の app のトークンを入れてから、GitHub Actions で載せる。
 
 ```sh
-fly tokens create deploy --app <検証用の app> --name "GitHub Actions deploy" | gh secret set FLY_API_TOKEN_STAGING --repo <リポジトリ>
+fly tokens create deploy --app <検証用の app> --name "GitHub Actions" | gh secret set FLY_API_TOKEN_STAGING --repo <リポジトリ>
 gh workflow run deploy.yml -f target=staging
 gh run watch   # 一覧から、いま流した実行を選ぶ
 ```
@@ -369,9 +371,10 @@ R2 のダッシュボードで、検証用のバケットにファイルが増�
 
 #### 7. 本番に載せる
 
-GitHub のシークレットに本番の app のトークンを入れてから (→「毎日の再起動」)、GitHub Actions で載せる。
+GitHub のシークレットに本番の app のトークンを入れてから、GitHub Actions で載せる。毎日の再起動 (→「毎日の再起動」) も同じトークンを使う。
 
 ```sh
+fly tokens create deploy --app <本番の app> --name "GitHub Actions" | gh secret set FLY_API_TOKEN --repo <リポジトリ>
 gh workflow run deploy.yml -f target=production
 ```
 
@@ -399,7 +402,7 @@ gh workflow run deploy.yml -f target=production
 
 #### 更新
 
-検証用で確かめてから本番に載せる。イメージは GitHub Actions (`.github/workflows/deploy.yml`) が作る。
+検証用で確かめてから本番に載せる。
 
 ```sh
 gh workflow run deploy.yml -f target=staging
@@ -412,7 +415,6 @@ gh workflow run deploy.yml -f target=production
 - 載せるのは main。マージの前に検証用で確かめるときは、`--ref <ブランチ>` を付ける (本番には付けられない)。
 - 同じコミットを検証用と本番に続けて載せると、本番のビルドは検証用のときのキャッシュを使い、短く済む。
 - 載せたイメージのタグは、実行の Summary に出る (→「前の版に戻す」)。
-- トークンは app ごとに分けて、GitHub のシークレットに入れてある (検証用は `FLY_API_TOKEN_STAGING`、本番は毎日の再起動と同じ `FLY_API_TOKEN`。→ 初回セットアップ 6.・7.)。
 - DB のマイグレーションは起動時に自動で適用される。
 - 載せ替えの間 (数十秒) は止まる。Volume が1つなので、新旧を並べて切り替えられない。
 - `fly secrets set` や `fly secrets import` でシークレットを変えても、Machine が起動し直す。
@@ -425,10 +427,7 @@ GitHub Actions (`.github/workflows/daily-restart.yml`) が、毎日 3時すぎ (
   - 期限を過ぎたアカウントなどの掃除 (`src/account.rs` の `purge_expired_periodically`)。
   - Litestream の日ごとのスナップショット。間隔が延びると、戻せる期間が7日より短くなる。
 - メンテナンスモードの作業 (→「ある時点へ戻す」) が3時すぎにかかるときは、先に `gh workflow disable daily-restart.yml` で止め、終わったら `gh workflow enable daily-restart.yml` で戻す。
-- GitHub のシークレット `FLY_API_TOKEN` に、本番の app だけを操作できるトークンを入れる。本番に載せる workflow (→「更新」) も同じトークンを使う。
-  ```sh
-  fly tokens create deploy --app <本番の app> --name "GitHub Actions daily-restart" | gh secret set FLY_API_TOKEN --repo <リポジトリ>
-  ```
+- GitHub のシークレット `FLY_API_TOKEN` (本番の app だけを操作できるトークン。→ 初回セットアップ 7.) を使う。
 - 失敗すると、GitHub からメールが届く。手で流すときは `gh workflow run daily-restart.yml`。
 - GitHub は、リポジトリに60日動きが無いと定期実行を止める。止まったら、Actions の画面で有効に戻す。
 

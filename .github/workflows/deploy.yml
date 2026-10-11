@@ -66,6 +66,7 @@ jobs:
         with:
           context: .
           file: deploy/cloud/Dockerfile
+          # Fly.io の Machine は amd64 だけ。
           platforms: linux/amd64
           push: true
           tags: ${{ steps.image.outputs.ref }}
