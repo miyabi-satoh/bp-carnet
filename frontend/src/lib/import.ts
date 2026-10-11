@@ -65,20 +65,35 @@ export function initialKeep(status: ImportRowStatus): boolean {
 	return status === 'ok';
 }
 
-/** 取り込むファイルの選択肢を CSV に絞る `<input type="file">` の `accept`。 */
-export const CSV_FILE_ACCEPT = '.csv,text/csv';
+/** 取り込めるファイルに選択肢を絞る `<input type="file">` の `accept`。このアプリの CSV のほか、
+ * 他のアプリが書き出した表の形のテキスト・PDF と、「ヘルスケア」の書き出し (zip・中の XML) を選べる
+ * (docs/import-export.md「他のアプリのファイル」)。 */
+export const IMPORT_FILE_ACCEPT =
+	'.csv,.tsv,.txt,.pdf,.zip,.xml,text/csv,text/plain,text/tab-separated-values,application/pdf,application/zip,text/xml';
+
+/** 取り込むファイルの読み方。`table` は表の形のテキスト (このアプリの CSV を含む)。 */
+export type ImportFileType = 'table' | 'document' | 'appleHealth';
+
+/** 選んだファイルの読み方を、拡張子と種類から決める。どれでもなければ表の形のテキストとして読んでみる。 */
+export function importFileType(file: File): ImportFileType {
+	const name = file.name.toLowerCase();
+	if (name.endsWith('.pdf') || file.type === 'application/pdf') return 'document';
+	if (name.endsWith('.zip') || name.endsWith('.xml') || /zip|xml/.test(file.type)) {
+		return 'appleHealth';
+	}
+	return 'table';
+}
 
 /** 設定画面で選んだ、取り込みのページへ渡すファイル。 */
 export const importFileHandoff = createFileHandoff(resolve('/settings/import'));
 
 // --- CSV パース -------------------------------------------------------------
 
-/** RFC 4180 相当の CSV パーサー (状態機械)。`""` エスケープ、クォート内の `,`/改行、
- * `\r\n`/`\n` 混在に対応する。ライブラリを使わず自前実装するのは、エクスポート
- * (`GET /records/export`) が生成する固定フォーマットの読み戻し専用の用途であり、
- * 型定義を持つ軽量な既存ライブラリが無いため。空行 (フィールドが1個だけで空文字列)
- * は読み飛ばす。 */
-function parseCsvTable(text: string): string[][] {
+/** RFC 4180 相当の CSV パーサー (状態機械)。`""` エスケープ、クォート内の区切り/改行、
+ * `\r\n`/`\n` 混在に対応する。ライブラリを使わず自前実装するのは、型定義を持つ軽量な
+ * 既存ライブラリが無いため。空行 (フィールドが1個だけで空文字列) は読み飛ばす。
+ * `delimiter` は、他のアプリのファイル (`$lib/import-table`) がセミコロン・タブ区切りを読むのに使う。 */
+export function parseCsvTable(text: string, delimiter = ','): string[][] {
 	const rows: string[][] = [];
 	let row: string[] = [];
 	let field = '';
@@ -116,7 +131,7 @@ function parseCsvTable(text: string): string[][] {
 		if (c === '"') {
 			inQuotes = true;
 			i += 1;
-		} else if (c === ',') {
+		} else if (c === delimiter) {
 			pushField();
 			i += 1;
 		} else if (c === '\r') {

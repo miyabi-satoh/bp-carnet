@@ -3,19 +3,31 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { GENERIC_ERROR_MESSAGE } from '$lib/api/errors';
+	import { AppleHealthError, readAppleHealthExport } from '$lib/apple-health';
 	import { userTimeZone } from '$lib/auth';
-	import { currentYearIn } from '$lib/period';
+	import { currentYearIn, localToday } from '$lib/period';
 	import { LatestRequest } from '$lib/latest-request';
 	import {
-		CSV_FILE_ACCEPT,
+		IMPORT_FILE_ACCEPT,
 		importDateRange,
+		importFileType,
 		importRowNote,
 		importRowStatus,
 		decodeCsvText,
 		parseCsvImport,
 		importFileHandoff,
-		type ImportRow
+		type ImportRow,
+		type ImportRowStatus
 	} from '$lib/import';
+	import { parseTableImport, tableSample } from '$lib/import-table';
+	import {
+		fetchOcrStatus,
+		memoRowNote,
+		memoRowStatus,
+		memoRowsFromReadings,
+		type MemoRow
+	} from '$lib/ocr';
+	import { fetchTableColumns, readDocument } from '$lib/ocr-files';
 	import { ImportConfirmation } from '$lib/import-confirmation.svelte';
 	import {
 		atPreviewStep,
@@ -34,6 +46,7 @@
 		type PeriodThresholds
 	} from '$lib/settings';
 	import { Button } from '$lib/components/ui/button';
+	import FileReadConsentDialog from '$lib/components/file-read-consent-dialog.svelte';
 	import ImportRows from '$lib/components/import-rows.svelte';
 	import ImportPreview from '$lib/components/import-preview.svelte';
 	import ImportRowSheet from '$lib/components/import-row-sheet.svelte';
@@ -48,7 +61,10 @@
 
 	let stage = $state<Stage>('pick');
 	let errorText = $state('');
-	let rows = $state<ImportRow[]>([]);
+	/** 読み込み中に出す文言。時間のかかる読み込み (「ヘルスケア」の書き出し・Gemini の読み取り) だけ、何をしているかを出す。 */
+	let readingLabel = $state<string | undefined>(undefined);
+	/** PDF から読み取った行は、読み取りの自信も持つ (`MemoRow`)。 */
+	let rows = $state<(ImportRow | MemoRow)[]>([]);
 	/** 朝/夜の時間帯。行の日時に「朝」「夜」を添えるのに使う。 */
 	let periods = $state<PeriodThresholds>(DEFAULT_PERIOD_THRESHOLDS);
 
@@ -61,6 +77,10 @@
 	let fromSettings = false;
 
 	let fileInput = $state<HTMLInputElement | null>(null);
+
+	let consentDialog = $state<ReturnType<typeof FileReadConsentDialog> | null>(null);
+	/** 同意を待っている読み取り。同意したら実行し、断ったら捨てる。 */
+	let pendingRead: (() => Promise<void>) | null = null;
 	/** 読み込みの世代。古い読み込みの結果で state を上書きしないため。 */
 	const importRequest = new LatestRequest();
 
@@ -101,32 +121,139 @@
 		if (file) load(file);
 	}
 
+	/** 行の状態。PDF から読み取った行は、読み取りの自信も見る (写真の手帳の読み取りと同じ)。 */
+	function statusOf(row: ImportRow | MemoRow): ImportRowStatus {
+		return 'confidence' in row ? memoRowStatus(row) : importRowStatus(row);
+	}
+
+	function noteOf(row: ImportRow | MemoRow): string | undefined {
+		return 'confidence' in row ? memoRowNote(row) : importRowNote(row);
+	}
+
 	async function load(file: File) {
 		const isLatest = importRequest.begin();
 		// 確認の段階の履歴で再読み込みした後に選び直しても、編集の段階から始める。
 		clearPreviewStep();
+		pendingRead = null;
+		readingLabel = undefined;
 		stage = 'reading';
 		try {
 			// 朝/夜の時間帯は、時刻の無い行に仮時刻を振るのと表示に使う。取れなければ既定値で進める
 			// (`fetchPeriodThresholds` は失敗しない)。
-			const [bytes, thresholds] = await Promise.all([file.arrayBuffer(), fetchPeriodThresholds()]);
+			periods = await fetchPeriodThresholds();
 			if (!isLatest()) return;
-			periods = thresholds;
-			const result = parseCsvImport(decodeCsvText(bytes), userTimeZone(), periods);
-			if ('error' in result) {
-				fail(result.error);
-				return;
+			switch (importFileType(file)) {
+				case 'appleHealth':
+					await loadAppleHealth(file, isLatest);
+					break;
+				case 'document':
+					await loadDocument(file, isLatest);
+					break;
+				case 'table':
+					await loadTable(file, isLatest);
+					break;
 			}
-			if (result.rows.length === 0) {
-				fail(m.import_page_no_records_error());
-				return;
-			}
-			rows = result.rows;
-			stage = 'rows';
 		} catch {
 			// file.arrayBuffer() の失敗 (ピッカーで選んだ後にファイルが移動/削除された等)。
 			if (isLatest()) fail(GENERIC_ERROR_MESSAGE());
 		}
+	}
+
+	/** 読み込んだ行を一覧に出す。1件も無ければ、その旨を出す。 */
+	function showRows(loaded: (ImportRow | MemoRow)[]) {
+		if (loaded.length === 0) {
+			fail(m.import_page_no_records_error());
+			return;
+		}
+		rows = loaded;
+		stage = 'rows';
+	}
+
+	/** 表の形のテキスト。このアプリが書き出した CSV はそのまま読み、ほかは列の意味を Gemini に決めてもらう
+	 * (docs/import-export.md「他のアプリのファイル」)。 */
+	async function loadTable(file: File, isLatest: () => boolean) {
+		const text = decodeCsvText(await file.arrayBuffer());
+		if (!isLatest()) return;
+		const own = parseCsvImport(text, userTimeZone(), periods);
+		if (!('error' in own)) {
+			showRows(own.rows);
+			return;
+		}
+		const sample = tableSample(text);
+		// 読み取りが使えなければ、このアプリの CSV でないことだけを伝える。
+		if (sample === '' || (await fetchOcrStatus()).enabled !== true) {
+			if (isLatest()) fail(own.error);
+			return;
+		}
+		if (!isLatest()) return;
+		askConsent('table', async () => {
+			const result = await fetchTableColumns(sample);
+			if (!isLatest()) return;
+			if (!result.ok) fail(result.message);
+			else if (!result.data.readable) fail(m.import_error_table_unreadable());
+			else showRows(parseTableImport(text, result.data, userTimeZone(), periods));
+		});
+	}
+
+	/** PDF。全体を Gemini に送って読み取ってもらう。 */
+	async function loadDocument(file: File, isLatest: () => boolean) {
+		if ((await fetchOcrStatus()).enabled !== true) {
+			if (isLatest()) fail(m.error_ocr_disabled());
+			return;
+		}
+		if (!isLatest()) return;
+		askConsent('document', async () => {
+			const result = await readDocument(file);
+			if (!isLatest()) return;
+			if (!result.ok) fail(result.message);
+			else showRows(memoRowsFromReadings(result.data, periods, localToday(userTimeZone())));
+		});
+	}
+
+	/** 「ヘルスケア」の書き出し。Gemini に送らず、この端末の中で読む。 */
+	async function loadAppleHealth(file: File, isLatest: () => boolean) {
+		const progress = (fraction: number) => {
+			if (isLatest()) {
+				readingLabel = m.import_page_reading_file({ percent: Math.floor(fraction * 100) });
+			}
+		};
+		progress(0);
+		try {
+			const loaded = await readAppleHealthExport(file, userTimeZone(), progress);
+			if (isLatest()) showRows(loaded);
+		} catch (error) {
+			if (!(error instanceof AppleHealthError)) throw error;
+			if (!isLatest()) return;
+			fail(
+				error.reason === 'unsupported'
+					? m.import_error_apple_health_unsupported()
+					: m.import_error_apple_health_not_export()
+			);
+		}
+	}
+
+	/** ファイルを Gemini に送る前に、送るものを示して同意を得る。同意したら `read` を実行する。 */
+	function askConsent(kind: 'table' | 'document', read: () => Promise<void>) {
+		pendingRead = read;
+		consentDialog?.show(kind);
+	}
+
+	async function runPendingRead() {
+		const read = pendingRead;
+		pendingRead = null;
+		if (!read) return;
+		readingLabel = m.import_page_reading_by_ai();
+		try {
+			await read();
+		} catch {
+			fail(GENERIC_ERROR_MESSAGE());
+		}
+	}
+
+	/** 同意しなかったら、ファイルを選ぶところへ戻る。 */
+	function cancelPendingRead() {
+		pendingRead = null;
+		stage = 'pick';
 	}
 
 	function fail(message: string) {
@@ -147,7 +274,7 @@
 <input
 	bind:this={fileInput}
 	type="file"
-	accept={CSV_FILE_ACCEPT}
+	accept={IMPORT_FILE_ACCEPT}
 	class="hidden"
 	onchange={handleFileChange}
 />
@@ -181,7 +308,7 @@
 				</p>
 				<Button type="button" onclick={pickFile}>{m.import_page_pick_file_button()}</Button>
 			{:else if stage === 'reading'}
-				<LoadingIndicator />
+				<LoadingIndicator label={readingLabel} />
 			{:else if stage === 'error'}
 				<LoadError message={errorText} />
 				<Button type="button" onclick={pickFile}>{m.import_page_pick_file_button()}</Button>
@@ -190,8 +317,8 @@
 					bind:rows
 					{periods}
 					thisYear={currentYearIn(userTimeZone())}
-					statusOf={importRowStatus}
-					noteOf={importRowNote}
+					{statusOf}
+					{noteOf}
 					onedit={(row) => rowSheet?.show(row)}
 					onkeepchange={() => (edited = true)}
 				/>
@@ -219,8 +346,14 @@
 <ImportRowSheet
 	bind:this={rowSheet}
 	idPrefix="import-row"
-	statusOf={importRowStatus}
+	{statusOf}
 	onapplied={() => (edited = true)}
+/>
+
+<FileReadConsentDialog
+	bind:this={consentDialog}
+	onagreed={runPendingRead}
+	ondeclined={cancelPendingRead}
 />
 
 <LeaveConfirmDialog {guard} />
