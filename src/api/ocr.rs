@@ -24,7 +24,7 @@ const OCR_MAX_UPLOAD_BYTES: usize = 10 * 1024 * 1024;
 /// 境界文字列などのオーバーヘッドを画像本体に上乗せするため、`OCR_MAX_UPLOAD_BYTES`
 /// ちょうどに設定すると、画像自体はギリギリ上限内のリクエストまでこのレイヤーで
 /// 弾かれてしまう。余裕を持たせ、実際の上限判定はハンドラ内の明示チェックに委ねる
-/// (このレイヤーで弾かれた場合も `multipart_error_to_app_error` で `ocr_image_too_large`
+/// (このレイヤーで弾かれた場合も `read_upload_field` で `ocr_image_too_large`
 /// に変換されるため、どちらの経路でもクライアントから見た応答は同じになる)。
 const OCR_BODY_LIMIT_BYTES: usize = OCR_MAX_UPLOAD_BYTES + 64 * 1024;
 
