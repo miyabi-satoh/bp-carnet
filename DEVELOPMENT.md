@@ -400,20 +400,21 @@ just deploy
 検証用で確かめてから本番に載せる。イメージは GitHub Actions (`.github/workflows/deploy.yml`) が作る。
 
 ```sh
-gh workflow run deploy.yml -f target=staging --ref <載せるブランチ>
+gh workflow run deploy.yml -f target=staging
 gh run watch         # 一覧から、いま流した実行を選ぶ
 just staging-start   # 止まっていた Machine は、載せた後も止まったまま
+# 検証用で確かめてから
 gh workflow run deploy.yml -f target=production
 ```
 
-- 本番に載せられるのは main だけ。検証用は、マージの前のブランチも載せられる。
+- 載せるのは main。マージの前に検証用で確かめるときは、`--ref <ブランチ>` を付ける (本番には付けられない)。
+- 同じコミットを検証用と本番に続けて載せると、本番はビルドをやり直さない。
 - 載せたイメージのタグは、実行の Summary に出る (→「前の版に戻す」)。
-- GitHub のシークレットに、app ごとのトークンを入れる。本番の `FLY_API_TOKEN` は、毎日の再起動と同じもの。
+- 手元の Docker Desktop で作って載せることもできる (`just deploy-staging`・`just deploy`。→「1. ビルドするマシンの準備」)。
+- 初回だけ、GitHub のシークレットに app ごとのトークンを入れる。本番の `FLY_API_TOKEN` は、毎日の再起動と同じもの。
   ```sh
   fly tokens create deploy --app <検証用の app> --name "GitHub Actions deploy" | gh secret set FLY_API_TOKEN_STAGING --repo <リポジトリ>
   ```
-- 手元の Docker Desktop で作って載せることもできる (`just deploy-staging`・`just deploy`。→「1. ビルドするマシンの準備」)。GitHub Actions が使えないときのため。
-
 - DB のマイグレーションは起動時に自動で適用される。
 - 載せ替えの間 (数十秒) は止まる。Volume が1つなので、新旧を並べて切り替えられない。
 - `fly secrets set` や `fly secrets import` でシークレットを変えても、Machine が起動し直す。
