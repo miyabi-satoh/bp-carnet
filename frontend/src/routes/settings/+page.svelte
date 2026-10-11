@@ -49,7 +49,7 @@
 	import LogOutIcon from '@lucide/svelte/icons/log-out';
 	import { exportRecords } from '$lib/export';
 	import { appVersionLabel, isNativeApp } from '$lib/native-app';
-	import { CSV_FILE_ACCEPT, importFileHandoff } from '$lib/import';
+	import { IMPORT_FILE_ACCEPT, importFileHandoff } from '$lib/import';
 	import { takeImportResult } from '$lib/import-step';
 	import { withdrawOcrConsent } from '$lib/ocr';
 	import { OcrStatusState } from '$lib/ocr-status.svelte';
@@ -541,7 +541,7 @@
 			<input
 				bind:this={importFileInput}
 				type="file"
-				accept={CSV_FILE_ACCEPT}
+				accept={IMPORT_FILE_ACCEPT}
 				class="hidden"
 				onchange={handleImportFileChange}
 			/>

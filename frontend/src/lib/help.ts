@@ -100,6 +100,10 @@ const ALL_HELP_SECTIONS: readonly HelpSection[] = [
 				title: m.help_import_csv_title
 			},
 			{
+				slug: 'import-other-apps',
+				title: m.help_import_other_apps_title
+			},
+			{
 				slug: 'delete-account',
 				title: m.help_delete_account_title
 			}

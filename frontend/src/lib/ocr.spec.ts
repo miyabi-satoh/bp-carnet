@@ -283,6 +283,21 @@ describe('memoRowsFromReadings', () => {
 		});
 	});
 
+	it('keeps a full date as read, without treating its year as inferred (PDF)', () => {
+		const rows = memoRowsFromReadings(
+			[reading({ measuredOn: '2024-12-30' }), reading({ measuredOn: '09-05' })],
+			DEFAULT_PERIOD_THRESHOLDS,
+			now
+		);
+		expect(rows.map((row) => [row.measuredOnDate, row.inferredDate])).toEqual([
+			['2024-12-30', ''],
+			['2026-09-05', '2026-09-05']
+		]);
+		// 「年」の欄で動くのは、年をアプリが決めた行だけ。
+		shiftMemoRowsYear(rows, 2025);
+		expect(rows.map((row) => row.measuredOnDate)).toEqual(['2024-12-30', '2025-09-05']);
+	});
+
 	it('unchecks low-confidence rows by default (< 0.75)', () => {
 		const [highConf, lowConf] = memoRowsFromReadings(
 			[reading({ confidence: 0.8 }), reading({ confidence: 0.6 })],

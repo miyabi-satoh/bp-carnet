@@ -12,12 +12,12 @@
 
 ## ログインの方式と主なファイル
 
-| 方式 | 有効になる条件 | 主なファイル |
-| --- | --- | --- |
-| ID/パスワード | 常に有効 | `src/auth.rs`・`src/api/auth.rs` |
-| Google | `GOOGLE_OAUTH_CLIENT_ID`・`GOOGLE_OAUTH_CLIENT_SECRET` | `src/google_login.rs` |
-| LINE | `LINE_LOGIN_CHANNEL_ID`・`LINE_LOGIN_CHANNEL_SECRET` | `src/line_login.rs` |
-| Apple (ウェブ) | `APPLE_TEAM_ID`・`APPLE_KEY_ID`・`APPLE_PRIVATE_KEY`・`APPLE_SERVICE_ID` と、https の `[server] public_url`・`[session] secure_cookie = true` | `src/apple_login.rs` |
+| 方式           | 有効になる条件                                                                                                                                | 主なファイル                     |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| ID/パスワード  | 常に有効                                                                                                                                      | `src/auth.rs`・`src/api/auth.rs` |
+| Google         | `GOOGLE_OAUTH_CLIENT_ID`・`GOOGLE_OAUTH_CLIENT_SECRET`                                                                                        | `src/google_login.rs`            |
+| LINE           | `LINE_LOGIN_CHANNEL_ID`・`LINE_LOGIN_CHANNEL_SECRET`                                                                                          | `src/line_login.rs`              |
+| Apple (ウェブ) | `APPLE_TEAM_ID`・`APPLE_KEY_ID`・`APPLE_PRIVATE_KEY`・`APPLE_SERVICE_ID` と、https の `[server] public_url`・`[session] secure_cookie = true` | `src/apple_login.rs`             |
 
 - 外部のログインに共通の部品 (`state`・`nonce`・PKCE の生成、連携の取り消し) は `src/external_login.rs`、ユーザーの特定と作成は `src/oauth_identity.rs` にある。
 - 有効かどうかは `GET /api/v1/auth/providers` で画面に伝え、無効な方式のボタンは出さない。
@@ -34,11 +34,11 @@
 
 ### `state`・PKCE・`nonce`
 
-| 提供元 | `state` | PKCE (S256) | `nonce` | ID トークンの確かめ方 |
-| --- | --- | --- | --- | --- |
-| Google | あり | あり | なし | トークンエンドポイントの応答を使い、署名は確かめない |
-| LINE | あり (英数字だけ) | あり | あり | LINE の検証エンドポイント (`/oauth2/v2.1/verify`) に `nonce` 付きで送る |
-| Apple | あり | なし | あり | トークンエンドポイントの応答の `iss`・`aud`・`exp`・`iat`・`nonce` を手元で確かめ、署名は確かめない |
+| 提供元 | `state`           | PKCE (S256) | `nonce` | ID トークンの確かめ方                                                                               |
+| ------ | ----------------- | ----------- | ------- | --------------------------------------------------------------------------------------------------- |
+| Google | あり              | あり        | なし    | トークンエンドポイントの応答を使い、署名は確かめない                                                |
+| LINE   | あり (英数字だけ) | あり        | あり    | LINE の検証エンドポイント (`/oauth2/v2.1/verify`) に `nonce` 付きで送る                             |
+| Apple  | あり              | なし        | あり    | トークンエンドポイントの応答の `iss`・`aud`・`exp`・`iat`・`nonce` を手元で確かめ、署名は確かめない |
 
 - 署名を確かめないのは、クライアントの秘密を付けて提供元と直接 TLS でやり取りした応答だから (OpenID Connect Core 3.1.3.7、Google の OpenID Connect の資料)。
 - Apple は認可・トークンエンドポイントの文書に PKCE の項目が無いため、掛けない。引き換えの `client_secret` は Apple の秘密鍵で署名した ES256 の JWT で、呼ぶたびに有効期間5分で作る。
@@ -66,6 +66,7 @@
    - 条件の確認と INSERT は1文で行い、別々の `sub` からの同時ログインが両方とも結び付くのを防ぐ。
    - 同じアドレスの未確認のアカウントは、先に確認済みにしてから結び付ける。未確認のアカウントはパスワードも記録も持たないので、引き継いでも誰かの持ち物を渡すことにならない。
 3. それも無ければ、使えないパスワードハッシュ (`password_usable = 0`) の新しいアカウントと `oauth_identities` の行を作る。
+
 - 凍結の判定は結び付けより前に行う。結び付けはやり直せないので、断るログインで `oauth_identities` に行を残さないため。
 - プロフィール (`display_name`・`avatar_url`) は、Google・LINE ではログインのたびに上書きする。Apple は名前を最初の承認のときにしか渡さないので、渡ったときだけ名前を入れる。`avatar_url` はホストのある https の URL だけを受け付ける。
 

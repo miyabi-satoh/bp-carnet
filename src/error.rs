@@ -158,6 +158,15 @@ pub enum AppError {
     /// アップロード画像の MIME タイプが対応外。
     #[error("{0}")]
     OcrUnsupportedMimeType(String),
+    /// 読み取らせるファイル (PDF) が上限 (10MB) を超えている (docs/import-export.md)。
+    #[error("file exceeds 10 MB")]
+    OcrFileTooLarge,
+    /// 読み取らせるファイルが PDF でない。
+    #[error("unsupported file type (expected a PDF)")]
+    OcrUnsupportedFile,
+    /// PDF の記録が多く、読み取りの出力が上限で途中で切れた。期間を分けたファイルなら読める。
+    #[error("the document has too many records to read at once")]
+    OcrDocumentTooLong,
     /// Gemini API 呼び出し自体、またはそのレスポンスの解釈に失敗した。
     #[error("{message}")]
     OcrUpstream {
@@ -258,6 +267,9 @@ impl AppError {
                 StatusCode::UNPROCESSABLE_ENTITY,
                 "ocr_unsupported_mime_type",
             ),
+            Self::OcrFileTooLarge => (StatusCode::PAYLOAD_TOO_LARGE, "ocr_file_too_large"),
+            Self::OcrUnsupportedFile => (StatusCode::UNPROCESSABLE_ENTITY, "ocr_unsupported_file"),
+            Self::OcrDocumentTooLong => (StatusCode::UNPROCESSABLE_ENTITY, "ocr_document_too_long"),
             Self::OcrUpstream { .. } => (StatusCode::BAD_GATEWAY, "ocr_upstream_error"),
             Self::BatchValidation { .. } => {
                 (StatusCode::UNPROCESSABLE_ENTITY, "batch_validation_error")

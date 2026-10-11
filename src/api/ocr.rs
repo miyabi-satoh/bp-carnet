@@ -208,7 +208,7 @@ async fn ocr_extract(
         Err(err) => {
             // 応答が届いて課金された回 (解釈に失敗した・MAX_TOKENS で打ち切られた) も額を足す。
             // 足さないと、毎回その失敗になる写真で累計が進まないまま費用がかかり続ける。
-            if let OcrError::ParseResponse { usage: Some(usage) } = &err {
+            if let Some(usage) = err.billed_usage() {
                 record_spent(&state, user.id, usage).await;
             }
             Err(err.into())
@@ -249,7 +249,7 @@ async fn withdraw_ocr_consent(
 }
 
 /// 使った額を累計に足す。足せなくても、読み取れた結果 (や失敗の内容) は返す (足せなかった分は無料になるだけ)。
-async fn record_spent(state: &AppState, user_id: i64, usage: &OcrUsage) {
+pub(super) async fn record_spent(state: &AppState, user_id: i64, usage: &OcrUsage) {
     let milli_yen = state
         .ocr_pricing
         .cost_milli_yen(usage.input_tokens, usage.output_tokens);
@@ -282,12 +282,13 @@ impl From<OcrError> for AppError {
     fn from(err: OcrError) -> Self {
         match err {
             OcrError::Disabled => AppError::OcrDisabled,
-            OcrError::Request(_) | OcrError::UpstreamStatus(_) | OcrError::ParseResponse { .. } => {
-                AppError::OcrUpstream {
-                    message: err.to_string(),
-                    cause: Some(err),
-                }
-            }
+            OcrError::Request(_)
+            | OcrError::UpstreamStatus(_)
+            | OcrError::ParseResponse { .. }
+            | OcrError::Truncated { .. } => AppError::OcrUpstream {
+                message: err.to_string(),
+                cause: Some(err),
+            },
         }
     }
 }

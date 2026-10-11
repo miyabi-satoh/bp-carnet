@@ -250,7 +250,7 @@ export function pulseFromReading(pulse: number): number | undefined {
 	return pulse > 0 ? pulse : undefined;
 }
 
-/** Gemini の読み取り結果 (`OcrResult.readings`) を、編集可能な `MemoRow[]` に変換する。
+/** Gemini の読み取り結果 (`OcrResult.readings`、PDF の `DocumentReadings.readings`) を、編集可能な `MemoRow[]` に変換する。
  * - 信頼度が `LOW_CONFIDENCE_THRESHOLD` 未満の行は初期状態でチェックを外す
  *   (誤読を誤って一括登録しないため)
  * - 脈拍 0 は未入力扱いにする (`pulseFromReading`)
@@ -262,11 +262,14 @@ export function memoRowsFromReadings(
 	today: Date
 ): MemoRow[] {
 	const rows = readings.map((r): MemoRow => {
-		const measuredOnDate = inferMeasuredOnYear(r.measuredOn, today);
+		// PDF の読み取り (`$lib/ocr-files`) は、年が書かれていれば年まで返す。年はアプリが決めたものでないので、
+		// 「年」の欄では動かさない。
+		const fullDate = /^\d{4}-\d{2}-\d{2}$/.test(r.measuredOn ?? '') ? (r.measuredOn ?? '') : '';
+		const measuredOnDate = fullDate || inferMeasuredOnYear(r.measuredOn, today);
 		return {
 			keep: true,
 			measuredOnDate,
-			inferredDate: measuredOnDate,
+			inferredDate: fullDate ? '' : measuredOnDate,
 			time: r.time?.trim() ?? '',
 			// 日付が無い行には仮の時刻を振らない (`fillPlaceholderTimes`)。
 			timeIsPlaceholder: !r.time?.trim() && measuredOnDate !== '',

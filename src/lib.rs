@@ -32,6 +32,7 @@ pub(crate) mod oauth_identity;
 pub mod ocr;
 pub(crate) mod ocr_consent;
 pub(crate) mod ocr_dump;
+pub(crate) mod ocr_files;
 pub(crate) mod ocr_usage;
 pub(crate) mod password_notice;
 pub(crate) mod password_reset;

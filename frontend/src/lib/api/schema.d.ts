@@ -801,6 +801,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/ocr/document": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["read_document"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/ocr/status": {
         parameters: {
             query?: never;
@@ -811,6 +827,22 @@ export interface paths {
         get: operations["ocr_status"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ocr/table-columns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["table_columns"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1374,6 +1406,11 @@ export interface components {
             morning?: components["schemas"]["BpAverageResponse"] | null;
         };
         /**
+         * @description 数字だけで書かれた日付の、年・月・日の並び。
+         * @enum {string}
+         */
+        DateOrder: "ymd" | "mdy" | "dmy";
+        /**
          * @description 測定時刻が朝/夜のどちらの時間帯か。
          * @enum {string}
          */
@@ -1405,6 +1442,19 @@ export interface components {
              * @example Asia/Tokyo
              */
             timezone: string;
+        };
+        /** @description PDF から読み取った記録 (`POST /ocr/document`)。 */
+        DocumentReadings: {
+            /**
+             * @description 行ごとの読み取り結果。`measuredOn` は、年が書かれていれば `YYYY-MM-DD`、無ければ `MM-DD`。
+             *     血圧の記録が見つからなければ空。
+             */
+            readings: components["schemas"]["OcrReading"][];
+        };
+        /** @description OpenAPI ドキュメント用のダミー型 (実際の抽出は `AppMultipart` で行う。`api::ocr` の `OcrUploadForm` と同じ)。 */
+        DocumentUploadForm: {
+            /** Format: binary */
+            file: string;
         };
         EmailChangeTargetResponse: {
             /** @description 変更先のメールアドレス。 */
@@ -1781,6 +1831,50 @@ export interface components {
             /** @example kyoko@example.com */
             email: string;
         };
+        /** @description 1回の測定を作る列の番号 (0 始まり)。 */
+        TableColumnGroup: {
+            /**
+             * Format: int32
+             * @description 測定日の列。日付と時刻が同じ列なら、その列。
+             */
+            date: number;
+            /** Format: int32 */
+            diastolic: number;
+            /** Format: int32 */
+            memo: number | null;
+            period: components["schemas"]["OcrPeriod"] | null;
+            /** Format: int32 */
+            pulse: number | null;
+            /** Format: int32 */
+            systolic: number;
+            /**
+             * Format: int32
+             * @description 時刻が日付と別の列にあるときの、その列。
+             */
+            time: number | null;
+        };
+        /** @description 表の形のテキストの、列の意味 (`POST /ocr/table-columns`)。 */
+        TableColumns: {
+            dateOrder: components["schemas"]["DateOrder"];
+            delimiter: components["schemas"]["TableDelimiter"];
+            /** @description 1行に含まれる測定ごとの列。1行に1回の測定なら1つ、朝と夜が横に並ぶ表なら測定の数だけ。 */
+            groups: components["schemas"]["TableColumnGroup"][];
+            /**
+             * Format: int32
+             * @description データの最初の行より前にある行の数 (見出し・説明の行)。
+             */
+            headerLines: number;
+            /** @description 血圧の記録の表として読めたか。`false` なら、ほかの値に意味は無い。 */
+            readable: boolean;
+            /** @description 日時が UTC で書かれているか。`false` なら、個人設定のタイムゾーンの時刻として読む。 */
+            utc: boolean;
+        };
+        TableColumnsRequest: {
+            /** @description ファイルの先頭の数行 (見出しと、列を決めるのに足りる数行のデータ)。8,000 文字まで。 */
+            sample: string;
+        };
+        /** @enum {string} */
+        TableDelimiter: "comma" | "semicolon" | "tab";
         /** @description 設定画面のタイムゾーン選択肢。 */
         TimezonesResponse: {
             /** @description 手動で選べる IANA タイムゾーン名 (`timezones::TIMEZONE_CHOICES`)。並びは表示側が決める。 */
@@ -4014,6 +4108,102 @@ export interface operations {
             };
         };
     };
+    read_document: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["DocumentUploadForm"];
+            };
+        };
+        responses: {
+            /** @description 読み取った記録 (血圧の記録が無い文書なら空) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentReadings"];
+                };
+            };
+            /** @description multipart ボディが不正、または file フィールドが無い */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 未ログイン */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 同じユーザーの読み取りがまだ終わっていない (`ocr_in_progress`) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description ファイルが10MBを超える (`ocr_file_too_large`) */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description PDF でない (`ocr_unsupported_file`)、または記録が多すぎて読み取りが途中で切れた (`ocr_document_too_long`) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 全部の読み取りの枠を使い切った (`ocr_budget_exhausted`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Gemini の呼び出し、またはレスポンスの解釈に失敗 */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description GEMINI_API_KEY 未設定でOCR機能が無効 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     ocr_status: {
         parameters: {
             query?: never;
@@ -4034,6 +4224,84 @@ export interface operations {
             };
             /** @description 未ログイン */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    table_columns: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TableColumnsRequest"];
+            };
+        };
+        responses: {
+            /** @description 列の意味 (血圧の記録の表でなければ `readable: false`) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TableColumns"];
+                };
+            };
+            /** @description 未ログイン */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 同じユーザーの読み取りがまだ終わっていない (`ocr_in_progress`) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description `sample` が空、または 8,000 文字を超える */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 全部の読み取りの枠を使い切った (`ocr_budget_exhausted`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Gemini の呼び出し、またはレスポンスの解釈に失敗 */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description GEMINI_API_KEY 未設定でOCR機能が無効 */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };

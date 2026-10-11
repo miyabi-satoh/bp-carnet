@@ -2324,6 +2324,113 @@
         }
       }
     },
+    "/api/v1/ocr/document": {
+      "post": {
+        "operationId": "read_document",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentUploadForm"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "読み取った記録 (血圧の記録が無い文書なら空)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentReadings"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "multipart ボディが不正、または file フィールドが無い",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "同じユーザーの読み取りがまだ終わっていない (`ocr_in_progress`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "ファイルが10MBを超える (`ocr_file_too_large`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "PDF でない (`ocr_unsupported_file`)、または記録が多すぎて読み取りが途中で切れた (`ocr_document_too_long`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "全部の読み取りの枠を使い切った (`ocr_budget_exhausted`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Gemini の呼び出し、またはレスポンスの解釈に失敗",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "GEMINI_API_KEY 未設定でOCR機能が無効",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/ocr/status": {
       "get": {
         "operationId": "ocr_status",
@@ -2340,6 +2447,93 @@
           },
           "401": {
             "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ocr/table-columns": {
+      "post": {
+        "operationId": "table_columns",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TableColumnsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "列の意味 (血圧の記録の表でなければ `readable: false`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TableColumns"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "同じユーザーの読み取りがまだ終わっていない (`ocr_in_progress`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "`sample` が空、または 8,000 文字を超える",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "全部の読み取りの枠を使い切った (`ocr_budget_exhausted`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Gemini の呼び出し、またはレスポンスの解釈に失敗",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "GEMINI_API_KEY 未設定でOCR機能が無効",
             "content": {
               "application/json": {
                 "schema": {
@@ -4128,6 +4322,15 @@
           }
         }
       },
+      "DateOrder": {
+        "type": "string",
+        "description": "数字だけで書かれた日付の、年・月・日の並び。",
+        "enum": [
+          "ymd",
+          "mdy",
+          "dmy"
+        ]
+      },
       "DayPeriod": {
         "type": "string",
         "description": "測定時刻が朝/夜のどちらの時間帯か。",
@@ -4177,6 +4380,35 @@
             "type": "string",
             "description": "`Intl.DateTimeFormat().resolvedOptions().timeZone` の値。",
             "example": "Asia/Tokyo"
+          }
+        }
+      },
+      "DocumentReadings": {
+        "type": "object",
+        "description": "PDF から読み取った記録 (`POST /ocr/document`)。",
+        "required": [
+          "readings"
+        ],
+        "properties": {
+          "readings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OcrReading"
+            },
+            "description": "行ごとの読み取り結果。`measuredOn` は、年が書かれていれば `YYYY-MM-DD`、無ければ `MM-DD`。\n血圧の記録が見つからなければ空。"
+          }
+        }
+      },
+      "DocumentUploadForm": {
+        "type": "object",
+        "description": "OpenAPI ドキュメント用のダミー型 (実際の抽出は `AppMultipart` で行う。`api::ocr` の `OcrUploadForm` と同じ)。",
+        "required": [
+          "file"
+        ],
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary"
           }
         }
       },
@@ -5011,6 +5243,134 @@
             "example": "kyoko@example.com"
           }
         }
+      },
+      "TableColumnGroup": {
+        "type": "object",
+        "description": "1回の測定を作る列の番号 (0 始まり)。",
+        "required": [
+          "date",
+          "time",
+          "systolic",
+          "diastolic",
+          "pulse",
+          "memo",
+          "period"
+        ],
+        "properties": {
+          "date": {
+            "type": "integer",
+            "format": "int32",
+            "description": "測定日の列。日付と時刻が同じ列なら、その列。",
+            "minimum": 0
+          },
+          "diastolic": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "memo": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "period": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/OcrPeriod",
+                "description": "見出しで朝・夜が決まっている測定 (朝と夜が横に並ぶ表)。時刻の無い行に仮の時刻を振るのに使う。"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "pulse": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "systolic": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "time": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "時刻が日付と別の列にあるときの、その列。",
+            "minimum": 0
+          }
+        }
+      },
+      "TableColumns": {
+        "type": "object",
+        "description": "表の形のテキストの、列の意味 (`POST /ocr/table-columns`)。",
+        "required": [
+          "readable",
+          "delimiter",
+          "headerLines",
+          "dateOrder",
+          "utc",
+          "groups"
+        ],
+        "properties": {
+          "dateOrder": {
+            "$ref": "#/components/schemas/DateOrder"
+          },
+          "delimiter": {
+            "$ref": "#/components/schemas/TableDelimiter"
+          },
+          "groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TableColumnGroup"
+            },
+            "description": "1行に含まれる測定ごとの列。1行に1回の測定なら1つ、朝と夜が横に並ぶ表なら測定の数だけ。"
+          },
+          "headerLines": {
+            "type": "integer",
+            "format": "int32",
+            "description": "データの最初の行より前にある行の数 (見出し・説明の行)。",
+            "minimum": 0
+          },
+          "readable": {
+            "type": "boolean",
+            "description": "血圧の記録の表として読めたか。`false` なら、ほかの値に意味は無い。"
+          },
+          "utc": {
+            "type": "boolean",
+            "description": "日時が UTC で書かれているか。`false` なら、個人設定のタイムゾーンの時刻として読む。"
+          }
+        }
+      },
+      "TableColumnsRequest": {
+        "type": "object",
+        "required": [
+          "sample"
+        ],
+        "properties": {
+          "sample": {
+            "type": "string",
+            "description": "ファイルの先頭の数行 (見出しと、列を決めるのに足りる数行のデータ)。8,000 文字まで。"
+          }
+        }
+      },
+      "TableDelimiter": {
+        "type": "string",
+        "enum": [
+          "comma",
+          "semicolon",
+          "tab"
+        ]
       },
       "TimezonesResponse": {
         "type": "object",

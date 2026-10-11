@@ -1,7 +1,7 @@
 import { expect, type Download, type Locator, type Page } from '@playwright/test';
 import { chooseFile, ja } from '../helpers';
 import { ChangePasswordPage } from './change-password-page';
-import { CsvImportPage } from './csv-import-page';
+import { ImportPage } from './import-page';
 import { DeleteAccountDialog } from './delete-account-dialog';
 import { LayoutHeader } from './layout-header';
 import { LogoutDialog } from './logout-dialog';
@@ -123,11 +123,11 @@ export class SettingsPage {
 		return this.page.getByRole('button', { name: ja.settings_import_button, exact: true });
 	}
 
-	/** 「CSVファイルを読み込む...」で `file` を選び、取り込みのページへ移るのを待つ。 */
-	async pickCsv(file: Parameters<typeof chooseFile>[2]): Promise<CsvImportPage> {
+	/** 「ファイルから読み込む...」で `file` を選び、取り込みのページへ移るのを待つ。 */
+	async pickImportFile(file: Parameters<typeof chooseFile>[2]): Promise<ImportPage> {
 		await chooseFile(this.page, this.importButton, file);
 		await this.page.waitForURL('/settings/import');
-		return new CsvImportPage(this.page);
+		return new ImportPage(this.page);
 	}
 
 	async openChangePassword(): Promise<ChangePasswordPage> {
