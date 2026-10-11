@@ -27,7 +27,7 @@
 		memoRowsFromReadings,
 		type MemoRow
 	} from '$lib/ocr';
-	import { fetchTableColumns, readDocument } from '$lib/ocr-files';
+	import { DOCUMENT_MAX_BYTES, fetchTableColumns, readDocument } from '$lib/ocr-files';
 	import { ImportConfirmation } from '$lib/import-confirmation.svelte';
 	import {
 		atPreviewStep,
@@ -197,6 +197,11 @@
 
 	/** PDF。全体を Gemini に送って読み取ってもらう。 */
 	async function loadDocument(file: File, isLatest: () => boolean) {
+		// 送れない大きさのファイルは、同意を求める前に伝える (同意して全体を送った後に断られないように)。
+		if (file.size > DOCUMENT_MAX_BYTES) {
+			fail(m.error_ocr_file_too_large());
+			return;
+		}
 		if ((await fetchOcrStatus()).enabled !== true) {
 			if (isLatest()) fail(m.error_ocr_disabled());
 			return;

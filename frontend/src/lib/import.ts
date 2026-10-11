@@ -74,11 +74,20 @@ export const IMPORT_FILE_ACCEPT =
 /** 取り込むファイルの読み方。`table` は表の形のテキスト (このアプリの CSV を含む)。 */
 export type ImportFileType = 'table' | 'document' | 'appleHealth';
 
+/** 「ヘルスケア」の書き出し (zip・中の XML) の種類。`xml`・`zip` を名前に含むだけの別の種類
+ * (Excel のブック `…openxmlformats…` など) を取り違えないよう、一致で見る。 */
+const APPLE_HEALTH_FILE_TYPES = new Set([
+	'application/zip',
+	'application/x-zip-compressed',
+	'text/xml',
+	'application/xml'
+]);
+
 /** 選んだファイルの読み方を、拡張子と種類から決める。どれでもなければ表の形のテキストとして読んでみる。 */
 export function importFileType(file: File): ImportFileType {
 	const name = file.name.toLowerCase();
 	if (name.endsWith('.pdf') || file.type === 'application/pdf') return 'document';
-	if (name.endsWith('.zip') || name.endsWith('.xml') || /zip|xml/.test(file.type)) {
+	if (name.endsWith('.zip') || name.endsWith('.xml') || APPLE_HEALTH_FILE_TYPES.has(file.type)) {
 		return 'appleHealth';
 	}
 	return 'table';

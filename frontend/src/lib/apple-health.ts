@@ -134,8 +134,12 @@ type ByteSource = {
  * 作り方を返す。`size` は、進み具合を出すための、読み進める元 (zip なら圧縮されたまま) の大きさ。 */
 async function exportXmlSource(file: File): Promise<ByteSource> {
 	const entries = await zipEntries(file);
-	// zip でなければ、取り出し済みの export.xml として読む。
-	if (entries === null) return { stream: () => file.stream(), size: file.size, deflated: false };
+	if (entries === null) {
+		// 名前が zip なのに zip として読めないファイルは、壊れているか別のもの。
+		if (/\.zip$/i.test(file.name)) throw new AppleHealthError('not_export');
+		// zip でなければ、取り出し済みの export.xml として読む。
+		return { stream: () => file.stream(), size: file.size, deflated: false };
+	}
 
 	const entry = exportEntry(entries);
 	if (!entry) throw new AppleHealthError('not_export');

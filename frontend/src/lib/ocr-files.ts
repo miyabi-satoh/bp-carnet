@@ -6,6 +6,9 @@ import type { OcrReading } from '$lib/ocr';
 /** 他のアプリが書き出したファイルの読み取り (Gemini 連携、docs/import-export.md「他のアプリのファイル」)。
  * 送る前の同意は画面が取る (`file-read-consent-dialog.svelte`)。 */
 
+/** 送れる PDF の大きさの上限 (`src/api/ocr_files.rs` の `DOCUMENT_MAX_UPLOAD_BYTES` と同じ)。 */
+export const DOCUMENT_MAX_BYTES = 10 * 1024 * 1024;
+
 /** 表の形のテキストの先頭 (`tableSample`) から、列の意味を決めてもらう。 */
 export function fetchTableColumns(sample: string): Promise<ApiResult<{ data: TableColumns }>> {
 	return unwrapRequest(client.POST('/api/v1/ocr/table-columns', { body: { sample } }));

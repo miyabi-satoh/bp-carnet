@@ -29,12 +29,12 @@ const DELIMITERS: Record<TableColumns['delimiter'], string> = {
 };
 
 /** 空行を除いた行。見本の行数 (`headerLines`) と、表に分けた行 (`parseCsvTable` は空行を読み飛ばす) の
- * 数え方をそろえる。 */
+ * 数え方をそろえる。空白だけの行は `parseCsvTable` が行として残すので、ここでも除かない。 */
 function nonEmptyLines(text: string): string[] {
 	return text
 		.replace(/^\uFEFF/, '')
 		.split(/\r\n|\r|\n/)
-		.filter((line) => line.trim() !== '');
+		.filter((line) => line !== '');
 }
 
 /** 列を決めてもらうために Gemini へ送る、ファイルの先頭の数行。 */

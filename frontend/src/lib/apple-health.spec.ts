@@ -119,5 +119,10 @@ describe('readAppleHealthExport', () => {
 		await expect(readAppleHealthExport(file, TOKYO)).rejects.toMatchObject({
 			reason: 'not_export'
 		} satisfies Partial<AppleHealthError>);
+		// 名前は zip でも、zip として読めないファイル。
+		const broken = new File(['not a zip'], 'broken.zip');
+		await expect(readAppleHealthExport(broken, TOKYO)).rejects.toMatchObject({
+			reason: 'not_export'
+		} satisfies Partial<AppleHealthError>);
 	});
 });

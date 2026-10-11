@@ -135,7 +135,14 @@ async fn read_document(
     ocr_usage::ensure_budget(&state.pool, user.id, state.ocr_free_budget_yen).await?;
 
     let result = state.ocr.read_document(&file).await;
-    Ok(Json(spend(&state, user.id, result).await?))
+    spend(&state, user.id, result)
+        .await
+        .map(Json)
+        .map_err(|err| match err {
+            // 記録の数を減らせば読めるので、Gemini の失敗 (502) と分けて伝える。
+            OcrError::Truncated { .. } => AppError::OcrDocumentTooLong,
+            err => err.into(),
+        })
 }
 
 /// 使った額を引いて、結果を返す。応答が届いて課金された失敗でも引く (docs/ocr.md「使った額の数え方」)。
@@ -143,7 +150,7 @@ async fn spend<T>(
     state: &AppState,
     user_id: i64,
     result: Result<(T, OcrUsage), OcrError>,
-) -> Result<T, AppError> {
+) -> Result<T, OcrError> {
     match result {
         Ok((value, usage)) => {
             record_spent(state, user_id, &usage).await;
@@ -153,11 +160,7 @@ async fn spend<T>(
             if let Some(usage) = err.billed_usage() {
                 record_spent(state, user_id, usage).await;
             }
-            Err(match err {
-                // 記録の数を減らせば読めるので、Gemini の失敗 (502) と分けて伝える。
-                OcrError::Truncated { .. } => AppError::OcrDocumentTooLong,
-                err => err.into(),
-            })
+            Err(err)
         }
     }
 }

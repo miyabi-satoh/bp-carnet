@@ -346,7 +346,7 @@
 	"settings_import_done_description": "{count}件の記録を取り込みました。ホーム画面で確かめられます。",
 	"settings_import_button": "ファイルから読み込む...",
 	"settings_export_csv_description": "すべての記録をCSVファイルに保存します。",
-	"import_description": "このアプリや他の血圧記録アプリで書き出したファイル（CSV・PDF）、iPhone の「ヘルスケア」で書き出したデータから記録を読み込み、内容を確認後に取り込みます。",
+	"import_description": "このアプリや他のアプリで書き出したファイルから記録を読み込み、内容を確認後に取り込みます。",
 	"report_print_button": "印刷する",
 	"report_print_error_title": "印刷の画面を開けませんでした",
 	"report_title": "血圧記録レポート",

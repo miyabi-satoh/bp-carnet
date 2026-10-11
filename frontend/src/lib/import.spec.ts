@@ -5,6 +5,7 @@ import {
 	deletionWarning,
 	fetchExistingEntries,
 	importDateRange,
+	importFileType,
 	importRows,
 	applyEditedRow,
 	importRowStatus,
@@ -792,5 +793,20 @@ describe('importRows', () => {
 	it('throws if called with no included rows (callers must disable the button instead)', async () => {
 		await expect(importRows([validRow({ rowError: 'x' })], [])).rejects.toThrow();
 		expect(postMock).not.toHaveBeenCalled();
+	});
+});
+
+describe('importFileType', () => {
+	it.each([
+		['records.csv', 'text/csv', 'table'],
+		['records.txt', '', 'table'],
+		['report.PDF', '', 'document'],
+		['report', 'application/pdf', 'document'],
+		['書き出したデータ.zip', 'application/zip', 'appleHealth'],
+		['export.xml', 'text/xml', 'appleHealth'],
+		// 名前に xml を含むだけの種類 (Excel のブック) は、「ヘルスケア」の書き出しにしない。
+		['book.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'table']
+	] as const)('%s (%s) is read as %s', (name, type, expected) => {
+		expect(importFileType(new File([''], name, { type }))).toBe(expected);
 	});
 });
