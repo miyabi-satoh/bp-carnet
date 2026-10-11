@@ -1,14 +1,16 @@
 // 設定画面の「このアプリについて」。
+import { mockAuthProviders } from './auth-mocks';
 import { test, expect } from './fixtures';
 import { ja } from './helpers';
 import { SettingsPage } from './pages/settings-page';
 
-// e2e の backend の設定 (scripts/backend-process.ts) の問い合わせ先。
 const CONTACT_URL = 'https://example.com/contact/';
 
 test('使い方・規約・プライバシーポリシー・第三者のソフトウェア・問い合わせ先へのリンクを並べ、問い合わせ先は別のタブで開く', async ({
 	page
 }) => {
+	// 問い合わせ先はサーバーの設定で決まるので、どのサーバーに当てても同じ値で答える。
+	await mockAuthProviders(page, { contactUrl: CONTACT_URL });
 	const settings = new SettingsPage(page);
 	await settings.open();
 
