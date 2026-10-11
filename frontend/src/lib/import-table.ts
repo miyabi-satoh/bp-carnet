@@ -22,6 +22,11 @@ export const SAMPLE_LINES = 12;
 /** 送る1行の長さの上限。長いメモの列があっても、列を決めるのに要るのは先頭だけ。 */
 const SAMPLE_LINE_MAX_CHARS = 400;
 
+/** 読み込む表の形のファイルの大きさの上限。全体をメモリに載せて行に分けるので、大きすぎるファイルは読む前に断る。
+ * 一度に取り込めるのは 10,000 件までで (`src/api/records.rs` の `MAX_IMPORT_RECORDS`)、長いメモが付いていても
+ * これに収まる。 */
+export const TABLE_MAX_BYTES = 20 * 1024 * 1024;
+
 const DELIMITERS: Record<TableColumns['delimiter'], string> = {
 	comma: ',',
 	semicolon: ';',

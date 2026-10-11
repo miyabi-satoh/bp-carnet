@@ -74,6 +74,7 @@
 	"record_error_future_date": "明日以降の日付は記録できません",
 	"import_error_csv_no_header": "ファイルが空です。別のファイルを選んでください。",
 	"import_error_csv_missing_columns": "このアプリで書き出したCSVファイルではないようです。設定の「CSVファイルへ書き出す」で作ったファイルを選んでください (見つからない列: {columns})。",
+	"import_error_file_too_large": "ファイルが大きすぎます。期間を分けて書き出したファイルでお試しください。",
 	"import_error_not_text": "このファイルは読み込めません。CSV・PDF のファイルか、iPhone の「ヘルスケア」で書き出したデータを選んでください。",
 	"import_error_table_unreadable": "血圧の記録の表として読み取れませんでした。別のファイルを選んでください。",
 	"import_error_apple_health_not_export": "「ヘルスケア」で書き出したデータではないようです。iPhone の「ヘルスケア」のアプリで書き出したデータ（zip ファイル）を選んでください。",

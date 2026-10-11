@@ -133,6 +133,16 @@ type ByteSource = {
 /** 選んだファイルから、`export.xml` の中身を流す元を作る。2回読む (血圧・心拍数) ので、流れそのものでなく
  * 作り方を返す。`size` は、進み具合を出すための、読み進める元 (zip なら圧縮されたまま) の大きさ。 */
 async function exportXmlSource(file: File): Promise<ByteSource> {
+	try {
+		return await locateExportXml(file);
+	} catch (error) {
+		// 壊れた zip は、長さや位置の欄がファイルの外を指し、読み取りが RangeError になる。
+		if (error instanceof RangeError) throw new AppleHealthError('not_export');
+		throw error;
+	}
+}
+
+async function locateExportXml(file: File): Promise<ByteSource> {
 	const entries = await zipEntries(file);
 	if (entries === null) {
 		// 名前が zip なのに zip として読めないファイルは、壊れているか別のもの。
@@ -158,6 +168,10 @@ async function exportXmlSource(file: File): Promise<ByteSource> {
 }
 
 // --- XML を流しながら探す -----------------------------------------------------
+
+/** 閉じていないタグを持ち越す長さの上限 (文字数)。記録の `<Record … />` は数百文字なので、これを超えるのは
+ * 壊れたファイル。上限が無いと、`>` の無いファイルで全体をメモリにためてしまう。 */
+const MAX_OPEN_TAG_CHARS = 1024 * 1024;
 
 /** `source` を流し、`needle` を含むタグ (`<…>`) ごとに `ontag` を呼ぶ。XML 全体は解釈しない: 記録は
  * 1件が1つのタグ (`<Record … />`) で、探すのはその属性だけなので、文字列の検索で足りる。 */
@@ -201,6 +215,10 @@ async function scanTags(
 		// 閉じていない最後のタグは、続きが次の塊にある。
 		const lastOpen = text.lastIndexOf('<');
 		carry = lastOpen >= processed && text.indexOf('>', lastOpen) < 0 ? text.slice(lastOpen) : '';
+		if (carry.length > MAX_OPEN_TAG_CHARS) {
+			await reader.cancel();
+			throw new AppleHealthError('not_export');
+		}
 		onprogress(source.size === 0 ? 1 : Math.min(1, read / source.size));
 		if (done) return;
 	}

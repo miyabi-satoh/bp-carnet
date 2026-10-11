@@ -19,7 +19,7 @@
 		type ImportRow,
 		type ImportRowStatus
 	} from '$lib/import';
-	import { parseTableImport, tableSample } from '$lib/import-table';
+	import { parseTableImport, TABLE_MAX_BYTES, tableSample } from '$lib/import-table';
 	import {
 		fetchOcrStatus,
 		memoRowNote,
@@ -184,6 +184,10 @@
 	/** 表の形のテキスト。このアプリが書き出した CSV はそのまま読み、ほかは列の意味を Gemini に決めてもらう
 	 * (docs/import-export.md「他のアプリのファイル」)。 */
 	async function loadTable(file: File, isLatest: () => boolean) {
+		if (file.size > TABLE_MAX_BYTES) {
+			fail(m.import_error_file_too_large());
+			return;
+		}
 		const text = decodeCsvText(await file.arrayBuffer());
 		if (!isLatest()) return;
 		const own = parseCsvImport(text, userTimeZone(), periods);

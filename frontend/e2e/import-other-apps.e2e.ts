@@ -128,6 +128,21 @@ test('テキストでないファイル (Excel のブックなど) は、送ら�
 	expect(requests).toHaveLength(0);
 });
 
+test('大きすぎる表の形のファイルは、読み込まずに選び直すよう伝える', async ({ page }) => {
+	await mockOcrStatus(page);
+	const requests = collectReadRequests(page);
+	const importPage = await pickFile(page, {
+		name: 'huge.csv',
+		mimeType: 'text/csv',
+		// 上限 (`TABLE_MAX_BYTES`、20MB) を1バイト超える大きさ。
+		buffer: Buffer.alloc(20 * 1024 * 1024 + 1, 'a')
+	});
+
+	await expect(importPage.error(ja.import_error_file_too_large)).toBeVisible();
+	await expect(importPage.fileReadConsent.root).toBeHidden();
+	expect(requests).toHaveLength(0);
+});
+
 test('読み取りが使えないときは、このアプリの CSV でないことを伝え、同意は求めない', async ({
 	page
 }) => {

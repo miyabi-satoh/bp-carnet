@@ -125,4 +125,22 @@ describe('readAppleHealthExport', () => {
 			reason: 'not_export'
 		} satisfies Partial<AppleHealthError>);
 	});
+
+	it('rejects a zip whose directory points outside the file', async () => {
+		const bytes = zip([{ name: 'apple_health_export/export.xml', content: exportXml('') }]);
+		// セントラルディレクトリの名前の長さを、ファイルの外まで届く値にする。
+		const directoryOffset = new DataView(bytes.buffer).getUint32(bytes.length - 22 + 16, true);
+		new DataView(bytes.buffer).setUint16(directoryOffset + 28, 0xffff, true);
+		await expect(
+			readAppleHealthExport(new File([bytes], 'export.zip'), TOKYO)
+		).rejects.toMatchObject({ reason: 'not_export' } satisfies Partial<AppleHealthError>);
+	});
+
+	it('stops reading a file whose tag never closes', async () => {
+		// 後ろに `>` が1つも無い (`exportXml` の閉じタグも付けない)。
+		const xml = `<HealthData>\n<Record type="HKQuantityTypeIdentifierBloodPressureSystolic" ${'x'.repeat(2 * 1024 * 1024)}`;
+		await expect(readAppleHealthExport(new File([xml], 'export.xml'), TOKYO)).rejects.toMatchObject(
+			{ reason: 'not_export' } satisfies Partial<AppleHealthError>
+		);
+	});
 });
