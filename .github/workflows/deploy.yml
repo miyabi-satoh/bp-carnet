@@ -1,0 +1,77 @@
+name: Deploy
+
+# 検証用か本番の app に、イメージを作って載せる (DEVELOPMENT.md「更新」)。手で流したときだけ動く。
+# 手元の `just deploy-staging`・`just deploy` と同じ手順 (justfile の fly-deploy)。
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 載せる先
+        type: choice
+        options:
+          - staging
+          - production
+        default: staging
+        required: true
+
+permissions:
+  contents: read
+
+# 同じ app への載せ替えを重ねない。途中で打ち切ると、載せ替えが半端なまま残る。
+concurrency:
+  group: deploy-${{ inputs.target }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # フォークにはシークレットが無く、失敗するだけになる。
+    if: github.repository == 'miyabi-satoh/bp-carnet'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      FLY_APP: ${{ inputs.target == 'production' && 'bp-carnet' || 'bp-carnet-staging' }}
+      FLY_CONFIG: ${{ inputs.target == 'production' && 'deploy/cloud/fly.toml' || 'deploy/cloud/fly.staging.toml' }}
+      # app ごとのトークンに分け、検証用の載せ替えに本番を操作できるトークンを渡さない。
+      FLY_API_TOKEN: ${{ inputs.target == 'production' && secrets.FLY_API_TOKEN || secrets.FLY_API_TOKEN_STAGING }}
+    steps:
+      # 本番に載せるのは、レビューと CI を通った main だけにする。検証用は、マージの前のブランチも載せて確かめる。
+      - name: Refuse to deploy a branch to production
+        if: inputs.target == 'production' && github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::本番には main だけを載せます (選ばれたのは ${{ github.ref_name }})"
+          exit 1
+
+      - uses: actions/checkout@v7
+
+      # ADR: タグはコミット。前の版に戻すときに、このタグを `fly deploy --image` に渡すため (justfile の fly-deploy と同じ)。
+      - name: Decide the image tag
+        id: image
+        shell: bash
+        run: echo "ref=registry.fly.io/$FLY_APP:$(git describe --always)" >> "$GITHUB_OUTPUT"
+
+      # 入るコマンドは flyctl だけ (fly の別名は無い)。
+      - uses: superfly/flyctl-actions/setup-flyctl@v1
+
+      - name: Log in to the Fly registry
+        run: flyctl auth docker
+
+      - uses: docker/setup-buildx-action@v4
+
+      # 層のキャッシュだけを持ち越す。Dockerfile のキャッシュマウント (pnpm のストア・cargo の target) は
+      # GitHub Actions のキャッシュに残らないので、Rust は毎回最初からビルドする。
+      - uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: deploy/cloud/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.image.outputs.ref }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # `--ha=false` は、Volume が1つなので予備の Machine を作らせないため (既定は2台作る)。
+      - name: Deploy
+        run: flyctl deploy --ha=false --config "$FLY_CONFIG" --image "${{ steps.image.outputs.ref }}"
+
+      - name: Summarize
+        run: echo "\`$FLY_APP\` に \`${{ steps.image.outputs.ref }}\` を載せました。" >> "$GITHUB_STEP_SUMMARY"
