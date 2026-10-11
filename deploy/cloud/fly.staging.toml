@@ -1,5 +1,5 @@
 # 検証用の Fly.io の設定 (DEVELOPMENT.md「デプロイ」)。本番 (fly.toml) と同じイメージを、本番の前に載せて確かめる。
-# イメージは GitHub Actions (.github/workflows/deploy.yml) か手元の Docker Desktop で作って registry.fly.io へ送り、`fly deploy --image` で載せる (→ DEVELOPMENT.md「更新」)。
+# イメージは GitHub Actions (.github/workflows/deploy.yml) で作って registry.fly.io へ送り、`fly deploy --image` で載せる (→ DEVELOPMENT.md「更新」)。
 
 app = "bp-carnet-staging"
 primary_region = "nrt"

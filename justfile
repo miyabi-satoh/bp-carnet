@@ -59,18 +59,6 @@ app-sync-dev:
 build: frontend-build
     cargo build --release
 
-# 本番用のイメージを作る (frontend と Rust のビルドも Docker の中で行う)。タグは latest とコミット (戻すとき用)。→ DEVELOPMENT.md「デプロイ」
-[doc('本番用の Docker イメージを作る')]
-[group('デプロイ')]
-cloud-image:
-    docker build --platform linux/amd64 -f deploy/cloud/Dockerfile -t bp-carnet:latest -t "bp-carnet:{{ `git describe --always --dirty` }}" .
-
-# Docker のビルドキャッシュを消す。他のプロジェクトのキャッシュも消える (→ DEVELOPMENT.md「ディスクの空きを作る」)
-[doc('Docker のビルドキャッシュを消す (ほかのプロジェクトの分も)')]
-[group('デプロイ')]
-cloud-image-prune:
-    docker builder prune -f
-
 # 本番の稼働・利用状況を表示する (→ DEVELOPMENT.md「稼働・利用状況を見る」)。
 # 利用状況は BP_REPORT_USER / BP_REPORT_PASSWORD (管理者) が要る。Machine を起こさないなら `just report --no-wake`
 [doc('本番の稼働・利用状況を出す')]
@@ -83,25 +71,6 @@ report *args:
 [group('デプロイ')]
 staging-start:
     fly machine start {{ `fly machine list --app bp-carnet-staging --quiet | tr -d '[:space:]'` }} --app bp-carnet-staging
-
-[doc('検証用の app に載せる')]
-[group('デプロイ')]
-deploy-staging: (fly-deploy "deploy/cloud/fly.staging.toml" "bp-carnet-staging")
-
-# 本番に載せる。先に deploy-staging で確かめる (→ DEVELOPMENT.md「デプロイ」)
-[doc('本番に載せる (先に deploy-staging で確かめる)')]
-[group('デプロイ')]
-deploy: (fly-deploy "deploy/cloud/fly.toml" "bp-carnet")
-
-# イメージを作って registry.fly.io へ送り、`fly deploy --image` で載せる (内部用)
-# ADR: タグはコミット (`git describe`)。前の版に戻すときに、このタグを `fly deploy --image` に渡すため。
-# `--ha=false` は、Volume が1つなので予備の Machine を作らせないため (既定は2台作る)。
-[private]
-fly-deploy config app: cloud-image
-    docker tag bp-carnet:latest "registry.fly.io/{{ app }}:{{ `git describe --always --dirty` }}"
-    fly auth docker
-    docker push "registry.fly.io/{{ app }}:{{ `git describe --always --dirty` }}"
-    fly deploy --ha=false --config {{ config }} --image "registry.fly.io/{{ app }}:{{ `git describe --always --dirty` }}"
 
 # frontend/build が無ければビルドする (内部用)
 [private]

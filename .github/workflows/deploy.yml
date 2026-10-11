@@ -1,7 +1,6 @@
 name: Deploy
 
 # 検証用か本番の app に、イメージを作って載せる (DEVELOPMENT.md「更新」)。手で流したときだけ動く。
-# 手元の `just deploy-staging`・`just deploy` と同じ手順 (justfile の fly-deploy)。
 on:
   workflow_dispatch:
     inputs:
@@ -43,7 +42,7 @@ jobs:
 
       - uses: actions/checkout@v7
 
-      # ADR: タグはコミット。前の版に戻すときに、このタグを `fly deploy --image` に渡すため (justfile の fly-deploy と同じ)。
+      # ADR: タグはコミット。前の版に戻すときに、このタグを `fly deploy --image` に渡すため (DEVELOPMENT.md「前の版に戻す」)。
       - name: Decide the image tag
         id: image
         shell: bash

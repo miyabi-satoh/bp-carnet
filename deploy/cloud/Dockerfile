@@ -1,13 +1,10 @@
 # 本番用のイメージ (DEVELOPMENT.md「デプロイ」)。frontend と Rust のビルドもこの中で行う。
 # 本番と検証用の app で同じイメージを使い、設定は CLOUD_ENV (fly.toml の [env]) で選ぶ。
 #
-# ADR: ビルドは amd64 の Windows でも Apple Silicon の Mac でもよい (出来るイメージは同じ)。Fly.io の
-# Machine は amd64 だけで、Apple Silicon の Mac では amd64 をエミュレーションしながら rustc を動かすため初回が遅い。
-# 効率のよいほうを使う。
+# ビルドは GitHub Actions (.github/workflows/deploy.yml) が行う。
 #
 # ビルドコンテキストはリポジトリのルート。除外するものは Dockerfile.dockerignore。
-# pnpm のストアと cargo のレジストリ・target はキャッシュマウントに置き、イメージには入れない
-# (2回目以降を速くするため。消すときは `just cloud-image-prune`)。
+# pnpm のストアと cargo のレジストリ・target はキャッシュマウントに置き、イメージには入れない。
 
 FROM node:24-bookworm-slim AS frontend
 # frontend/package.json の packageManager と揃える。
