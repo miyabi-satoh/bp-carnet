@@ -13,7 +13,7 @@ const SITE_NAME: &str = "BP Carnet";
 /// 使い方 (`/help/<slug>`) の項目。並びは `frontend/src/lib/help.ts` の `HELP_TOPICS` に合わせ、
 /// title は `frontend/messages/ja.json` の `help_<slug>_title` と同じにする。
 /// Rust から読めないため二重に持つ。食い違いはテスト (`help_topics_match_the_frontend`) が拾う。
-const HELP_TOPICS: [(&str, &str); 21] = [
+const HELP_TOPICS: [(&str, &str); 22] = [
     ("login", "ログインする"),
     ("signup", "メールアドレスでアカウントを作る"),
     ("record-by-hand", "手動で入力する"),
