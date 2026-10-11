@@ -60,7 +60,7 @@ jobs:
 
       - uses: docker/setup-buildx-action@v4
 
-      # 層のキャッシュだけを持ち越す。同じコミットを検証用と本番に続けて載せると、本番は作り直さない。
+      # 層のキャッシュだけを持ち越す。同じコミットを検証用と本番に続けて載せると、本番のビルドは検証用のときの層を使う。
       # Dockerfile のキャッシュマウント (pnpm のストア・cargo の target) は GitHub Actions のキャッシュに
       # 残らないので、コードが変われば Rust は最初からビルドする。
       - uses: docker/build-push-action@v7
