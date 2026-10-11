@@ -164,6 +164,12 @@ test.describe('ブラウザのタイムゾーンが個人設定と違う端末',
 
 // 同意は設定からいつでも取り消せる (App Store Review Guidelines 5.1.1(ii)、docs/ocr.md)。
 test('写真を送ることへの同意を、設定から取り消せる', async ({ page }) => {
+	// 枠の一覧があると同意の前から欄が出るので、枠の無い状態にそろえる (読み取りが有効な構成でも同じ結果にする)。
+	// 同意の状態は、サーバーの本物の応答のまま。
+	await page.route('**/api/v1/ocr/status', async (route) => {
+		const response = await route.fetch();
+		await route.fulfill({ response, json: { ...(await response.json()), quotas: null } });
+	});
 	const settings = new SettingsPage(page);
 	await settings.open();
 	// 同意していなければ、取り消すものが無いので欄を出さない。

@@ -3,9 +3,6 @@ import { test, expect } from './fixtures';
 import { ja } from './helpers';
 import { SettingsPage } from './pages/settings-page';
 
-// e2e の backend の設定 (scripts/backend-process.ts) の問い合わせ先。
-const CONTACT_URL = 'https://example.com/contact/';
-
 test('使い方・規約・プライバシーポリシー・第三者のソフトウェア・問い合わせ先へのリンクを並べ、問い合わせ先は別のタブで開く', async ({
 	page
 }) => {
@@ -17,7 +14,10 @@ test('使い方・規約・プライバシーポリシー・第三者のソフ�
 	await expect(settings.aboutLink(ja.licenses_title)).toHaveAttribute('href', '/licenses');
 	await expect(settings.aboutLink(ja.help_title)).toHaveAttribute('href', '/help');
 	const contact = settings.aboutLink(ja.settings_contact_link);
-	await expect(contact).toHaveAttribute('href', CONTACT_URL);
+	// 問い合わせ先はサーバーの設定で決まる (`[server] contact_url`)。
+	const { contactUrl } = await (await page.request.get('/api/v1/auth/providers')).json();
+	expect(contactUrl).toMatch(/^https:\/\//);
+	await expect(contact).toHaveAttribute('href', contactUrl);
 	await expect(contact).toHaveAttribute('target', '_blank');
 });
 
