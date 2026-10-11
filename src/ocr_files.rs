@@ -12,7 +12,7 @@ use utoipa::ToSchema;
 
 use crate::ocr::{
     GeminiPart, OcrError, OcrPeriod, OcrReading, OcrService, OcrUsage, deserialize_flex_int,
-    reading_schema,
+    deserialize_period, reading_schema,
 };
 
 /// Gemini に送る先頭の行の文字数の上限。列を決めるのに要るのは見出しと数行で、Excel が書き出す
@@ -253,8 +253,8 @@ struct GroupPayload {
     pulse: i64,
     #[serde(default = "no_column", deserialize_with = "deserialize_flex_int")]
     memo: i64,
-    #[serde(default)]
-    period: String,
+    #[serde(default, deserialize_with = "deserialize_period")]
+    period: Option<OcrPeriod>,
 }
 
 fn no_column() -> i64 {
@@ -290,11 +290,7 @@ impl TablePayload {
                     diastolic,
                     pulse: column(group.pulse),
                     memo: column(group.memo),
-                    period: match group.period.as_str() {
-                        "morning" => Some(OcrPeriod::Morning),
-                        "evening" => Some(OcrPeriod::Evening),
-                        _ => None,
-                    },
+                    period: group.period,
                 })
             })
             .take(MAX_COLUMN_GROUPS)

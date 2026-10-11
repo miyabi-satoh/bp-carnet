@@ -1591,9 +1591,9 @@ export interface components {
             remainingPercent: number;
         };
         /**
-         * @description 血圧値 1 件分の読み取り結果。単発読み取り (`OcrResult::reading`) と手書きメモの
-         *     行ごとの読み取り結果 (`OcrResult::readings`) の両方で共用する。`measured_on`/`time`/`note`
-         *     は手書きメモでのみ使う (単発読み取りでは常に `None`)。
+         * @description 血圧値 1 件分の読み取り結果。単発読み取り (`OcrResult::reading`)、手書きメモの行ごとの読み取り結果
+         *     (`OcrResult::readings`)、PDF の行ごとの読み取り結果 (`DocumentReadings::readings`) で共用する。
+         *     血圧・脈拍・`confidence` のほかは、単発読み取りでは常に `None`。
          */
         OcrReading: {
             /**
@@ -1609,19 +1609,13 @@ export interface components {
              */
             diastolic: number;
             /**
-             * @description "MM-DD" 形式。手書きメモでのみ使う。
+             * @description 手書きメモでは "MM-DD" 形式。PDF では、年が書かれていれば "YYYY-MM-DD"、無ければ "MM-DD"。
              * @example 09-05
              */
             measuredOn?: string | null;
-            /**
-             * @description 手帳でその行に添えて書かれた文章 (体調・服薬など)。記録のメモ欄に取り込む。
-             *     手書きメモでのみ使う。
-             */
+            /** @description その行に添えて書かれた文章 (体調・服薬など)。記録のメモ欄に取り込む。 */
             memo?: string | null;
-            /**
-             * @description この行について Gemini が補足したいこと (判読できない字・曖昧な時刻表現等)。
-             *     手書きメモでのみ使う。
-             */
+            /** @description この行について Gemini が補足したいこと (判読できない字・曖昧な時刻表現等)。 */
             note?: string | null;
             period?: components["schemas"]["OcrPeriod"] | null;
             /**
@@ -1635,8 +1629,7 @@ export interface components {
              */
             systolic: number;
             /**
-             * @description "HH:MM" 形式。手書きメモでのみ使う。時刻が読み取れない行は `None` のまま
-             *     (でっち上げない)。
+             * @description "HH:MM" 形式。時刻が読み取れない行は `None` のまま (でっち上げない)。
              * @example 07:30
              */
             time?: string | null;
@@ -4255,6 +4248,15 @@ export interface operations {
                     "application/json": components["schemas"]["TableColumns"];
                 };
             };
+            /** @description リクエストボディが不正 (JSON として解釈できない等) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
             /** @description 未ログイン */
             401: {
                 headers: {
@@ -4266,6 +4268,15 @@ export interface operations {
             };
             /** @description 同じユーザーの読み取りがまだ終わっていない (`ocr_in_progress`) */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Content-Type が application/json でない */
+            415: {
                 headers: {
                     [name: string]: unknown;
                 };

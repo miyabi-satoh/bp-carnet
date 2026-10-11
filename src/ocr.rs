@@ -51,7 +51,7 @@ const GEMINI_ENDPOINT: &str = "https://generativelanguage.googleapis.com/v1beta/
 /// 大きさにする。上限を上げても課金は実際に生成した分だけ。
 const MAX_OUTPUT_TOKENS: u32 = 32_768;
 
-/// 血圧計液晶の OCR を Gemini に依頼するサービス。`api_key` が `None` なら無効化されており、
+/// 写真とファイルの読み取りを Gemini に依頼するサービス (ファイルの側は `ocr_files`)。`api_key` が `None` なら無効化されており、
 /// ハンドラ側は 503 を返す (フロントエンドはこれを見て機能自体を隠す)。
 pub struct OcrService {
     api_key: Option<String>,
@@ -322,18 +322,17 @@ pub struct OcrResult {
     pub usage: OcrUsage,
 }
 
-/// 血圧値 1 件分の読み取り結果。単発読み取り (`OcrResult::reading`) と手書きメモの
-/// 行ごとの読み取り結果 (`OcrResult::readings`) の両方で共用する。`measured_on`/`time`/`note`
-/// は手書きメモでのみ使う (単発読み取りでは常に `None`)。
+/// 血圧値 1 件分の読み取り結果。単発読み取り (`OcrResult::reading`)、手書きメモの行ごとの読み取り結果
+/// (`OcrResult::readings`)、PDF の行ごとの読み取り結果 (`DocumentReadings::readings`) で共用する。
+/// 血圧・脈拍・`confidence` のほかは、単発読み取りでは常に `None`。
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct OcrReading {
-    /// "MM-DD" 形式。手書きメモでのみ使う。
+    /// 手書きメモでは "MM-DD" 形式。PDF では、年が書かれていれば "YYYY-MM-DD"、無ければ "MM-DD"。
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[schema(example = "09-05")]
     pub measured_on: Option<String>,
-    /// "HH:MM" 形式。手書きメモでのみ使う。時刻が読み取れない行は `None` のまま
-    /// (でっち上げない)。
+    /// "HH:MM" 形式。時刻が読み取れない行は `None` のまま (でっち上げない)。
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[schema(example = "07:30")]
     pub time: Option<String>,
@@ -360,15 +359,13 @@ pub struct OcrReading {
     #[schema(example = 0.95, required = true)]
     pub confidence: f64,
     /// この行について Gemini が補足したいこと (判読できない字・曖昧な時刻表現等)。
-    /// 手書きメモでのみ使う。
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub note: Option<String>,
-    /// 手帳でその行に添えて書かれた文章 (体調・服薬など)。記録のメモ欄に取り込む。
-    /// 手書きメモでのみ使う。
+    /// その行に添えて書かれた文章 (体調・服薬など)。記録のメモ欄に取り込む。
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub memo: Option<String>,
-    /// 手帳でその行に添えて書かれた朝・夜 (「朝」「起床時」「夜」「就寝前」など)。時刻の無い行に
-    /// 仮の時刻を振るときに使う。書かれていない・どちらとも取れない行は `None`。手書きメモでのみ使う。
+    /// その行に添えて書かれた朝・夜 (「朝」「起床時」「夜」「就寝前」など)。時刻の無い行に
+    /// 仮の時刻を振るときに使う。書かれていない・どちらとも取れない行は `None`。
     #[serde(
         default,
         deserialize_with = "deserialize_period",
@@ -386,7 +383,7 @@ pub enum OcrPeriod {
 
 /// Gemini には `"none"` も選ばせる (列挙で空文字を避けるため)。`"none"` と想定外の値は `None` にする
 /// (補足が読めないことを理由に行を落とさない。`deserialize_flex_int` と同じ考え方)。
-fn deserialize_period<'de, D>(deserializer: D) -> Result<Option<OcrPeriod>, D::Error>
+pub(crate) fn deserialize_period<'de, D>(deserializer: D) -> Result<Option<OcrPeriod>, D::Error>
 where
     D: serde::Deserializer<'de>,
 {

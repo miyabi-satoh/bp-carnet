@@ -1,5 +1,5 @@
 import { importRowStatus, settleNewRows, type ImportRow } from '$lib/import';
-import { instantWithOffset } from '$lib/import-table';
+import { instantWithOffset } from '$lib/period';
 import { toLocalDateTime } from '$lib/period';
 import { splitMeasuredAt } from '$lib/record-form';
 

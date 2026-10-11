@@ -1,18 +1,16 @@
 //! 他のアプリが書き出したファイルの読み取り (Gemini 連携、docs/import-export.md「他のアプリのファイル」)。
 
 use axum::Json;
-use axum::extract::multipart::MultipartError;
 use axum::extract::{DefaultBodyLimit, State};
-use axum::http::StatusCode;
 use serde::Deserialize;
 use utoipa::ToSchema;
 use utoipa_axum::router::OpenApiRouter;
 use utoipa_axum::routes;
 
-use super::ocr::record_spent;
+use super::ocr::{read_upload_field, spend};
 use crate::auth::AuthUser;
 use crate::error::{AppError, AppJson, AppMultipart, ErrorResponse};
-use crate::ocr::{OcrError, OcrUsage};
+use crate::ocr::OcrError;
 use crate::ocr_files::{DocumentReadings, TABLE_SAMPLE_MAX_CHARS, TableColumns};
 use crate::ocr_usage;
 use crate::state::AppState;
@@ -49,8 +47,10 @@ struct DocumentUploadForm {
     request_body = TableColumnsRequest,
     responses(
         (status = 200, description = "列の意味 (血圧の記録の表でなければ `readable: false`)", body = TableColumns),
+        (status = 400, description = "リクエストボディが不正 (JSON として解釈できない等)", body = ErrorResponse),
         (status = 401, description = "未ログイン", body = ErrorResponse),
         (status = 409, description = "同じユーザーの読み取りがまだ終わっていない (`ocr_in_progress`)", body = ErrorResponse),
+        (status = 415, description = "Content-Type が application/json でない", body = ErrorResponse),
         (status = 422, description = "`sample` が空、または 8,000 文字を超える", body = ErrorResponse),
         (status = 429, description = "全部の読み取りの枠を使い切った (`ocr_budget_exhausted`)", body = ErrorResponse),
         (status = 502, description = "Gemini の呼び出し、またはレスポンスの解釈に失敗", body = ErrorResponse),
@@ -107,23 +107,7 @@ async fn read_document(
         return Err(AppError::OcrDisabled);
     }
 
-    let mut file: Option<Vec<u8>> = None;
-    while let Some(field) = multipart
-        .next_field()
-        .await
-        .map_err(multipart_error_to_app_error)?
-    {
-        if field.name() != Some("file") {
-            continue;
-        }
-        let bytes = field.bytes().await.map_err(multipart_error_to_app_error)?;
-        file = Some(bytes.to_vec());
-        break;
-    }
-    let file = file.ok_or_else(|| AppError::InvalidMultipart {
-        status: StatusCode::BAD_REQUEST,
-        message: "file field is required".to_string(),
-    })?;
+    let (_, file) = read_upload_field(&mut multipart, "file", || AppError::OcrFileTooLarge).await?;
     if file.len() > DOCUMENT_MAX_UPLOAD_BYTES {
         return Err(AppError::OcrFileTooLarge);
     }
@@ -145,42 +129,10 @@ async fn read_document(
         })
 }
 
-/// 使った額を引いて、結果を返す。応答が届いて課金された失敗でも引く (docs/ocr.md「使った額の数え方」)。
-async fn spend<T>(
-    state: &AppState,
-    user_id: i64,
-    result: Result<(T, OcrUsage), OcrError>,
-) -> Result<T, OcrError> {
-    match result {
-        Ok((value, usage)) => {
-            record_spent(state, user_id, &usage).await;
-            Ok(value)
-        }
-        Err(err) => {
-            if let Some(usage) = err.billed_usage() {
-                record_spent(state, user_id, usage).await;
-            }
-            Err(err)
-        }
-    }
-}
-
-/// `multipart/form-data` のボディ読み取り時のエラーを `AppError` に変換する。`DefaultBodyLimit` を
-/// 超えた場合も、ハンドラの中の大きさの検査と同じ `ocr_file_too_large` に寄せる
-/// (`api::ocr` の `multipart_error_to_app_error` と同じ)。
-fn multipart_error_to_app_error(err: MultipartError) -> AppError {
-    if err.status() == StatusCode::PAYLOAD_TOO_LARGE {
-        return AppError::OcrFileTooLarge;
-    }
-    AppError::InvalidMultipart {
-        status: err.status(),
-        message: err.body_text(),
-    }
-}
-
 pub fn router() -> OpenApiRouter<AppState> {
     OpenApiRouter::new()
-        .routes(routes!(table_columns))
         .routes(routes!(read_document))
         .layer(DefaultBodyLimit::max(DOCUMENT_BODY_LIMIT_BYTES))
+        // 上の上限は PDF を受ける口だけに付ける。JSON の口は、ほかの API と同じ既定の上限のままにする。
+        .routes(routes!(table_columns))
 }

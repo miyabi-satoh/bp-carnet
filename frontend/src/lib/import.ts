@@ -3,7 +3,13 @@ import { client } from '$lib/api/client';
 import { createFileHandoff } from '$lib/file-handoff';
 import { type ApiResult, unwrapRequest } from '$lib/api/errors';
 import * as m from '$lib/paraglide/messages.js';
-import { type DayPeriod, isValidDateTime, minutesToClockTime, toLocalDateTime } from '$lib/period';
+import {
+	type DayPeriod,
+	instantWithOffset,
+	isValidDateTime,
+	minutesToClockTime,
+	toLocalDateTime
+} from '$lib/period';
 import { firstRecordFormError, splitMeasuredAt, validateRecordForm } from '$lib/record-form';
 import {
 	fetchRecords,
@@ -100,9 +106,11 @@ export const importFileHandoff = createFileHandoff(resolve('/settings/import'));
 
 /** RFC 4180 相当の CSV パーサー (状態機械)。`""` エスケープ、クォート内の区切り/改行、
  * `\r\n`/`\n` 混在に対応する。ライブラリを使わず自前実装するのは、型定義を持つ軽量な
- * 既存ライブラリが無いため。空行 (フィールドが1個だけで空文字列) は読み飛ばす。
+ * 既存ライブラリが無いため。空行 (フィールドが1個だけで空文字列) は読み飛ばす。先頭の UTF-8 BOM は取り除く
+ * (エクスポートが Excel 対策で付けていて、他のアプリのファイルにも付くことがある)。
  * `delimiter` は、他のアプリのファイル (`$lib/import-table`) がセミコロン・タブ区切りを読むのに使う。 */
-export function parseCsvTable(text: string, delimiter = ','): string[][] {
+export function parseCsvTable(rawText: string, delimiter = ','): string[][] {
+	const text = rawText.replace(/^\uFEFF/, '');
 	const rows: string[][] = [];
 	let row: string[] = [];
 	let field = '';
@@ -205,15 +213,8 @@ function csvMeasuredAt(
 		}
 		return { measuredOnDate, time: `${pad(hourText)}:${minuteText}` };
 	}
-	if (!/(Z|[+-]\d{2}:?\d{2})$/i.test(trimmed)) return null;
-	const date = new Date(trimmed);
-	if (
-		Number.isNaN(date.getTime()) ||
-		date.getUTCSeconds() !== 0 ||
-		date.getUTCMilliseconds() !== 0
-	) {
-		return null;
-	}
+	const date = instantWithOffset(trimmed);
+	if (!date || date.getUTCSeconds() !== 0 || date.getUTCMilliseconds() !== 0) return null;
 	return splitMeasuredAt(toLocalDateTime(date, timeZone));
 }
 
@@ -298,6 +299,18 @@ export function applyEditedRow(row: ImportRow, record: CreateRecordRequest): voi
 
 // --- 行の組み立て ------------------------------------------------------------
 
+/** 読み取った日時から、取り込みの行の日時の欄を作る。読めない日時 (`null`) は空にする。日時の欄も空で出るので、
+ * 記録フォームと同じ「入力してください」になる。 */
+export function measuredAtFields(
+	measuredAt: { measuredOnDate: string; time: string } | null
+): Pick<ImportRow, 'measuredOnDate' | 'time' | 'timeIsPlaceholder'> {
+	return {
+		measuredOnDate: measuredAt?.measuredOnDate ?? '',
+		time: measuredAt?.time ?? '',
+		timeIsPlaceholder: measuredAt !== null && measuredAt.time === ''
+	};
+}
+
 /** 5フィールド (文字列) から `ImportRow` を組み立てる。検証とチェックの初期状態は、仮時刻を
  * 振った後に `parseCsvImport` が決める。 */
 function rowFromFields(
@@ -308,13 +321,9 @@ function rowFromFields(
 	pulseRaw: string,
 	memoRaw: string
 ): ImportRow {
-	const measuredAt = csvMeasuredAt(measuredAtRaw, timeZone);
 	return {
 		keep: true,
-		// 解釈できない日時は空にする。日時の欄も空で出るので、記録フォームと同じ「入力してください」になる。
-		measuredOnDate: measuredAt?.measuredOnDate ?? '',
-		time: measuredAt?.time ?? '',
-		timeIsPlaceholder: measuredAt !== null && measuredAt.time === '',
+		...measuredAtFields(csvMeasuredAt(measuredAtRaw, timeZone)),
 		systolic: systolicRaw.trim(),
 		diastolic: diastolicRaw.trim(),
 		pulse: pulseRaw.trim(),
@@ -327,16 +336,14 @@ const REQUIRED_CSV_HEADERS = ['measuredAt', 'systolic', 'diastolic'] as const;
 export type ParseResult = { rows: ImportRow[] } | { error: string };
 
 /** CSV (エクスポートが生成した形式、または同じ列名を持つもの) をパースする。列は名前で
- * マッピングする (余分な列は無視、順序も問わない)。先頭の UTF-8
- * BOM は取り除く (エクスポートが Excel 対策で付与しているため)。`timeZone` は個人設定のタイムゾーン、
+ * マッピングする (余分な列は無視、順序も問わない)。`timeZone` は個人設定のタイムゾーン、
  * `periods` は時刻の無い行に仮時刻を振るための朝/夜の時間帯。 */
 export function parseCsvImport(
 	text: string,
 	timeZone: string,
 	periods: PeriodThresholds
 ): ParseResult {
-	const stripped = text.replace(/^\uFEFF/, '');
-	const table = parseCsvTable(stripped);
+	const table = parseCsvTable(text);
 	if (table.length === 0) {
 		return { error: m.import_error_csv_no_header() };
 	}
