@@ -27,6 +27,7 @@ const HELP_TOPICS: [(&str, &str); 21] = [
     ("theme", "画面の明るさを変える"),
     ("export-csv", "記録を書き出す"),
     ("import-csv", "CSV ファイルから記録を取り込む"),
+    ("import-other-apps", "他のアプリの記録を取り込む"),
     ("delete-account", "アカウントを削除する"),
     ("trouble-login", "ログインできないとき"),
     (
