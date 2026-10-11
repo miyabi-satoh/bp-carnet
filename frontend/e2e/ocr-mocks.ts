@@ -44,6 +44,18 @@ export async function mockOcrStatus(
 	await page.route('**/api/v1/ocr/status', (route) => route.fulfill({ json: body }));
 }
 
+/** 読み取りの状態 (`GET /ocr/status`) の、サーバーの本物の応答に `overrides` だけをかぶせて答える。ページを開く前に呼ぶ。
+ * サーバーの構成 (読み取りが有効か・枠があるか) で変わる項目をそろえ、ほか (同意したか など) は本物のままにしたいときに使う。 */
+export async function overrideOcrStatus(
+	page: Page,
+	overrides: Partial<OcrStatusResponse>
+): Promise<void> {
+	await page.route('**/api/v1/ocr/status', async (route) => {
+		const response = await route.fetch();
+		await route.fulfill({ response, json: { ...(await response.json()), ...overrides } });
+	});
+}
+
 /** 写真の読み取り (`POST /ocr`) の応答を差し替える。呼び直すと、後の応答に替わる。 */
 export async function mockOcrExtract(
 	page: Page,
