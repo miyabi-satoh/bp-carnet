@@ -240,8 +240,11 @@ export async function readAppleHealthExport(
 			if (!tag.startsWith('<Record ')) return;
 			const type = attribute(tag, 'type');
 			const startDate = attribute(tag, 'startDate');
-			const value = Number(attribute(tag, 'value'));
-			if (startDate === undefined || !Number.isFinite(value)) return;
+			const rawValue = attribute(tag, 'value');
+			// 値の無い記録を 0 として読まない (`Number('')` は 0)。
+			if (startDate === undefined || !rawValue) return;
+			const value = Number(rawValue);
+			if (!Number.isFinite(value)) return;
 			const mmHg = Math.round(attribute(tag, 'unit') === 'kPa' ? value * MMHG_PER_KPA : value);
 			const pressure = pressures.get(startDate) ?? {};
 			if (type === SYSTOLIC_TYPE) pressure.systolic = mmHg;

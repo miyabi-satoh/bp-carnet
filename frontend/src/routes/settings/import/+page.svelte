@@ -25,9 +25,10 @@
 		memoRowNote,
 		memoRowStatus,
 		memoRowsFromReadings,
+		quotasExhausted,
 		type MemoRow
 	} from '$lib/ocr';
-	import { DOCUMENT_MAX_BYTES, fetchTableColumns, readDocument } from '$lib/ocr-files';
+	import { DOCUMENT_MAX_BYTES, fetchTableColumns, PDF_MAGIC, readDocument } from '$lib/ocr-files';
 	import { ImportConfirmation } from '$lib/import-confirmation.svelte';
 	import {
 		atPreviewStep,
@@ -169,6 +170,17 @@
 		stage = 'rows';
 	}
 
+	/** Gemini の読み取りを今は使えない理由。使えるなら `undefined`。同意を求める前に確かめる
+	 * (同意して送った後に、使えないと断られないように)。`disabledMessage` は、読み取りが無効なときの文。 */
+	async function readBlockedReason(disabledMessage: string): Promise<string | undefined> {
+		const status = await fetchOcrStatus();
+		// 状態を取れなかった (通信の失敗など) のは、無効とは違う。
+		if (status.enabled === null) return GENERIC_ERROR_MESSAGE();
+		if (!status.enabled) return disabledMessage;
+		if (quotasExhausted(status.quotas)) return m.error_ocr_budget_exhausted();
+		return undefined;
+	}
+
 	/** 表の形のテキスト。このアプリが書き出した CSV はそのまま読み、ほかは列の意味を Gemini に決めてもらう
 	 * (docs/import-export.md「他のアプリのファイル」)。 */
 	async function loadTable(file: File, isLatest: () => boolean) {
@@ -180,12 +192,17 @@
 			return;
 		}
 		const sample = tableSample(text);
-		// 読み取りが使えなければ、このアプリの CSV でないことだけを伝える。
-		if (sample === '' || (await fetchOcrStatus()).enabled !== true) {
-			if (isLatest()) fail(own.error);
+		if (sample === '') {
+			fail(own.error);
 			return;
 		}
+		// 読み取りが無効なら、このアプリの CSV でないことだけを伝える。
+		const blocked = await readBlockedReason(own.error);
 		if (!isLatest()) return;
+		if (blocked !== undefined) {
+			fail(blocked);
+			return;
+		}
 		askConsent('table', async () => {
 			const result = await fetchTableColumns(sample);
 			if (!isLatest()) return;
@@ -202,11 +219,19 @@
 			fail(m.error_ocr_file_too_large());
 			return;
 		}
-		if ((await fetchOcrStatus()).enabled !== true) {
-			if (isLatest()) fail(m.error_ocr_disabled());
+		// 中身が PDF でないファイルも、送る前に伝える。
+		const head = new Uint8Array(await file.slice(0, PDF_MAGIC.length).arrayBuffer());
+		if (!isLatest()) return;
+		if (!PDF_MAGIC.every((byte, i) => head[i] === byte)) {
+			fail(m.error_ocr_unsupported_file());
 			return;
 		}
+		const blocked = await readBlockedReason(m.error_ocr_disabled());
 		if (!isLatest()) return;
+		if (blocked !== undefined) {
+			fail(blocked);
+			return;
+		}
 		askConsent('document', async () => {
 			const result = await readDocument(file);
 			if (!isLatest()) return;

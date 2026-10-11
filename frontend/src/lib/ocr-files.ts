@@ -9,6 +9,9 @@ import type { OcrReading } from '$lib/ocr';
 /** 送れる PDF の大きさの上限 (`src/api/ocr_files.rs` の `DOCUMENT_MAX_UPLOAD_BYTES` と同じ)。 */
 export const DOCUMENT_MAX_BYTES = 10 * 1024 * 1024;
 
+/** PDF の先頭のバイト列 (`%PDF-`。`src/api/ocr_files.rs` の `PDF_MAGIC` と同じ)。 */
+export const PDF_MAGIC = [0x25, 0x50, 0x44, 0x46, 0x2d];
+
 /** 表の形のテキストの先頭 (`tableSample`) から、列の意味を決めてもらう。 */
 export function fetchTableColumns(sample: string): Promise<ApiResult<{ data: TableColumns }>> {
 	return unwrapRequest(client.POST('/api/v1/ocr/table-columns', { body: { sample } }));

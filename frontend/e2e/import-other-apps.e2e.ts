@@ -6,6 +6,7 @@ import { userTest as test, expect, NO_LOGIN } from './fixtures';
 import { ja, waitForApiResponse } from './helpers';
 import {
 	errorResponse,
+	freeQuota,
 	mockDocumentRead,
 	mockOcrStatus,
 	mockTableColumns,
@@ -123,6 +124,20 @@ test('読み取りが使えないときは、このアプリの CSV でないこ
 
 	await expect(page.getByText(/このアプリで書き出したCSVファイルではないようです/)).toBeVisible();
 	await expect(importPage.fileReadConsent.root).toBeHidden();
+});
+
+test('読み取りの枠を使い切っていれば、同意を求める前に伝える', async ({ page }) => {
+	await mockOcrStatus(page, { quotas: [freeQuota(0)], quotaLow: true });
+	const requests = collectReadRequests(page);
+	const importPage = await pickFile(page, {
+		name: 'report.pdf',
+		mimeType: 'application/pdf',
+		buffer: Buffer.from('%PDF-1.7 sample')
+	});
+
+	await expect(importPage.error(ja.error_ocr_budget_exhausted)).toBeVisible();
+	await expect(importPage.fileReadConsent.root).toBeHidden();
+	expect(requests).toHaveLength(0);
 });
 
 test('PDF は、ファイルの全体を送ることに同意してから読み取り、自信のない行を要確認にする', async ({

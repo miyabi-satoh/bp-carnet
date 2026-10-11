@@ -53,7 +53,8 @@
 		if (!isOpen && !answered) decline();
 	}}
 >
-	<Dialog.Content>
+	<!-- 枠の外を押しただけでは閉じない。うっかり閉じると、選んだファイルを選び直すことになるため。 -->
+	<Dialog.Content onInteractOutside={(e) => e.preventDefault()}>
 		<Dialog.Header>
 			<Dialog.Title>{m.file_read_consent_title()}</Dialog.Title>
 			<Dialog.Description>

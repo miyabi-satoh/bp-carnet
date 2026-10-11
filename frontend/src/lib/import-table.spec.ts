@@ -178,6 +178,19 @@ describe('parseTableImport', () => {
 		});
 	});
 
+	it('reads a pulse written as 0 or - as not measured', () => {
+		const rows = parseTableImport(
+			'date,x,sys,dia,pulse\n2026-02-05 7:08,,120,80,0\n2026-02-05 21:00,,122,81,-\n',
+			columns(),
+			TOKYO,
+			DEFAULT_PERIOD_THRESHOLDS
+		);
+		expect(rows.map((row) => [row.pulse, row.keep])).toEqual([
+			['', true],
+			['', true]
+		]);
+	});
+
 	it('keeps rows it cannot read as errors to fix', () => {
 		const rows = parseTableImport(
 			'date,x,sys,dia,pulse\nsomeday,,120,80,60\n2026-02-05 7:08,,120.5,80,60\n',
