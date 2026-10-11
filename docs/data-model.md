@@ -18,17 +18,17 @@ DB は SQLite 1ファイル。スキーマの正は `migrations/` (sqlx のマ�
 
 ## テーブル
 
-| テーブル | 役割 | ユーザーを消したとき |
-|---|---|---|
-| `users` | アカウントと個人設定 | — |
-| `bp_records` | 血圧の記録 | 一緒に消える (CASCADE) |
-| `oauth_identities` | Google・LINE・Apple との連携 | 一緒に消える (CASCADE) |
-| `app_tokens` | モバイルアプリのログイン | 一緒に消える (CASCADE) |
-| `email_tokens` | メールのリンク (確認・再設定・変更) | 一緒に消える (CASCADE) |
-| `ocr_quota_grants` | 読み取りの枠の購入1件ごとの記録 | 残る (`user_id` が NULL になる) |
-| `ocr_usage_records` | 読み取りに使った額の記録 | 残る (ユーザーの列を持たない) |
-| `stripe_webhook_events` | Stripe の Webhook の受領記録 | 関係しない |
-| `admin_audit_log` | 管理者の閲覧・操作の記録 | 残る (外部キーにしていない) |
+| テーブル                | 役割                                | ユーザーを消したとき            |
+| ----------------------- | ----------------------------------- | ------------------------------- |
+| `users`                 | アカウントと個人設定                | —                               |
+| `bp_records`            | 血圧の記録                          | 一緒に消える (CASCADE)          |
+| `oauth_identities`      | Google・LINE・Apple との連携        | 一緒に消える (CASCADE)          |
+| `app_tokens`            | モバイルアプリのログイン            | 一緒に消える (CASCADE)          |
+| `email_tokens`          | メールのリンク (確認・再設定・変更) | 一緒に消える (CASCADE)          |
+| `ocr_quota_grants`      | 読み取りの枠の購入1件ごとの記録     | 残る (`user_id` が NULL になる) |
+| `ocr_usage_records`     | 読み取りに使った額の記録            | 残る (ユーザーの列を持たない)   |
+| `stripe_webhook_events` | Stripe の Webhook の受領記録        | 関係しない                      |
+| `admin_audit_log`       | 管理者の閲覧・操作の記録            | 残る (外部キーにしていない)     |
 
 ### `users`
 

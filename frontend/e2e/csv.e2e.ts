@@ -10,12 +10,12 @@ import { SettingsPage } from './pages/settings-page';
 
 test.use({ storageState: NO_LOGIN });
 
-/** 設定画面の「CSVファイルを読み込む...」で `csv` を選び、取り込みのページへ移るのを待つ。 */
+/** 設定画面の「ファイルから読み込む...」で `csv` を選び、取り込みのページへ移るのを待つ。 */
 async function openImportPage(page: Page, csv: string | Buffer) {
 	const settings = new SettingsPage(page);
 	await settings.open();
 	const buffer = typeof csv === 'string' ? Buffer.from(csv) : csv;
-	return settings.pickCsv({ name: 'records.csv', mimeType: 'text/csv', buffer });
+	return settings.pickImportFile({ name: 'records.csv', mimeType: 'text/csv', buffer });
 }
 
 test('記録を書き出すと、BOM 付き UTF-8・CRLF 改行で全件が書き出される', async ({ page }) => {
@@ -91,7 +91,7 @@ test('設定画面を開いた後にサーバーへ届かなくなっても、�
 	await expect.poll(() => nodes.size >= 4 && inFlight === 0).toBe(true);
 	blocked = true;
 
-	const { reviewButton } = await settings.pickCsv({
+	const { reviewButton } = await settings.pickImportFile({
 		name: 'records.csv',
 		mimeType: 'text/csv',
 		buffer: Buffer.from('measuredAt,systolic,diastolic\r\n2026-08-20T07:10,126,84\r\n')

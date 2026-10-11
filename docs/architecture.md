@@ -33,19 +33,19 @@
   - 未設定のときの画面を作らないため。開発とテストでは見本の値と手元のメールの受け口 (`just dev-mail`) を使う。
 - 外部サービスの鍵は、ダミーの値では呼んだ時点で失敗するので、有無で機能ごと切る。起動時のログに有効・無効が出る (`src/main.rs`)。
 
-| 機能                            | 有効になる条件                                                                                                                                              |
-| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Google ログイン                 | `GOOGLE_OAUTH_CLIENT_ID`・`GOOGLE_OAUTH_CLIENT_SECRET`                                                                                                      |
-| LINE ログイン                   | `LINE_LOGIN_CHANNEL_ID`・`LINE_LOGIN_CHANNEL_SECRET`                                                                                                        |
-| Sign in with Apple (ウェブ)     | `APPLE_TEAM_ID`・`APPLE_KEY_ID`・`APPLE_PRIVATE_KEY`・`APPLE_SERVICE_ID` と、https の `[server] public_url`・`[session] secure_cookie = true`                |
-| Sign in with Apple (アプリ)     | `APPLE_TEAM_ID`・`APPLE_KEY_ID`・`APPLE_PRIVATE_KEY`・`APPLE_APP_BUNDLE_ID`                                                                                 |
-| 写真の読み取り (Gemini)         | `GEMINI_API_KEY` (→ docs/ocr.md)                                                                                                                            |
-| OCR 枠の買い足し (Stripe)       | `[payments.stripe] enabled`・戻り先の URL と `STRIPE_*` (→ docs/payments.md)                                                                                |
-| アプリ内課金 (App Store)        | `APP_STORE_ISSUER_ID`・`APP_STORE_KEY_ID`・`APP_STORE_PRIVATE_KEY`・`APPLE_APP_BUNDLE_ID` (→ docs/payments.md)                                              |
-| 放置アカウントの自動退会        | `[inactivity] delete_after_days` が 0 より大きい                                                                                                            |
-| 古い版のアプリに更新を促す      | `[mobile_app] min_version` (→ docs/mobile-app.md)                                                                                                           |
-| 「オープンβテスト中」の表示     | `[server] beta_notice = true`                                                                                                                               |
-| ログイン画面の紹介へのリンク    | `[server] intro_url` (ウェブだけ。アプリには出さない)                                                                                                       |
+| 機能                         | 有効になる条件                                                                                                                                |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Google ログイン              | `GOOGLE_OAUTH_CLIENT_ID`・`GOOGLE_OAUTH_CLIENT_SECRET`                                                                                        |
+| LINE ログイン                | `LINE_LOGIN_CHANNEL_ID`・`LINE_LOGIN_CHANNEL_SECRET`                                                                                          |
+| Sign in with Apple (ウェブ)  | `APPLE_TEAM_ID`・`APPLE_KEY_ID`・`APPLE_PRIVATE_KEY`・`APPLE_SERVICE_ID` と、https の `[server] public_url`・`[session] secure_cookie = true` |
+| Sign in with Apple (アプリ)  | `APPLE_TEAM_ID`・`APPLE_KEY_ID`・`APPLE_PRIVATE_KEY`・`APPLE_APP_BUNDLE_ID`                                                                   |
+| 写真の読み取り (Gemini)      | `GEMINI_API_KEY` (→ docs/ocr.md)                                                                                                              |
+| OCR 枠の買い足し (Stripe)    | `[payments.stripe] enabled`・戻り先の URL と `STRIPE_*` (→ docs/payments.md)                                                                  |
+| アプリ内課金 (App Store)     | `APP_STORE_ISSUER_ID`・`APP_STORE_KEY_ID`・`APP_STORE_PRIVATE_KEY`・`APPLE_APP_BUNDLE_ID` (→ docs/payments.md)                                |
+| 放置アカウントの自動退会     | `[inactivity] delete_after_days` が 0 より大きい                                                                                              |
+| 古い版のアプリに更新を促す   | `[mobile_app] min_version` (→ docs/mobile-app.md)                                                                                             |
+| 「オープンβテスト中」の表示  | `[server] beta_notice = true`                                                                                                                 |
+| ログイン画面の紹介へのリンク | `[server] intro_url` (ウェブだけ。アプリには出さない)                                                                                         |
 
 - 画面は、未ログインで叩ける `GET /api/v1/auth/providers` (ログイン方式・β表示) と `GET /api/v1/ocr/status` (読み取り・買い足し) で、どれが使えるかを知る。
 - ログインには常にパスワードか外部の提供元の確認が要る。パスワード無しで入れるモードは無い。

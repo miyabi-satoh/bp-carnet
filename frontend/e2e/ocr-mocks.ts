@@ -10,6 +10,8 @@ type OcrResult = components['schemas']['OcrResult'];
 type OcrReading = components['schemas']['OcrReading'];
 type OcrStatusResponse = components['schemas']['OcrStatusResponse'];
 type OcrQuota = components['schemas']['OcrQuotaResponse'];
+type TableColumns = components['schemas']['TableColumns'];
+type DocumentReadings = components['schemas']['DocumentReadings'];
 
 /** 無料の読み取りの枠。 */
 export function freeQuota(remainingPercent: number): OcrQuota {
@@ -51,6 +53,39 @@ export async function mockOcrExtract(
 	await page.route('**/api/v1/ocr', (route) =>
 		route.request().method() === 'POST' ? route.fulfill(response) : route.continue()
 	);
+}
+
+/** 表の形のテキストの列の意味 (`POST /ocr/table-columns`) の応答を差し替える。 */
+export async function mockTableColumns(
+	page: Page,
+	response: { status?: number; json: TableColumns | ReturnType<typeof errorResponse>['json'] }
+): Promise<void> {
+	await page.route('**/api/v1/ocr/table-columns', (route) => route.fulfill(response));
+}
+
+/** 1行が1回の測定の表の、列の意味。`columns` は列の番号 (0 始まり)。 */
+export function tableColumns(columns: {
+	date: number;
+	systolic: number;
+	diastolic: number;
+	pulse?: number;
+}): TableColumns {
+	return {
+		readable: true,
+		delimiter: 'comma',
+		headerLines: 1,
+		dateOrder: 'ymd',
+		utc: false,
+		groups: [{ time: null, pulse: null, memo: null, period: null, ...columns }]
+	};
+}
+
+/** PDF の読み取り (`POST /ocr/document`) の応答を差し替える。 */
+export async function mockDocumentRead(
+	page: Page,
+	response: { status?: number; json: DocumentReadings | ReturnType<typeof errorResponse>['json'] }
+): Promise<void> {
+	await page.route('**/api/v1/ocr/document', (route) => route.fulfill(response));
 }
 
 const NO_USAGE = { inputTokens: 0, outputTokens: 0 };

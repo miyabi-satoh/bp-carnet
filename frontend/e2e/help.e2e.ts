@@ -28,10 +28,12 @@ import {
 	freeQuota,
 	mockOcrStatus,
 	mockOcrExtract,
+	mockTableColumns,
 	monitorResult,
 	notebookResult,
 	noValuesResult,
 	samplePhoto,
+	tableColumns,
 	type NotebookRow
 } from './ocr-mocks';
 
@@ -603,7 +605,7 @@ userTest.describe('手順', () => {
 		});
 
 		await takeHelpShot(page, 'import-csv-2', [settings.importButton], [accountId]);
-		const importPage = await settings.pickCsv({
+		const importPage = await settings.pickImportFile({
 			name: 'records.csv',
 			mimeType: 'text/csv',
 			buffer: csv
@@ -623,6 +625,52 @@ userTest.describe('手順', () => {
 		const confirm = importPage.preview.confirmButton;
 		await expect(confirm).toBeEnabled();
 		await takeHelpShot(page, 'import-csv-4', [removed, confirm]);
+		const imported = waitForApiResponse(page, 'POST', '/records/import');
+		await confirm.click();
+		expect((await imported).ok()).toBe(true);
+		await page.waitForURL('/settings');
+	});
+
+	userTest('他のアプリの記録を取り込む', async ({ page, throwawayUser: user }) => {
+		const today = todayIn(await fetchTimeZone(page.request));
+		// 血圧計のアプリが書き出す形の CSV (1行が1回の測定)。列の意味は Gemini を呼ばずに答える。
+		const csv = [
+			'測定日,タイムゾーン,最高血圧（mmHg）,最低血圧（mmHg）,脈拍（bpm）,機種',
+			...[-3, -2, -1].flatMap((offset) => {
+				const date = addDays(today, offset);
+				return [
+					`${date} 7:05,Asia/Tokyo,128,84,62,HEM-0000`,
+					`${date} 21:30,Asia/Tokyo,134,88,68,HEM-0000`
+				];
+			}),
+			''
+		].join('\n');
+		await mockOcrStatus(page);
+		await mockTableColumns(page, {
+			json: tableColumns({ date: 0, systolic: 2, diastolic: 3, pulse: 4 })
+		});
+
+		const settings = await openSettings(page, 'import-other-apps-1');
+		const accountId = settings.username(user.username);
+		await takeHelpShot(page, 'import-other-apps-2', [settings.importButton], [accountId]);
+		const importPage = await settings.pickImportFile({
+			name: 'blood-pressure.csv',
+			mimeType: 'text/csv',
+			buffer: Buffer.from(csv)
+		});
+
+		const consent = importPage.fileReadConsent;
+		await expect(consent.root).toBeVisible();
+		await takeHelpShot(page, 'import-other-apps-3', [consent.agreeButton]);
+		await consent.agreeButton.click();
+
+		await expect(importPage.rows.count(6, 6)).toBeVisible();
+		await takeHelpShot(page, 'import-other-apps-4', [importPage.reviewButton]);
+		await importPage.reviewButton.click();
+		await expect(importPage.preview.heading).toBeVisible();
+		const confirm = importPage.preview.confirmButton;
+		await expect(confirm).toBeEnabled();
+		await takeHelpShot(page, 'import-other-apps-5', [confirm]);
 		const imported = waitForApiResponse(page, 'POST', '/records/import');
 		await confirm.click();
 		expect((await imported).ok()).toBe(true);

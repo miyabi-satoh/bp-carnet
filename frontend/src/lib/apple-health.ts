@@ -265,7 +265,7 @@ export async function readAppleHealthExport(
 		(fraction) => onprogress(0.5 + fraction / 2)
 	);
 
-	const rows: (ImportRow & { at: number })[] = [];
+	const rows: { at: number; row: ImportRow }[] = [];
 	for (const [startDate, { systolic, diastolic }] of pressures) {
 		// 片方だけの記録 (手で片方だけ入れたもの) は、血圧の記録にならない。
 		if (systolic === undefined || diastolic === undefined) continue;
@@ -273,16 +273,17 @@ export async function readAppleHealthExport(
 		if (!instant) continue;
 		rows.push({
 			at: instant.getTime(),
-			keep: true,
-			...splitMeasuredAt(toLocalDateTime(instant, timeZone)),
-			systolic: String(systolic),
-			diastolic: String(diastolic),
-			pulse: String(pulses.get(startDate) ?? ''),
-			memo: ''
+			row: {
+				keep: true,
+				...splitMeasuredAt(toLocalDateTime(instant, timeZone)),
+				systolic: String(systolic),
+				diastolic: String(diastolic),
+				pulse: String(pulses.get(startDate) ?? ''),
+				memo: ''
+			}
 		});
 	}
-	rows.sort((a, b) => a.at - b.at);
-	const result = rows.map(({ at: _at, ...row }): ImportRow => row);
+	const result = rows.sort((a, b) => a.at - b.at).map(({ row }) => row);
 	settleNewRows(result, importRowStatus);
 	return result;
 }

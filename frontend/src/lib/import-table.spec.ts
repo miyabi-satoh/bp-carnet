@@ -21,7 +21,7 @@ function columns(overrides: Partial<TableColumns> = {}): TableColumns {
 describe('tableSample', () => {
 	it('sends only the first lines, skipping blank lines and the BOM', () => {
 		const lines = Array.from({ length: 40 }, (_, i) => `2026-02-${i + 1},120,80`);
-		const sample = tableSample(`﻿date,sys,dia\r\n\r\n${lines.join('\n')}`);
+		const sample = tableSample(`\uFEFFdate,sys,dia\r\n\r\n${lines.join('\n')}`);
 		expect(sample.split('\n')).toHaveLength(12);
 		expect(sample.startsWith('date,sys,dia\n2026-02-1,120,80')).toBe(true);
 	});
@@ -113,7 +113,8 @@ describe('parseTableImport', () => {
 		const text =
 			'日付;朝 最高;朝 最低;朝 脈拍;夜 最高;夜 最低;夜 脈拍;メモ\n' +
 			'2026/2/5;128;84;62;135;88;70;頭痛\n' +
-			'2026/2/6;126;82;60;;;;\n';
+			'2026/2/6;126;82;60;;;;\n' +
+			'2026/2/7;;;;131;85;66;飲酒\n';
 		const rows = parseTableImport(
 			text,
 			columns({
@@ -126,7 +127,7 @@ describe('parseTableImport', () => {
 						systolic: 4,
 						diastolic: 5,
 						pulse: 6,
-						memo: null,
+						memo: 7,
 						period: 'evening'
 					}
 				]
@@ -138,7 +139,9 @@ describe('parseTableImport', () => {
 			[
 				['2026-02-05', 'morning', '128', '頭痛'],
 				['2026-02-05', 'evening', '135', ''],
-				['2026-02-06', 'morning', '126', '']
+				['2026-02-06', 'morning', '126', ''],
+				// メモの列は1日に1つ。その行の最初の記録にだけ付く。
+				['2026-02-07', 'evening', '131', '飲酒']
 			]
 		);
 		// 時刻の無い行には、見出しの朝・夜の時間帯から仮の時刻を振る。

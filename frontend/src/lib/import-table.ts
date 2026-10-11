@@ -32,7 +32,7 @@ const DELIMITERS: Record<TableColumns['delimiter'], string> = {
  * 数え方をそろえる。 */
 function nonEmptyLines(text: string): string[] {
 	return text
-		.replace(/^﻿/, '')
+		.replace(/^\uFEFF/, '')
 		.split(/\r\n|\r|\n/)
 		.filter((line) => line.trim() !== '');
 }
@@ -247,12 +247,21 @@ export function parseTableImport(
 	timeZone: string,
 	periods: PeriodThresholds
 ): ImportRow[] {
-	const table = parseCsvTable(text.replace(/^﻿/, ''), DELIMITERS[columns.delimiter]);
-	const rows = table
-		.slice(columns.headerLines)
-		.flatMap((cols) =>
-			columns.groups.flatMap((group) => rowFromGroup(cols, group, columns, timeZone) ?? [])
-		);
+	const table = parseCsvTable(text.replace(/^\uFEFF/, ''), DELIMITERS[columns.delimiter]);
+	const rows = table.slice(columns.headerLines).flatMap((cols) => {
+		// 朝と夜が横に並ぶ表のメモの列は1日に1つで、測定ごとの列ではない。同じ列を指す測定が複数あれば、
+		// その行の最初の記録にだけメモを付ける (同じメモを朝と夜の両方に付けない)。
+		const usedMemoColumns = new Set<number>();
+		return columns.groups.flatMap((group) => {
+			const row = rowFromGroup(cols, group, columns, timeZone);
+			if (!row) return [];
+			if (group.memo !== null) {
+				if (usedMemoColumns.has(group.memo)) row.memo = '';
+				usedMemoColumns.add(group.memo);
+			}
+			return row;
+		});
+	});
 	fillPlaceholderTimes(rows, periods);
 	settleNewRows(rows, importRowStatus);
 	return rows;

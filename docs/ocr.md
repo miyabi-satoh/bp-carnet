@@ -11,6 +11,7 @@
 - `src/ocr_usage.rs`: 枠の並び (`quotas`)・残りの判定・使った額の引き落とし・同時に1件の制限
 - `src/ocr_consent.rs`: 写真を送ることへの同意
 - `src/ocr_dump.rs`: デバッグ用に Gemini とのやりとりを残す・使い回す
+- `src/ocr_files.rs`・`src/api/ocr_files.rs`: 他のアプリが書き出したファイルの読み取り (`POST /api/v1/ocr/table-columns`・`POST /api/v1/ocr/document`、docs/import-export.md「他のアプリのファイル」)。Gemini への送り方・同時に1件・枠・使った額の数え方は、この文書のとおり。写真を送る同意は見ない
 - `frontend/src/lib/ocr.ts`・`ocr-image.ts`: 送る前の縮小・信頼度の段階・手書きの行の扱い
 
 ## 有効化
@@ -89,7 +90,7 @@
 - 1回の額 = 入力トークン × 入力単価 + 出力トークン × 出力単価 を円に直したもの (`OcrPricing::cost_milli_yen`)。
   - 出力には思考のトークン (`thoughtsTokenCount`) を足す。どちらも出力として課金されるため。
   - 単位は 1/1000 円で、端数は切り上げる。
-- 応答が届いた回は、解釈に失敗しても額を引く (`OcrError::ParseResponse { usage }`)。毎回失敗する写真で費用だけがかかり続けないため。
+- 応答が届いた回は、解釈に失敗しても、出力が上限で切れても額を引く (`OcrError::billed_usage`)。毎回失敗する写真で費用だけがかかり続けないため。
 - 通信自体が失敗した回は引かない。
 - 引けなかったとき (DB の失敗) は、警告のログを出して読み取りの結果はそのまま返す。
 
