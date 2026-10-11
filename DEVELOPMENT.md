@@ -145,7 +145,7 @@ bp.amiiby.com を Fly.io の東京リージョン (`nrt`) で動かす手順。
   - 検証用 (`deploy/cloud/fly.staging.toml`): 本番の前に載せて確かめる。アクセスでは起きないので、使うときに `just staging-start` で起こす。
   - 以下の `<本番の app>`・`<検証用の app>` は、それぞれの `fly.toml` の `app`。
 - どちらの app も、しばらく通信が無いと Machine が一時停止する (`auto_stop_machines = "suspend"`)。本番は次のアクセスで再開し、1日に1回、起動し直す (→「毎日の再起動」)。
-- イメージは Docker Desktop で作り、`registry.fly.io` へ送る。amd64 の Windows でも、Apple Silicon の Mac でもよい。
+- イメージは GitHub Actions (`.github/workflows/deploy.yml`) か、手元の Docker Desktop で作り、`registry.fly.io` へ送る (→「更新」)。手元は amd64 の Windows でも、Apple Silicon の Mac でもよい。
   - 出来るイメージは同じ amd64 (`just cloud-image` が `--platform linux/amd64` を付ける)。
   - Apple Silicon の Mac は amd64 をエミュレーションするため、初回は遅い (10分を超えた)。キャッシュが効く2回目以降は短い。
   - frontend と Rust のビルドは `deploy/cloud/Dockerfile` の中で行う。
@@ -397,14 +397,24 @@ just deploy
 
 #### 更新
 
-検証用で確かめてから本番に載せる。
+検証用で確かめてから本番に載せる。イメージは GitHub Actions (`.github/workflows/deploy.yml`) が作る。
 
 ```sh
-just deploy-staging
+gh workflow run deploy.yml -f target=staging
+gh run watch         # 一覧から、いま流した実行を選ぶ
 just staging-start   # 止まっていた Machine は、載せた後も止まったまま
-just deploy
+# 検証用で確かめてから
+gh workflow run deploy.yml -f target=production
 ```
 
+- 載せるのは main。マージの前に検証用で確かめるときは、`--ref <ブランチ>` を付ける (本番には付けられない)。
+- 同じコミットを検証用と本番に続けて載せると、本番のビルドは検証用のときのキャッシュを使い、短く済む。
+- 載せたイメージのタグは、実行の Summary に出る (→「前の版に戻す」)。
+- 手元の Docker Desktop で作って載せることもできる (`just deploy-staging`・`just deploy`。→「1. ビルドするマシンの準備」)。
+- 初回だけ、GitHub のシークレットに app ごとのトークンを入れる。本番の `FLY_API_TOKEN` は、毎日の再起動と同じもの。
+  ```sh
+  fly tokens create deploy --app <検証用の app> --name "GitHub Actions deploy" | gh secret set FLY_API_TOKEN_STAGING --repo <リポジトリ>
+  ```
 - DB のマイグレーションは起動時に自動で適用される。
 - 載せ替えの間 (数十秒) は止まる。Volume が1つなので、新旧を並べて切り替えられない。
 - `fly secrets set` や `fly secrets import` でシークレットを変えても、Machine が起動し直す。
@@ -417,7 +427,7 @@ GitHub Actions (`.github/workflows/daily-restart.yml`) が、毎日 3時すぎ (
   - 期限を過ぎたアカウントなどの掃除 (`src/account.rs` の `purge_expired_periodically`)。
   - Litestream の日ごとのスナップショット。間隔が延びると、戻せる期間が7日より短くなる。
 - メンテナンスモードの作業 (→「ある時点へ戻す」) が3時すぎにかかるときは、先に `gh workflow disable daily-restart.yml` で止め、終わったら `gh workflow enable daily-restart.yml` で戻す。
-- GitHub のシークレット `FLY_API_TOKEN` に、本番の app だけを操作できるトークンを入れる。
+- GitHub のシークレット `FLY_API_TOKEN` に、本番の app だけを操作できるトークンを入れる。本番に載せる workflow (→「更新」) も同じトークンを使う。
   ```sh
   fly tokens create deploy --app <本番の app> --name "GitHub Actions daily-restart" | gh secret set FLY_API_TOKEN --repo <リポジトリ>
   ```
