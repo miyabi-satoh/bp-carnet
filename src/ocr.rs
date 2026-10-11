@@ -167,6 +167,19 @@ impl OcrService {
         parse_gemini_response(&raw_body)
     }
 
+    /// `parts` を Gemini に送り、`schema` の構造化出力を `T` として返す。写真以外の読み取り
+    /// (`crate::ocr_files`) が使う。
+    pub(crate) async fn generate<T: serde::de::DeserializeOwned>(
+        &self,
+        parts: Vec<GeminiPart>,
+        schema: Value,
+    ) -> Result<(T, OcrUsage), OcrError> {
+        let api_key = self.api_key.as_deref().ok_or(OcrError::Disabled)?;
+        let request_body = generate_request(parts, schema);
+        let raw_body = self.post_generate_content(api_key, &request_body).await?;
+        parse_structured(&raw_body)
+    }
+
     /// Gemini `generateContent` を呼び、成功時のレスポンス本文を返す。
     async fn post_generate_content(
         &self,
@@ -214,28 +227,22 @@ impl OcrService {
 
 /// Gemini に送る本文。読み取り (`extract`) と、残したやりとりを探すとき (`reuse_dumped`) で同じものを使う。
 fn request_body(image_bytes: &[u8], mime_type: &str) -> GeminiRequest {
+    generate_request(
+        vec![
+            GeminiPart::inline_data(mime_type, image_bytes),
+            GeminiPart::text(PROMPT_AUTO),
+        ],
+        ocr_schema(),
+    )
+}
+
+/// 構造化出力を求める本文。生成の設定は、写真でもファイルでも同じにする。
+fn generate_request(parts: Vec<GeminiPart>, schema: Value) -> GeminiRequest {
     GeminiRequest {
-        contents: vec![GeminiContent {
-            parts: vec![
-                GeminiPart {
-                    text: None,
-                    inline_data: Some(GeminiInlineData {
-                        mime_type: mime_type.to_string(),
-                        data: base64::Engine::encode(
-                            &base64::engine::general_purpose::STANDARD,
-                            image_bytes,
-                        ),
-                    }),
-                },
-                GeminiPart {
-                    text: Some(PROMPT_AUTO.to_string()),
-                    inline_data: None,
-                },
-            ],
-        }],
+        contents: vec![GeminiContent { parts }],
         generation_config: GeminiGenerationConfig {
             response_mime_type: "application/json".to_string(),
-            response_schema: ocr_schema(),
+            response_schema: schema,
             temperature: 0.0,
             max_output_tokens: MAX_OUTPUT_TOKENS,
             thinking_config: GeminiThinkingConfig {
@@ -257,6 +264,22 @@ pub enum OcrError {
     /// 届いた応答の形が壊れていて取り出せなかったときは `None`。累計の金額に足すために持つ。
     #[error("failed to parse Gemini response")]
     ParseResponse { usage: Option<OcrUsage> },
+    /// 出力が `maxOutputTokens` で打ち切られ、JSON が途中で切れた。応答は届いて課金されている。
+    /// 読み取る量を減らせば読めるので、解釈の失敗とは分ける。
+    #[error("Gemini response was truncated at the output token limit")]
+    Truncated { usage: OcrUsage },
+}
+
+impl OcrError {
+    /// 応答が届いて課金された失敗の使用量。足さないと、毎回その失敗になる入力で累計が進まないまま
+    /// 費用がかかり続ける (docs/ocr.md)。
+    pub(crate) fn billed_usage(&self) -> Option<&OcrUsage> {
+        match self {
+            Self::ParseResponse { usage } => usage.as_ref(),
+            Self::Truncated { usage } => Some(usage),
+            Self::Disabled | Self::Request(_) | Self::UpstreamStatus(_) => None,
+        }
+    }
 }
 
 impl From<reqwest::Error> for OcrError {
@@ -385,7 +408,7 @@ pub struct OcrUsage {
 /// (例: 巨大な指数表記) や文字列で返してくることがあるため、そのまま `i64` として
 /// デコードせず一度 `serde_json::Value` で受けてから寛容にパースする。
 /// 解釈できない・範囲外の値は (クラッシュさせず) 0 に丸める。
-fn deserialize_flex_int<'de, D>(deserializer: D) -> Result<i64, D::Error>
+pub(crate) fn deserialize_flex_int<'de, D>(deserializer: D) -> Result<i64, D::Error>
 where
     D: serde::Deserializer<'de>,
 {
@@ -438,7 +461,7 @@ kind が \"memo\" のとき、readings の各要素について:
 - 読み取れた行は確信が低くてもすべて readings に含める (勝手に間引かない)";
 
 /// `reading`/`readings` (行1件分) の JSON Schema。単発読み取り・手書きメモ複数行読み取りで共有する。
-fn reading_schema() -> Value {
+pub(crate) fn reading_schema() -> Value {
     serde_json::json!({
         "type": "object",
         "properties": {
@@ -489,11 +512,31 @@ struct GeminiContent {
 }
 
 #[derive(Debug, Serialize)]
-struct GeminiPart {
+pub(crate) struct GeminiPart {
     #[serde(skip_serializing_if = "Option::is_none")]
     text: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none", rename = "inline_data")]
     inline_data: Option<GeminiInlineData>,
+}
+
+impl GeminiPart {
+    pub(crate) fn text(text: impl Into<String>) -> Self {
+        Self {
+            text: Some(text.into()),
+            inline_data: None,
+        }
+    }
+
+    /// 写真・PDF などのバイト列 (base64 にして本文に埋める)。
+    pub(crate) fn inline_data(mime_type: &str, bytes: &[u8]) -> Self {
+        Self {
+            text: None,
+            inline_data: Some(GeminiInlineData {
+                mime_type: mime_type.to_string(),
+                data: base64::Engine::encode(&base64::engine::general_purpose::STANDARD, bytes),
+            }),
+        }
+    }
 }
 
 #[derive(Debug, Serialize)]
@@ -573,9 +616,9 @@ impl GeminiUsageMetadata {
     }
 }
 
-/// Gemini からの生レスポンス (JSON 文字列) をパースする。ハンドラ抜きでテストできるよう
-/// 純粋関数として切り出している (異常な数値・空 candidates・MAX_TOKENS 打ち切り等を単体で確認する)。
-fn parse_gemini_response(raw: &str) -> Result<OcrResult, OcrError> {
+/// Gemini からの生レスポンス (JSON 文字列) から、構造化出力を `T` として取り出す。ハンドラ抜きで
+/// テストできるよう純粋関数として切り出している (空 candidates・MAX_TOKENS 打ち切り等を単体で確認する)。
+fn parse_structured<T: serde::de::DeserializeOwned>(raw: &str) -> Result<(T, OcrUsage), OcrError> {
     let response: GeminiResponse =
         serde_json::from_str(raw).map_err(|_| OcrError::ParseResponse {
             // 候補側の型崩れでも、課金された分は usageMetadata だけ取り出して累計に入れる。
@@ -586,9 +629,8 @@ fn parse_gemini_response(raw: &str) -> Result<OcrResult, OcrError> {
                 .map(|m| m.usage()),
         })?;
     // ここから先の失敗は、応答が届いて課金された後のもの (MAX_TOKENS の打ち切りなど)。
-    let parse_error = || OcrError::ParseResponse {
-        usage: Some(response.usage_metadata.usage()),
-    };
+    let usage = response.usage_metadata.usage();
+    let parse_error = || OcrError::ParseResponse { usage: Some(usage) };
 
     let candidate = response.candidates.first().ok_or_else(parse_error)?;
     let inner_text = candidate
@@ -598,20 +640,31 @@ fn parse_gemini_response(raw: &str) -> Result<OcrResult, OcrError> {
         .map(|p| p.text.as_str())
         .ok_or_else(parse_error)?;
 
-    if candidate.finish_reason == "MAX_TOKENS" {
+    let truncated = candidate.finish_reason == "MAX_TOKENS";
+    if truncated {
         tracing::warn!("Gemini のレスポンスが MAX_TOKENS で打ち切られました");
     }
 
-    let payload: OcrPayload = serde_json::from_str(inner_text).map_err(|err| {
-        // `inner_text` は撮影した写真の内容 (rawDisplay/notes) を含みうるため、パース
-        // 失敗時であってもログに内容そのものを出さない (長さのみ記録する)。
+    let payload = serde_json::from_str(inner_text).map_err(|err| {
+        // `inner_text` は写真・ファイルの内容を含みうるため、パース失敗時であってもログに
+        // 内容そのものを出さない (長さのみ記録する)。
         tracing::error!(
             error = %crate::error_chain_line(&err),
             inner_len = inner_text.len(),
             "Gemini の構造化出力の JSON 解析に失敗しました"
         );
-        parse_error()
+        if truncated {
+            OcrError::Truncated { usage }
+        } else {
+            parse_error()
+        }
     })?;
+    Ok((payload, usage))
+}
+
+/// 写真の読み取りの応答を解釈する。
+fn parse_gemini_response(raw: &str) -> Result<OcrResult, OcrError> {
+    let (payload, usage): (OcrPayload, OcrUsage) = parse_structured(raw)?;
 
     let kind = if payload.kind.is_empty() {
         "unknown".to_string()
@@ -639,7 +692,7 @@ fn parse_gemini_response(raw: &str) -> Result<OcrResult, OcrError> {
         reading,
         readings,
         notes: payload.notes,
-        usage: response.usage_metadata.usage(),
+        usage,
     })
 }
 
@@ -908,6 +961,24 @@ mod tests {
             parse_gemini_response(&raw),
             Err(OcrError::ParseResponse { usage: Some(_) })
         ));
+    }
+
+    #[test]
+    fn a_response_cut_off_at_the_token_limit_is_truncated() {
+        let raw = r#"{
+            "candidates": [{
+                "content": { "parts": [{ "text": "{\"kind\":\"memo\",\"readings\":[{\"systolic\":12" }] },
+                "finishReason": "MAX_TOKENS"
+            }],
+            "usageMetadata": { "promptTokenCount": 100, "candidatesTokenCount": 20 }
+        }"#;
+        let err = parse_gemini_response(raw).expect_err("a cut-off response should not parse");
+        assert!(matches!(err, OcrError::Truncated { .. }));
+        // 応答は届いているので、使用量 (課金された分) を持ち帰る。
+        assert_eq!(
+            err.billed_usage().map(|usage| usage.input_tokens),
+            Some(100)
+        );
     }
 
     #[test]

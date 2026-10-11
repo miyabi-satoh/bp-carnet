@@ -8,6 +8,7 @@ mod email_change;
 mod email_link;
 mod health;
 mod ocr;
+mod ocr_files;
 mod password_reset;
 mod payments;
 mod records;
@@ -87,6 +88,7 @@ pub fn router() -> OpenApiRouter<AppState> {
         .merge(records::router())
         .merge(settings::router())
         .merge(ocr::router())
+        .merge(ocr_files::router())
         .merge(payments::router())
         .fallback(|| async { AppError::NotFound });
 

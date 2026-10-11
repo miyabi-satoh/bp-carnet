@@ -223,3 +223,141 @@ async fn ocr_extract_rejects_when_the_free_budget_is_used_up(pool: SqlitePool) {
     )
     .await;
 }
+
+/// ファイルの読み取り (`/ocr/table-columns`・`/ocr/document`) も、無効なら 503。
+#[sqlx::test]
+async fn file_reading_returns_503_when_disabled(pool: SqlitePool) {
+    let (app, cookie) = logged_in_app(pool).await;
+
+    let response = send(
+        &app,
+        post_json(
+            "/api/v1/ocr/table-columns",
+            Some(&cookie),
+            json!({ "sample": "date,sys,dia\n2026-02-05,120,80" }),
+        ),
+    )
+    .await;
+    assert_error(response, StatusCode::SERVICE_UNAVAILABLE, "ocr_disabled").await;
+
+    let response = send(
+        &app,
+        multipart_image_request(
+            "/api/v1/ocr/document",
+            Some(&cookie),
+            Some(("file", "application/pdf", b"%PDF-1.7 dummy")),
+        ),
+    )
+    .await;
+    assert_error(response, StatusCode::SERVICE_UNAVAILABLE, "ocr_disabled").await;
+}
+
+/// 写真を送る同意は要らない (ファイルは送るたびに画面で確かめる)。Gemini を呼ぶ前に、見本の長さで弾く。
+#[sqlx::test]
+async fn table_columns_rejects_unusable_samples_before_calling_gemini(pool: SqlitePool) {
+    insert_user(&pool, "admin", "password").await;
+    let app = test_app_with_ocr_enabled(pool).await;
+    let cookie = login_and_get_cookie(&app, "admin", "password").await;
+
+    for (case, sample) in [
+        ("empty", " \n".to_string()),
+        ("too long", "a".repeat(8_001)),
+    ] {
+        let response = send(
+            &app,
+            post_json(
+                "/api/v1/ocr/table-columns",
+                Some(&cookie),
+                json!({ "sample": sample }),
+            ),
+        )
+        .await;
+        assert_error_case(
+            response,
+            StatusCode::UNPROCESSABLE_ENTITY,
+            "validation_error",
+            case,
+        )
+        .await;
+    }
+}
+
+/// Gemini を呼ぶ前に、ファイルの欄・大きさ・中身で弾く。
+#[sqlx::test]
+async fn read_document_rejects_unusable_files_before_calling_gemini(pool: SqlitePool) {
+    insert_user(&pool, "admin", "password").await;
+    let app = test_app_with_ocr_enabled(pool).await;
+    let cookie = login_and_get_cookie(&app, "admin", "password").await;
+
+    let mut oversized = b"%PDF-".to_vec();
+    oversized.resize(10 * 1024 * 1024 + 1, 0);
+    let cases: [(&str, Option<ImageField>, StatusCode, &str); 3] = [
+        (
+            "no file field",
+            None,
+            StatusCode::BAD_REQUEST,
+            "invalid_request_body",
+        ),
+        (
+            "oversized file",
+            Some(("file", "application/pdf", &oversized)),
+            StatusCode::PAYLOAD_TOO_LARGE,
+            "ocr_file_too_large",
+        ),
+        (
+            "not a PDF",
+            Some(("file", "application/pdf", b"PK\x03\x04 zip")),
+            StatusCode::UNPROCESSABLE_ENTITY,
+            "ocr_unsupported_file",
+        ),
+    ];
+    for (case, field, status, code) in cases {
+        let response = send(
+            &app,
+            multipart_image_request("/api/v1/ocr/document", Some(&cookie), field),
+        )
+        .await;
+        assert_error_case(response, status, code, case).await;
+    }
+}
+
+/// 枠は写真と共通。使い切ったユーザーは、Gemini を呼ぶ前に 429 で弾かれる。
+#[sqlx::test]
+async fn file_reading_rejects_when_the_budget_is_used_up(pool: SqlitePool) {
+    insert_user(&pool, "admin", "password").await;
+    set_ocr_budget(&pool, 0, 0).await;
+    let app = test_app_with_ocr_enabled(pool.clone()).await;
+    let cookie = login_and_get_cookie(&app, "admin", "password").await;
+
+    let response = send(
+        &app,
+        post_json(
+            "/api/v1/ocr/table-columns",
+            Some(&cookie),
+            json!({ "sample": "date,sys,dia\n2026-02-05,120,80" }),
+        ),
+    )
+    .await;
+    assert_error(
+        response,
+        StatusCode::TOO_MANY_REQUESTS,
+        "ocr_budget_exhausted",
+    )
+    .await;
+
+    let response = send(
+        &app,
+        multipart_image_request(
+            "/api/v1/ocr/document",
+            Some(&cookie),
+            Some(("file", "application/pdf", b"%PDF-1.7 dummy")),
+        ),
+    )
+    .await;
+    assert_error(
+        response,
+        StatusCode::TOO_MANY_REQUESTS,
+        "ocr_budget_exhausted",
+    )
+    .await;
+}

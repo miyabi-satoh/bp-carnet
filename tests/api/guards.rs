@@ -26,6 +26,8 @@ const LOGIN_REQUIRED_APIS: &[(Method, &str)] = &[
     (Method::POST, "/api/v1/ocr"),
     (Method::POST, "/api/v1/ocr/consent"),
     (Method::DELETE, "/api/v1/ocr/consent"),
+    (Method::POST, "/api/v1/ocr/table-columns"),
+    (Method::POST, "/api/v1/ocr/document"),
     (Method::POST, "/api/v1/payments/ocr-topup/checkout"),
     (
         Method::GET,
