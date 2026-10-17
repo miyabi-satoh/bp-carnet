@@ -218,7 +218,6 @@
 						<BetaBadge />
 					{/if}
 				</div>
-				<p class="text-sm text-muted-foreground">{m.login_subtitle()}</p>
 			</div>
 		</div>
 

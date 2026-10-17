@@ -35,8 +35,6 @@
 <div class="mx-auto flex max-w-2xl flex-col px-5 pb-safe-8">
 	<PageHeader onback={back} title={m.licenses_title()} />
 
-	<p class="text-sm leading-7 text-muted-foreground">{m.licenses_lead()}</p>
-
 	{#each sections as section (section.key)}
 		<section class="mt-6" aria-labelledby="licenses-{section.key}">
 			<h2 id="licenses-{section.key}" class={SECTION_TITLE_CLASS}>{section.title}</h2>

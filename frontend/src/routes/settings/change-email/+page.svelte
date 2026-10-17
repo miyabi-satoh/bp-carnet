@@ -82,11 +82,7 @@
 							bind:value={newEmail}
 							bind:ref={newEmailInput}
 							required
-							aria-describedby="new-email-description"
 						/>
-						<Field.FieldDescription id="new-email-description"
-							>{m.settings_change_email_new_description()}</Field.FieldDescription
-						>
 					</Field.Field>
 					{#if passwordUsable}
 						<Field.Field>

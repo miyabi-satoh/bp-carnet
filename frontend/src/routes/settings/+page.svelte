@@ -496,46 +496,20 @@
 		<section aria-labelledby="data-heading">
 			<h2 id="data-heading" class={SECTION_TITLE_CLASS}>{m.settings_data_section_title()}</h2>
 			<div class="divide-y overflow-hidden rounded-lg raised bg-card">
-				<!-- 説明は押せる範囲に含めるため行の中に置く。ボタン名がラベルだけになるよう、説明は
-				     読み上げから外して aria-describedby で伝える。 -->
 				<button
 					type="button"
 					class={LIST_ROW_CLASS}
 					disabled={exporting}
 					aria-busy={exporting}
-					aria-describedby="export-csv-description"
 					onclick={handleExport}
 				>
-					<span class="flex flex-col gap-1">
-						{m.settings_export_csv_button()}
-						<span
-							id="export-csv-description"
-							class="text-sm leading-relaxed text-muted-foreground"
-							aria-hidden="true"
-						>
-							{m.settings_export_csv_description()}
-						</span>
-					</span>
+					{m.settings_export_csv_button()}
 					{#if exporting}
 						<Spinner class="text-subtle-foreground" aria-hidden="true" />
 					{/if}
 				</button>
-				<button
-					type="button"
-					class={LIST_ROW_CLASS}
-					aria-describedby="import-description"
-					onclick={pickImportFile}
-				>
-					<span class="flex flex-col gap-1">
-						{m.settings_import_button()}
-						<span
-							id="import-description"
-							class="text-sm leading-relaxed text-muted-foreground"
-							aria-hidden="true"
-						>
-							{m.import_description()}
-						</span>
-					</span>
+				<button type="button" class={LIST_ROW_CLASS} onclick={pickImportFile}>
+					{m.settings_import_button()}
 				</button>
 			</div>
 			<input

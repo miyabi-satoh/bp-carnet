@@ -11,10 +11,6 @@ export class ImportRows {
 		return this.page.getByRole('heading', { name: ja.import_rows_title, exact: true });
 	}
 
-	get description(): Locator {
-		return this.page.getByText(ja.import_rows_description, { exact: true });
-	}
-
 	/** 「{total}件中{kept}件を取り込みます」。 */
 	count(total: number, kept: number): Locator {
 		return this.page.getByText(

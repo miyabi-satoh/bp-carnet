@@ -46,12 +46,12 @@ async function setNewPassword(screen: Awaited<ReturnType<typeof render>>) {
 }
 
 describe('メールのリンクからの再設定', () => {
-	it('再設定できたら、新しいパスワードでログインするよう案内し、ログイン画面へのリンクを出す', async () => {
+	it('再設定できたら、ログイン画面へのリンクを出す', async () => {
 		page.url = new URL('http://localhost:3000/reset-password?token=reset-token') as typeof page.url;
 		const screen = await render(ResetPasswordPage);
 		await setNewPassword(screen);
 
-		await expect.element(screen.getByText(m.reset_password_done_description())).toBeVisible();
+		await expect.element(screen.getByText(m.reset_password_done_title())).toBeVisible();
 		await expect
 			.element(screen.getByRole('link', { name: m.common_back_to_login_link() }))
 			.toBeVisible();

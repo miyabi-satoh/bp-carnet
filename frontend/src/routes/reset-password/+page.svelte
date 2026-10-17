@@ -57,24 +57,15 @@
 
 <CenteredScreen>
 	{#if token === null}
-		<AuthPageHeader
-			icon={LockIcon}
-			title={m.reset_password_title()}
-			subtitle={m.reset_password_request_subtitle()}
-		/>
+		<AuthPageHeader icon={LockIcon} title={m.reset_password_title()} />
 		<EmailRequestForm
-			description={m.reset_password_request_description()}
 			submitLabel={m.reset_password_request_submit_button()}
 			sentTitle={m.reset_password_sent_title()}
 			sentDescription={m.reset_password_sent_description()}
 			onsubmit={handleRequest}
 		/>
 	{:else}
-		<AuthPageHeader
-			icon={LockIcon}
-			title={m.reset_password_title()}
-			subtitle={m.reset_password_subtitle()}
-		/>
+		<AuthPageHeader icon={LockIcon} title={m.reset_password_title()} />
 		{#if usable === null}
 			<LoadingIndicator />
 		{:else if !usable}
@@ -87,9 +78,7 @@
 			<AuthCard>
 				<PageResult
 					title={m.reset_password_done_title()}
-					description={fromApp
-						? m.email_link_return_to_app_description()
-						: m.reset_password_done_description()}
+					description={fromApp ? m.email_link_return_to_app_description() : undefined}
 				/>
 			</AuthCard>
 		{:else}
