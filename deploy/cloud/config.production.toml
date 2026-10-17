@@ -16,6 +16,8 @@ beta_notice = false
 contact_url = "https://amiiby.com/about/#contact"
 # ログイン画面から、amiiby.com の紹介ページへ導く (docs/architecture.md)。
 intro_url = "https://amiiby.com/bp-carnet/"
+# Cloudflare Web Analytics のサイト bp.amiiby.com のトークン (ページに出る公開の値)。
+cloudflare_analytics_token = "ceed176801974275abab0e60c056b2ac"
 
 [session]
 # HTTPS は fly-proxy が終端する。

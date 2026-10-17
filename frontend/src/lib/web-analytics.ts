@@ -14,6 +14,7 @@ export async function startWebAnalytics(): Promise<void> {
 	const token = await fetchAnalyticsToken();
 	if (!token) return;
 	const script = document.createElement('script');
+	script.type = 'module';
 	script.src = BEACON_SRC;
 	// 画面の移動は数えない。数えると、ログインした後の画面も計測に入るため。
 	script.dataset.cfBeacon = JSON.stringify({ token, spa: false });
