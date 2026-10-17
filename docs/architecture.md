@@ -68,6 +68,8 @@ SPA の素の `index.html` はどのパスも同じ枠なので、`src/seo.rs` �
 
 `[server] cloudflare_analytics_token` を設定すると、ウェブのログインしていない画面 (`frontend/src/lib/auth.ts` の `PUBLIC_ROUTES`) で Cloudflare Web Analytics のスクリプトを読む (`frontend/src/lib/web-analytics.ts`)。
 
+- メールのリンクから開く画面 (パスワードの設定と再設定・メールアドレスの変更) は数えない。スクリプトは URL をクエリ文字列ごと送り、そこに使い捨ての鍵が付くため。
+
 - ログインした後の画面とアプリでは読まない。記録を付ける画面の使い方は計測の目的 (どれだけの人が来ているか) に要らず、アプリで読むと App Store に申告するデータの扱いが増えるため。
 - スクリプトはページを開いて最初に公開の画面に来たときに1回だけ読み、画面の移動は数えない (`"spa": false`)。数えると、ログインした後の画面も計測に入るため。
 - 利用者の画面の文言 (プライバシーポリシー) は `frontend/src/lib/legal/ja/privacy.md`「アクセス解析」。

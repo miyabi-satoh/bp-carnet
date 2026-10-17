@@ -1,8 +1,17 @@
-import { fetchAnalyticsToken } from '$lib/auth';
+import { fetchAnalyticsToken, isPublicRoute } from '$lib/auth';
 import { isNativeApp } from '$lib/native-app';
 
 /** Cloudflare Web Analytics のスクリプト (Cloudflare の資料の手で入れる形)。 */
 const BEACON_SRC = 'https://static.cloudflareinsights.com/beacon.min.js';
+
+/** ログインしていなくても開けるが、数えない画面。メールのリンクの URL に使い捨ての鍵が付き、スクリプトは URL を
+ * クエリ文字列ごと送るため。 */
+const UNCOUNTED_ROUTES: readonly string[] = ['/change-email', '/reset-password', '/verify-email'];
+
+/** アクセス解析で数える画面か (docs/architecture.md「アクセス解析」)。 */
+export function isAnalyticsRoute(routeId: string | null): boolean {
+	return isPublicRoute(routeId) && !UNCOUNTED_ROUTES.includes(routeId ?? '');
+}
 
 let started = false;
 

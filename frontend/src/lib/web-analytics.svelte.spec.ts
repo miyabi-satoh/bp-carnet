@@ -7,7 +7,7 @@ vi.mock('$lib/native-app', () => ({
 		return native.value;
 	}
 }));
-vi.mock('$lib/auth', () => ({ fetchAnalyticsToken }));
+vi.mock('$lib/auth', () => ({ fetchAnalyticsToken, isPublicRoute: () => true }));
 
 function beacons(): HTMLScriptElement[] {
 	return [
