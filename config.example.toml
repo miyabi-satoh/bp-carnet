@@ -59,6 +59,10 @@ contact_url = "https://example.com/contact/"
 # アプリを紹介するページの URL。設定すると、ウェブのログイン画面に紹介へのリンクを出す。
 # 設定しなければ出さない。
 # intro_url = "https://example.com/app/"
+# Cloudflare Web Analytics のサイトのトークン。設定すると、ウェブのログインしていない画面
+# (ログイン・使い方・規約類など) で計測する。アプリと、ログインした後の画面では計測しない。
+# 設定しなければ計測しない。
+# cloudflare_analytics_token = "0123456789abcdef0123456789abcdef"
 
 [log]
 # tracing-subscriber の EnvFilter 書式。環境変数 RUST_LOG があればそちらを優先する。

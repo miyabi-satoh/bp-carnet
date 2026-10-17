@@ -521,6 +521,20 @@ async fn providers_report_the_beta_notice_only_when_enabled(pool: SqlitePool) {
     }
 }
 
+/// アクセス解析のトークンは `[server] cloudflare_analytics_token` で決まり、既定は空 (計測しない)。
+#[sqlx::test]
+async fn providers_report_the_analytics_token_only_when_configured(pool: SqlitePool) {
+    let mut analytics = test_config();
+    analytics.server.cloudflare_analytics_token = "0123456789abcdef".to_string();
+    for (config, expected) in [(test_config(), ""), (analytics, "0123456789abcdef")] {
+        let app = test_app_with_config(pool.clone(), &config).await;
+        assert_eq!(
+            auth_providers(app).await["cloudflareAnalyticsToken"],
+            expected
+        );
+    }
+}
+
 /// 問い合わせ先 (`[server] contact_url`) と規約の版を返す。
 #[sqlx::test]
 async fn providers_report_the_contact_url_and_the_terms_version(pool: SqlitePool) {

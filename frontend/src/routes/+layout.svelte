@@ -9,6 +9,7 @@
 	import { fetchBetaNotice, isPublicRoute, userInitial } from '$lib/auth';
 	import { isNativeApp, setStatusBarDark } from '$lib/native-app';
 	import { startTopupSync } from '$lib/app-store-purchase';
+	import { isAnalyticsRoute, startWebAnalytics } from '$lib/web-analytics';
 	import * as Avatar from '$lib/components/ui/avatar';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import BetaBadge from '$lib/components/beta-badge.svelte';
@@ -58,6 +59,13 @@
 		if (!showHeader || betaNoticeRequested) return;
 		betaNoticeRequested = true;
 		fetchBetaNotice().then((enabled) => (betaNotice = enabled));
+	});
+
+	// アクセス解析は、ログインしていない画面だけで数える (docs/architecture.md「アクセス解析」)。
+	$effect(() => {
+		if (isAnalyticsRoute(page.route.id)) {
+			void startWebAnalytics(() => isAnalyticsRoute(page.route.id));
+		}
 	});
 
 	// 画面のライト・ダークを端末と別に選べるので、ステータスバーの文字色も画面に合わせる。

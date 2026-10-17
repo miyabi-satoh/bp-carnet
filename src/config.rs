@@ -185,6 +185,9 @@ pub struct ServerConfig {
     /// (紹介ページを持たずに動かす人もいるため、必須にしない)。
     #[serde(deserialize_with = "deserialize_intro_url")]
     pub intro_url: String,
+    /// Cloudflare Web Analytics のサイトのトークン。設定すると、ウェブのログインしていない画面で計測する
+    /// (docs/architecture.md)。設定しなければ計測しない (紹介と同じく、運用する人ごとに決めるため)。
+    pub cloudflare_analytics_token: String,
 }
 
 /// `contact_url` が、画面からリンクできる http(s) の URL であることを検証する (空は、書かれていないとして
@@ -329,6 +332,7 @@ impl Default for ServerConfig {
             beta_notice: false,
             contact_url: String::new(),
             intro_url: String::new(),
+            cloudflare_analytics_token: String::new(),
         }
     }
 }
@@ -1031,6 +1035,7 @@ mod tests {
         assert_eq!(config.password.min_length, 8);
         assert!(config.password.required_classes.is_empty());
         assert!(!config.server.beta_notice);
+        assert_eq!(config.server.cloudflare_analytics_token, "");
         assert_eq!(config.log.filter, LogConfig::default().filter);
         assert_eq!(config.log.output, LogOutput::default());
         assert_eq!(config.session.secret, "");

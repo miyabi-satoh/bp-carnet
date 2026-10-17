@@ -28,6 +28,7 @@ export async function mockAuthProviders(
 		betaNotice: false,
 		contactUrl: 'https://example.com/contact/',
 		introUrl: '',
+		cloudflareAnalyticsToken: '',
 		...overrides
 	};
 	await target.route('**/api/v1/auth/providers', (route) => route.fulfill({ json: body }));

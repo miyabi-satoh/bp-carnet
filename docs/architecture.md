@@ -46,6 +46,7 @@
 | 古い版のアプリに更新を促す   | `[mobile_app] min_version` (→ docs/mobile-app.md)                                                                                             |
 | 「オープンβテスト中」の表示  | `[server] beta_notice = true`                                                                                                                 |
 | ログイン画面の紹介へのリンク | `[server] intro_url` (ウェブだけ。アプリには出さない)                                                                                         |
+| アクセス解析                 | `[server] cloudflare_analytics_token` (ウェブのログインしていない画面だけ。下の「アクセス解析」)                                             |
 
 - 画面は、未ログインで叩ける `GET /api/v1/auth/providers` (ログイン方式・β表示) と `GET /api/v1/ocr/status` (読み取り・買い足し) で、どれが使えるかを知る。
 - ログインには常にパスワードか外部の提供元の確認が要る。パスワード無しで入れるモードは無い。
@@ -62,6 +63,15 @@ SPA の素の `index.html` はどのパスも同じ枠なので、`src/seo.rs` �
 - 使い方の slug と title は `src/seo.rs` と `frontend/src/lib/help.ts`・`frontend/messages/ja.json` に二重に持つ。食い違うとテストが落ちる。
 - title は、描画後の DOM でも効くよう、クライアント (`frontend/src/lib/page-title.ts`) でも同じ文言を出す。
 - 記録の中身が検索に出ることは構造上ない。API は未ログインで 401 を返し、ログインが要る画面の HTML は中身の無い枠だけ。
+
+## アクセス解析
+
+`[server] cloudflare_analytics_token` を設定すると、ウェブのログインしていない画面 (`frontend/src/lib/auth.ts` の `PUBLIC_ROUTES`) で Cloudflare Web Analytics のスクリプトを読む (`frontend/src/lib/web-analytics.ts`)。
+
+- メールのリンクから開く画面 (パスワードの設定と再設定・メールアドレスの変更) は数えない。スクリプトは URL をクエリ文字列ごと送り、そこに使い捨ての鍵が付くため。
+- ログインした後の画面とアプリでは読まない。記録を付ける画面の使い方は計測の目的 (どれだけの人が来ているか) に要らず、アプリで読むと App Store に申告するデータの扱いが増えるため。
+- スクリプトはページを開いて最初に公開の画面に来たときに1回だけ読み、画面の移動は数えない (`"spa": false`)。数えると、ログインした後の画面も計測に入るため。トークンの問い合わせが返るまでに数えない画面へ移っていたら、読まない。
+- 利用者の画面の文言 (プライバシーポリシー) は `frontend/src/lib/legal/ja/privacy.md`「アクセス解析」。
 
 ## PWA
 
