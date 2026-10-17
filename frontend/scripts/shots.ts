@@ -869,7 +869,9 @@ export const shots: Record<string, ShotEntry> = {
 			);
 			await waitForPhotoPreview(page);
 			await page.getByRole('button', { name: ja.photo_page_preview_open_label }).click();
-			await page.getByText(ja.photo_lightbox_hint).waitFor({ timeout: 5000 });
+			await page
+				.getByRole('dialog', { name: ja.photo_page_preview_alt })
+				.waitFor({ timeout: 5000 });
 			await capture(page, ctx);
 		}
 	},

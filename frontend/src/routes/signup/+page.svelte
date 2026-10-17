@@ -48,7 +48,7 @@
 {:else}
 	<!-- デザインに無い画面のため、ResetPassword と同じ組み方 (見出し + カード1枚) に揃える。 -->
 	<CenteredScreen>
-		<AuthPageHeader icon={MailIcon} title={m.signup_title()} subtitle={m.signup_subtitle()} />
+		<AuthPageHeader icon={MailIcon} title={m.signup_title()} />
 
 		{#if !loaded}
 			<LoadingIndicator />

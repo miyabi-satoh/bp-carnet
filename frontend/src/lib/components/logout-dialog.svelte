@@ -43,7 +43,6 @@
 	<AlertDialog.Content {...closeGuard}>
 		<AlertDialog.Header>
 			<AlertDialog.Title>{m.logout_dialog_title()}</AlertDialog.Title>
-			<AlertDialog.Description>{m.logout_dialog_description()}</AlertDialog.Description>
 		</AlertDialog.Header>
 		<AlertDialog.Footer>
 			<AlertDialog.Cancel disabled={loading}>{m.common_cancel_button()}</AlertDialog.Cancel>

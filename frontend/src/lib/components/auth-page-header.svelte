@@ -5,7 +5,7 @@
 		/** 見出しの上に置く lucide のアイコン。 */
 		icon: typeof MailIcon;
 		title: string;
-		subtitle: string;
+		subtitle?: string;
 	};
 
 	let { icon: Icon, title, subtitle }: Props = $props();
@@ -20,5 +20,7 @@
 		<Icon class="size-7" aria-hidden="true" />
 	</div>
 	<h1 class="text-xl font-extrabold">{title}</h1>
-	<p class="mt-1.5 text-sm text-muted-foreground">{subtitle}</p>
+	{#if subtitle}
+		<p class="mt-1.5 text-sm text-muted-foreground">{subtitle}</p>
+	{/if}
 </div>

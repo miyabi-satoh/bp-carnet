@@ -70,11 +70,7 @@
 </script>
 
 <CenteredScreen>
-	<AuthPageHeader
-		icon={MailIcon}
-		title={m.change_email_title()}
-		subtitle={m.change_email_header_subtitle()}
-	/>
+	<AuthPageHeader icon={MailIcon} title={m.change_email_title()} />
 
 	{#if token === null}
 		<AuthCard>

@@ -64,9 +64,8 @@ test('手帳の時刻の無い行は、行に書かれた朝・夜の時間帯�
 		kind: 'notebook',
 		rows
 	});
-	// CSV の取り込みと同じ見出しと説明を出す。
+	// CSV の取り込みと同じ見出しを出す。
 	await expect(importRows.heading).toBeVisible();
-	await expect(importRows.description).toBeVisible();
 	await expect(importRows.row('夜だけ')).toContainText(ja.record_day_period_evening_label);
 	await expect(importRows.row('書き込み無し')).toContainText(ja.record_day_period_morning_label);
 });
@@ -619,11 +618,10 @@ test('血圧計の読み取りで信頼度が「低」なら、写真と見比�
 	result.reading!.confidence = 0.5;
 	const photoPage = await openPhotoPageFromHome(page, result, { kind: 'monitor', values });
 	await expect(photoPage.reviewNote(ja.photo_page_review_note_low)).toBeVisible();
-	await expect(photoPage.reviewNote(ja.photo_page_review_note)).toHaveCount(0);
 
 	await mockOcrExtract(page, { json: monitorResult(values) });
 	await photoPage.retake(await samplePhoto(page, { kind: 'monitor', values }));
-	await expect(photoPage.reviewNote(ja.photo_page_review_note)).toBeVisible();
+	await expect(photoPage.confidence(ja.ocr_confidence_high)).toBeVisible();
 	await expect(photoPage.reviewNote(ja.photo_page_review_note_low)).toHaveCount(0);
 });
 
@@ -784,7 +782,7 @@ test.describe('写真の拡大', () => {
 		page
 	}) => {
 		const { photoPage, openButton, lightbox, photo, closeButton } = await openLightbox(page);
-		await expect(photoPage.lightbox.hint).toBeVisible();
+		await expect(photoPage.lightbox.photo).toBeVisible();
 
 		// ダブルタップの拡大・縮小は動きで見せる。
 		await photo.dblclick();
@@ -986,7 +984,7 @@ test.describe('写真の拡大', () => {
 		await sheet.photoPreview.openLightbox();
 		// 全画面の中の操作を、下のシートの外側のクリックとして扱わない。
 		await lightbox.photo.click();
-		await lightbox.hint.click();
+		await lightbox.clickOutsidePhoto();
 		await page.goBack();
 		await expect(lightbox.root).toBeHidden();
 		await expect(sheet.root).toBeVisible();

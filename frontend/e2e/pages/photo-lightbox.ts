@@ -17,7 +17,8 @@ export class PhotoLightbox {
 		return this.root.getByRole('button', { name: ja.common_close_button, exact: true });
 	}
 
-	get hint(): Locator {
-		return this.root.getByText(ja.photo_lightbox_hint, { exact: true });
+	/** 写真の外の、何も無い所 (閉じるボタンと同じ帯の左端) を押す。 */
+	async clickOutsidePhoto(): Promise<void> {
+		await this.root.click({ position: { x: 8, y: 8 } });
 	}
 }

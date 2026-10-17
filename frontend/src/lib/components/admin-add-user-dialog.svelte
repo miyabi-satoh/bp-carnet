@@ -70,11 +70,7 @@
 				description={m.admin_users_add_done_description({ username: createdUsername })}
 			/>
 		{:else}
-			<DialogFormHeader
-				title={m.admin_users_add_dialog_title()}
-				description={m.admin_users_add_dialog_description()}
-				closeDisabled={loading}
-			/>
+			<DialogFormHeader title={m.admin_users_add_dialog_title()} closeDisabled={loading} />
 			{#if passwordForm.loadErrorMessage}
 				<LoadError message={passwordForm.loadErrorMessage} onretry={passwordForm.loadPolicy} />
 			{:else if passwordForm.policy === null}

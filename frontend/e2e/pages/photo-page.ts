@@ -106,6 +106,11 @@ export class PhotoPage {
 	}
 
 	/** 読み取り結果のフォームの上の案内。信頼度が「低」なら `ja.photo_page_review_note_low`。 */
+	/** 読み取り結果の「読み取り信頼度: {level}」。 */
+	confidence(level: string): Locator {
+		return this.page.getByText(ja.ocr_confidence_label.replace('{level}', level), { exact: true });
+	}
+
 	reviewNote(message: string): Locator {
 		return this.page.getByText(message, { exact: true });
 	}

@@ -579,12 +579,6 @@
 				{#if !offerManualEntry && !topupAvailable}
 					<Button type="button" onclick={pickPhoto}>{m.photo_page_pick_photo_button()}</Button>
 				{/if}
-			{:else if stage === 'confirm'}
-				{#if !offerManualEntry}
-					<p class="text-sm text-muted-foreground">
-						{m.photo_page_confirm_note({ button: m.photo_page_read_button() })}
-					</p>
-				{/if}
 			{:else if stage === 'reading'}
 				<LoadingIndicator class="py-4" label={m.photo_page_reading()} />
 				<p class="text-sm text-muted-foreground">{m.photo_page_reading_estimate()}</p>
@@ -606,8 +600,6 @@
 				<!-- 「低」なら、帯の色だけでなく文でも、写真と見比べるよう促す (docs/ocr.md)。 -->
 				{#if confidenceLevel(reading.confidence) === 'low'}
 					<p class="text-sm font-bold text-destructive">{m.photo_page_review_note_low()}</p>
-				{:else}
-					<p class="text-sm text-muted-foreground">{m.photo_page_review_note()}</p>
 				{/if}
 				<!-- 読み取り結果の下にそのままフォームを置き、このページで登録する (docs/ocr.md)。
 				     送信ボタンは下端のボタンの帯にあり、`form` 属性でこのフォームを指す。 -->

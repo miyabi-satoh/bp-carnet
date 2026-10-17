@@ -56,11 +56,7 @@
 </script>
 
 <CenteredScreen>
-	<AuthPageHeader
-		icon={LockIcon}
-		title={m.verify_email_title()}
-		subtitle={m.verify_email_subtitle()}
-	/>
+	<AuthPageHeader icon={LockIcon} title={m.verify_email_title()} />
 
 	{#if token === null}
 		<AuthCard>

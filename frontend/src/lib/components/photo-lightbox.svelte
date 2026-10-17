@@ -117,7 +117,7 @@
 		<!-- 指の操作は写真を拡大・移動するだけで、キーボードでできる操作 (閉じる) はボタンにある。 -->
 		<div
 			role="group"
-			class="flex min-h-0 flex-1 touch-none items-center justify-center overflow-hidden select-none"
+			class="flex min-h-0 flex-1 touch-none items-center justify-center overflow-hidden pb-safe-5 select-none"
 			{...zoom.handlers}
 		>
 			<img
@@ -134,8 +134,5 @@
 				style:transform={zoom.transform}
 			/>
 		</div>
-		<p class="shrink-0 p-5 pb-safe-8 text-center text-sm text-white/75">
-			{m.photo_lightbox_hint()}
-		</p>
 	</Dialog.Content>
 </Dialog.Root>

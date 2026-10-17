@@ -88,10 +88,7 @@
 </script>
 
 <section class="flex flex-col gap-3" aria-labelledby={headingId}>
-	<div class="flex flex-col gap-1">
-		<h2 id={headingId} class="text-base font-extrabold">{m.import_rows_title()}</h2>
-		<p class="text-sm leading-relaxed text-muted-foreground">{m.import_rows_description()}</p>
-	</div>
+	<h2 id={headingId} class="text-base font-extrabold">{m.import_rows_title()}</h2>
 	{@render beforeList?.()}
 	<!-- 取り込める記録が1件も無い間は、理由と次の操作を一覧の上に出す (docs/ocr.md)。
 	     CSV でも写真でも同じ見せ方にし、写真だけ読み取り直しの案内を足す。
