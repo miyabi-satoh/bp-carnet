@@ -579,6 +579,8 @@
 				{#if !offerManualEntry && !topupAvailable}
 					<Button type="button" onclick={pickPhoto}>{m.photo_page_pick_photo_button()}</Button>
 				{/if}
+			{:else if stage === 'confirm'}
+				<!-- 確かめる段階は、写真と下端の「読み取る」だけにする。下の分岐 (読み取りの結果・失敗) に落とさない。 -->
 			{:else if stage === 'reading'}
 				<LoadingIndicator class="py-4" label={m.photo_page_reading()} />
 				<p class="text-sm text-muted-foreground">{m.photo_page_reading_estimate()}</p>
