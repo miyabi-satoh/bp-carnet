@@ -197,20 +197,21 @@ bp.amiiby.com を Fly.io の東京リージョン (`nrt`) で動かす手順。
 確認メール・パスワード再設定メールを送る。本番・検証用ともに設定する (検証用も本番と同じ送信元。→ `deploy/cloud/config.staging.toml` の `[mail]`)。
 
 - プラン: 無料 (月3,000通・日100通、カード不要)。足りなくなったら `[mail]` の SMTP の設定を変えるだけで Amazon SES などに移れる。
-- 送信元: `BP Carnet <noreply@bp.amiiby.com>`。
-  - ドメインは `amiiby.com` 全体の評判と切り離すため、Resend の推奨どおりサブドメイン `bp.amiiby.com` にした。リージョンは東京 (ap-northeast-1)。
+- 送信元: `BP Carnet <noreply@amiiby.com>`。
+  - Resend のドメインは、同じ運営者のほかの製品と共有する `amiiby.com` (リージョンは東京 ap-northeast-1)。無料のプランで登録できるドメインの数に限りがあり、製品ごとのサブドメインに分けると足りなくなるため。
+  - Resend で送れる差出人は、登録したドメインそのもののアドレスだけ (`amiiby.com` を登録しても `@bp.amiiby.com` からは送れない)。
 - `amiiby.com` の DNS は Cloudflare。Resend の Domains の **Records** に出る値を、そのまま Cloudflare に足す。
 
   | TYPE | ホスト名 | 役割 |
   | --- | --- | --- |
-  | TXT | `resend._domainkey.bp` | DKIM の公開鍵 (値は Resend の画面から。大文字小文字まで一致させる) |
-  | CNAME | `send.bp` | 送信 (`send.forge.rmta.net`) |
-  | CNAME | `rsend.bp` | 送信 (`rsend-apne1.forge.rmta.net`) |
+  | TXT | `resend._domainkey` | DKIM の公開鍵 (値は Resend の画面から。大文字小文字まで一致させる) |
+  | CNAME | `send` | 送信 (`send.forge.rmta.net`) |
+  | CNAME | `rsend` | 送信 (`rsend-apne1.forge.rmta.net`) |
 
-  - DMARC は `bp` 用のレコード (`_dmarc.bp`) を置いていない。`amiiby.com` の `v=DMARC1; p=none;` が `bp.amiiby.com` にも効く (2026-09-29 に dig で確認)。`p=none` は検査に落ちたメールも弾かない。
-  - `bp` 自体は `amiiby.com` への CNAME だが、足すのは `bp` の下の別の名前なので同居できる。
+  - DMARC は `amiiby.com` の `v=DMARC1; p=none;`。`p=none` は検査に落ちたメールも弾かない。
   - 認証は Resend の Domains で **Verify** を押す。通らなければ DNS の値を見直して **Restart verification**。
-- API キー: Resend の **API Keys** で **Sending access**、ドメインを `bp.amiiby.com` に絞って発行する。表示は1回だけなので、パスワード管理ソフトに保存する (リポジトリ・チャットには貼らない)。
+- Sign in with Apple でメールを隠した人 (Apple の転送用アドレス) に届けるには、Apple Developer の「Sign in with Apple for Email Communication」の Email Sources に `amiiby.com` (DKIM の d= と From のドメイン) と `send.amiiby.com` (エンベロープの送信元) を登録する。
+- API キー: Resend の **API Keys** で **Sending access**、ドメインを `amiiby.com` に絞って発行する。表示は1回だけなので、パスワード管理ソフトに保存する (リポジトリ・チャットには貼らない)。
   - 5. の本番・検証用それぞれの `SMTP_PASSWORD` (Fly のシークレット) に入れる。
 - 出典: [ドメインの追加](https://resend.com/docs/add-a-domain)・[認証が通らないとき](https://resend.com/docs/knowledge-base/what-if-my-domain-is-not-verifying)・[API キー](https://resend.com/docs/create-an-api-key)・[DMARC](https://resend.com/docs/dashboard/domains/dmarc)
 
@@ -606,7 +607,7 @@ fly secrets set --app <app> OCR_INPUT_USD_PER_MILLION_TOKENS=<値> OCR_OUTPUT_US
 | ログに Litestream の R2 への送信のエラーが出る | シークレットの `LITESTREAM_*`・`R2_ACCOUNT_ID`、`fly.toml` の `R2_BUCKET`、トークンがそのバケットに絞られているか |
 | ログインの試行がすぐ上限に達する | 接続元を取り違えている (→ 初回セットアップ 6.「接続元を確かめる」) |
 | 記録の登録などが 403 になる | `config.*.toml` の `proxy_headers = "fly"`。Cloudflare のプロキシを挟んでいないか |
-| サインアップの確認メールが届かない | Resend でドメインの確認が済んでいるか (DKIM の TXT・`send.bp`・`rsend.bp` の CNAME。→ 初回セットアップ 4.)、`fly logs` に送信のエラーが出ていないか |
+| サインアップの確認メールが届かない | Resend でドメインの確認が済んでいるか (DKIM の TXT・`send`・`rsend` の CNAME。→ 初回セットアップ 4.)、`fly logs` に送信のエラーが出ていないか |
 | `fly deploy` が Machine を2台作ろうとする | `--ha=false` を付けたか (`deploy.yml` は付けている) |
 
 ## 設定とデータの置き場所

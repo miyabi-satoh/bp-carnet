@@ -32,7 +32,7 @@ host = "smtp.resend.com"
 tls = "starttls"
 port = 587
 username = "resend"
-from = "BP Carnet <noreply@bp.amiiby.com>"
+from = "BP Carnet <noreply@amiiby.com>"
 
 [log]
 filter = "bp_carnet=info,tower_http=info"
