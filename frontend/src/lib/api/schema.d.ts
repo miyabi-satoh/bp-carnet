@@ -1278,6 +1278,11 @@ export interface components {
              */
             betaNotice: boolean;
             /**
+             * @description Cloudflare Web Analytics のトークン。空でなければ、ウェブのログインしていない画面で計測する
+             *     (`[server] cloudflare_analytics_token`、docs/architecture.md)。
+             */
+            cloudflareAnalyticsToken: string;
+            /**
              * @description 問い合わせ先の URL。フロントエンドは「運営者にお問い合わせください」の文言にリンクを添える
              *     (`[server] contact_url`、docs/architecture.md)。
              * @example https://example.com/contact/

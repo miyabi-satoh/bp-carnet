@@ -34,7 +34,8 @@ const providers = {
 	termsVersion: '2',
 	betaNotice: false,
 	contactUrl: 'https://example.com/contact/',
-	introUrl: ''
+	introUrl: '',
+	cloudflareAnalyticsToken: ''
 };
 
 beforeEach(() => {

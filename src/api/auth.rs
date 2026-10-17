@@ -238,6 +238,9 @@ pub struct AuthProvidersResponse {
     /// (`[server] intro_url`、docs/architecture.md)。
     #[schema(example = "https://example.com/app/")]
     intro_url: String,
+    /// Cloudflare Web Analytics のトークン。空でなければ、ウェブのログインしていない画面で計測する
+    /// (`[server] cloudflare_analytics_token`、docs/architecture.md)。
+    cloudflare_analytics_token: String,
 }
 
 /// 未認証で叩ける公開エンドポイント。ログイン画面はこれを見て「Googleでログイン」「LINEでログイン」の
@@ -257,6 +260,7 @@ async fn providers(State(state): State<AppState>) -> Json<AuthProvidersResponse>
         beta_notice: state.beta_notice,
         contact_url: state.contact_url.to_string(),
         intro_url: state.intro_url.to_string(),
+        cloudflare_analytics_token: state.cloudflare_analytics_token.to_string(),
     })
 }
 

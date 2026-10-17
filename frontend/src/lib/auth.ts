@@ -143,6 +143,13 @@ export async function fetchContactUrl(): Promise<string | null> {
 	return result.ok ? result.data.contactUrl : null;
 }
 
+/** Cloudflare Web Analytics のトークンを問い合わせる。計測しない構成 (空) や、問い合わせに失敗したら `null`
+ * (計測できなくても困らないため、やり直さない)。 */
+export async function fetchAnalyticsToken(): Promise<string | null> {
+	const result = await withTimeout(requestAuthProviders(), timedOut);
+	return (result.ok && result.data.cloudflareAnalyticsToken) || null;
+}
+
 /** ログインの結果。猶予期間中の削除予約を取り消したかを返す (ホーム画面で知らせるため)。 */
 export type LoginResult = ApiResult<{ deletionCancelled: boolean }>;
 

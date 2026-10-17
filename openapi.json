@@ -4069,7 +4069,8 @@
           "termsVersion",
           "betaNotice",
           "contactUrl",
-          "introUrl"
+          "introUrl",
+          "cloudflareAnalyticsToken"
         ],
         "properties": {
           "appleAppEnabled": {
@@ -4083,6 +4084,10 @@
           "betaNotice": {
             "type": "boolean",
             "description": "`true` の場合、フロントエンドは「オープンβテスト中」のバッジと一文を出す\n(`[server] beta_notice`、docs/architecture.md)。"
+          },
+          "cloudflareAnalyticsToken": {
+            "type": "string",
+            "description": "Cloudflare Web Analytics のトークン。空でなければ、ウェブのログインしていない画面で計測する\n(`[server] cloudflare_analytics_token`、docs/architecture.md)。"
           },
           "contactUrl": {
             "type": "string",

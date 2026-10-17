@@ -195,6 +195,7 @@ pub async fn build_app(
         beta_notice: config.server.beta_notice,
         contact_url: Arc::from(config.server.contact_url.as_str()),
         intro_url: Arc::from(config.server.intro_url.as_str()),
+        cloudflare_analytics_token: Arc::from(config.server.cloudflare_analytics_token.as_str()),
         public_url: Arc::from(config.server.public_url()),
     };
 

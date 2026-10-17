@@ -76,6 +76,8 @@ pub struct AppState {
     pub contact_url: Arc<str>,
     /// 紹介ページの URL (`config.toml` の `[server] intro_url`)。空なら出さない。
     pub intro_url: Arc<str>,
+    /// Cloudflare Web Analytics のトークン (`config.toml` の `[server] cloudflare_analytics_token`)。空なら計測しない。
+    pub cloudflare_analytics_token: Arc<str>,
     /// 公開の URL (`config.toml` の `[server] public_url`、末尾の `/` なし)。
     /// canonical・sitemap.xml・robots.txt の絶対 URL に使う (docs/architecture.md)。
     pub public_url: Arc<str>,
