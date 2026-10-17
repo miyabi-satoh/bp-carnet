@@ -294,7 +294,7 @@
 	"settings_unlink_button": "解除...",
 	"settings_unlink_last_method_note": "ほかにログインできる方法が無いため、解除できません。",
 	"unlink_identity_dialog_title": "{provider}との連携を解除しますか？",
-	"unlink_identity_dialog_description": "同じメールアドレスで{provider}にログインすると、また連携されます。",
+	"unlink_identity_dialog_description": "解除しても、同じメールアドレスで{provider}にログインすると、また連携されます。",
 	"unlink_identity_dialog_line_note": "LINE側の連携も取り消します。",
 	"unlink_identity_dialog_apple_note": "Apple側の連携も取り消します。",
 	"unlink_identity_dialog_submit_button": "解除する",
