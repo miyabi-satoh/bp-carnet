@@ -63,7 +63,9 @@
 
 	// アクセス解析は、ログインしていない画面だけで数える (docs/architecture.md「アクセス解析」)。
 	$effect(() => {
-		if (isAnalyticsRoute(page.route.id)) void startWebAnalytics();
+		if (isAnalyticsRoute(page.route.id)) {
+			void startWebAnalytics(() => isAnalyticsRoute(page.route.id));
+		}
 	});
 
 	// 画面のライト・ダークを端末と別に選べるので、ステータスバーの文字色も画面に合わせる。

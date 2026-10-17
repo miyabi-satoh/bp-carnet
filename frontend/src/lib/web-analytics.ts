@@ -15,13 +15,14 @@ export function isAnalyticsRoute(routeId: string | null): boolean {
 
 let started = false;
 
-/** ログインしていない画面に来たときに呼ぶ。ページを開いてから1回だけスクリプトを読み、そのときの画面だけを数える
- * (docs/architecture.md「アクセス解析」)。アプリでは読まない。 */
-export async function startWebAnalytics(): Promise<void> {
+/** 数える画面に来たときに呼ぶ。ページを開いてから1回だけスクリプトを読み、そのときの画面だけを数える
+ * (docs/architecture.md「アクセス解析」)。アプリでは読まない。`stillCounted` は、トークンが返った時点でも
+ * 数える画面にいるか (問い合わせの間にログインして移っていたら読まない)。 */
+export async function startWebAnalytics(stillCounted: () => boolean): Promise<void> {
 	if (isNativeApp || started) return;
 	started = true;
 	const token = await fetchAnalyticsToken();
-	if (!token) return;
+	if (!token || !stillCounted()) return;
 	const script = document.createElement('script');
 	script.type = 'module';
 	script.src = BEACON_SRC;

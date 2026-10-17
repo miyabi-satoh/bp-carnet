@@ -17,9 +17,9 @@ function beacons(): HTMLScriptElement[] {
 	];
 }
 
-async function start(): Promise<void> {
+async function start(stillCounted = () => true): Promise<void> {
 	const { startWebAnalytics } = await import('./web-analytics');
-	await startWebAnalytics();
+	await startWebAnalytics(stillCounted);
 }
 
 describe('アクセス解析', () => {
@@ -35,8 +35,8 @@ describe('アクセス解析', () => {
 	it('トークンがあれば、画面の移動を数えない設定でスクリプトを1回だけ読む', async () => {
 		fetchAnalyticsToken.mockResolvedValue('token-1');
 		const { startWebAnalytics } = await import('./web-analytics');
-		await startWebAnalytics();
-		await startWebAnalytics();
+		await startWebAnalytics(() => true);
+		await startWebAnalytics(() => true);
 
 		expect(beacons()).toHaveLength(1);
 		expect(JSON.parse(beacons()[0].dataset.cfBeacon ?? '')).toEqual({
@@ -49,6 +49,12 @@ describe('アクセス解析', () => {
 	it('トークンが無い構成では読まない', async () => {
 		fetchAnalyticsToken.mockResolvedValue(null);
 		await start();
+		expect(beacons()).toHaveLength(0);
+	});
+
+	it('トークンが返るまでに数えない画面へ移っていたら読まない', async () => {
+		fetchAnalyticsToken.mockResolvedValue('token-1');
+		await start(() => false);
 		expect(beacons()).toHaveLength(0);
 	});
 
