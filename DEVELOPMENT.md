@@ -107,7 +107,8 @@ SQL 文字列自体は変えなかった場合、`.sqlx/` が古いままでも�
 (`BP_CARNET_HOME=data/dev-runtime`) と共用する (開発時に触るDBを1つにするため)。
 git worktree の中でも、`just` のコマンドは元の clone の `data/` を使う (`justfile` の `data_dir`)。
 マイグレーションファイルの追加は `cargo sqlx migrate add <name>`。sqlx-cli 自体の
-インストールは `cargo install sqlx-cli --no-default-features --features sqlite`。
+インストールは `cargo install sqlx-cli --version <版> --locked --no-default-features --features sqlite`。
+`<版>` は `Cargo.lock` の `sqlx` と同じものにする (版を付けないと最新が入り、`sqlx` と食い違う)。
 
 開発用の DB は使い捨てでよい。次のときは、DB を消して `just db-migrate` で作り直す。
 
