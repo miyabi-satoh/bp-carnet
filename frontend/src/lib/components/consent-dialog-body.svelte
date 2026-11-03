@@ -17,20 +17,19 @@
 		note,
 		onsubmit,
 		footer
-
-		/** 「送信するもの」の行。 */
-		/** 「目的」の行。 */
-		/** 運営者が保存しないことの文。Google の扱いの文を後ろに続ける。 */
-		/** そのダイアログだけの補足 (同意の取り消し方・使う枠)。 */
-		/** 「同意する」(`type="submit"`) と「同意しない」のボタン。 */
 	}: {
 		title: string;
 		lead: string;
+		/** 「送信するもの」の行。 */
 		data: string;
+		/** 「目的」の行。 */
 		purpose: string;
+		/** 運営者が保存しないことの文。Google の扱いの文を後ろに続ける。 */
 		notStored: string;
+		/** そのダイアログだけの補足 (同意の取り消し方・使う枠)。 */
 		note: string;
 		onsubmit: (event: SubmitEvent) => void;
+		/** 「同意する」(`type="submit"`) と「同意しない」のボタン。 */
 		footer: Snippet;
 	} = $props();
 </script>

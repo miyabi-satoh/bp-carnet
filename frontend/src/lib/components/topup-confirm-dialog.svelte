@@ -148,15 +148,15 @@
 		<!-- ボタンの上の余白は DialogFormFooter が持つので、フォームで包むのはリンクとボタンだけ。 -->
 		<form onsubmit={agree}>
 			<!-- 規約類 (別タブで開く。ダイアログを離れずに読めるように)。 -->
-
 			<p class="text-xs leading-relaxed text-muted-foreground">
-				<NewTabLink href={resolve('terms')}>{m.terms_title()}</NewTabLink>
-				{m.common_list_separator()}
-				<NewTabLink href={resolve('privacy')}>{m.privacy_title()}</NewTabLink>
-				{m.common_list_separator()}
-				<NewTabLink href={resolve('pricing')}>{m.pricing_title()}</NewTabLink>
-				{m.common_list_separator()}
-				<NewTabLink href={TOKUSHOHO_URL}>{m.tokushoho_title()}</NewTabLink>
+				<NewTabLink href={resolve('terms')}>{m.terms_title()}</NewTabLink
+				>{m.common_list_separator()}<NewTabLink href={resolve('privacy')}
+					>{m.privacy_title()}</NewTabLink
+				>{m.common_list_separator()}<NewTabLink href={resolve('pricing')}
+					>{m.pricing_title()}</NewTabLink
+				>{m.common_list_separator()}<NewTabLink href={TOKUSHOHO_URL}
+					>{m.tokushoho_title()}</NewTabLink
+				>
 			</p>
 
 			<DialogFormFooter loading={starting} oncancel={() => (open = false)}>

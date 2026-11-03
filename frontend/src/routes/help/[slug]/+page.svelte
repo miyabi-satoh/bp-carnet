@@ -21,7 +21,7 @@
 		'flex min-h-14 flex-col justify-center gap-0.5 rounded-lg raised bg-card px-4 py-2.5 transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50';
 </script>
 
-<!-- 使い方の項目。本文 ($lib/help/<言語>/<slug>.md) は、前置きと、1歩ずつの短い説明と画面の画像。 -->
+<!-- 使い方の項目。本文 (#lib/help/<言語>/<slug>.md) は、前置きと、1歩ずつの短い説明と画面の画像。 -->
 
 <div class="mx-auto flex max-w-2xl flex-col px-5 pb-safe-8">
 	<PageHeader backHref={resolve('help')} title={topic.title()} />

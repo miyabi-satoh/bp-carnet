@@ -6,9 +6,8 @@
 	/** 登録するボタンの直上に置く、利用規約・プライバシーポリシーへの同意の文 (docs/authentication.md)。 */
 	let {
 		message
-
-		/** `{terms}`・`{privacy}` の差し込み口を持つ文言。差し込み口はリンクにする。 */
 	}: {
+		/** `{terms}`・`{privacy}` の差し込み口を持つ文言。差し込み口はリンクにする。 */
 		message: (inputs: { terms: string; privacy: string }) => string;
 	} = $props();
 

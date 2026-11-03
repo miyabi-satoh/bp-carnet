@@ -125,7 +125,7 @@
 	// Google・LINE・Apple のコールバックからの失敗リダイレクト (`/login?oauthError=...`) を検出して表示する。
 	// リロード時に再表示されないよう、表示後は URL からクエリを取り除く。
 	// `onMount` ではなく `afterNavigate` なのは、初回表示の `onMount` 時点ではまだ router が
-	// 初期化されておらず、`replaceState` が "before router is initialized" で落ちるため。
+	// 初期化されておらず、shallow routing が "before router is initialized" で落ちるため。
 	afterNavigate(({ shallow, type }) => {
 		if (shallow && type === 'goto') return;
 

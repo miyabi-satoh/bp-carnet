@@ -120,7 +120,7 @@ test.describe('ログインなし', () => {
 		page
 	}) => {
 		const topic = new HelpTopicPage(page);
-		// 外のサイトには行かず、リンク先と開き方だけを確かめる。リンクの名前は本文 ($lib/help/ja/*.md) のもの。
+		// 外のサイトには行かず、リンク先と開き方だけを確かめる。リンクの名前は本文 (#lib/help/ja/*.md) のもの。
 		const guides = [
 			[
 				'home-screen',

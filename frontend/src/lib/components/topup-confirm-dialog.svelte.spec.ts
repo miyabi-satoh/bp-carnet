@@ -64,6 +64,9 @@ describe('TopupConfirmDialog', () => {
 		await expect
 			.element(page.getByRole('link', { name: new RegExp(m.tokushoho_title()) }))
 			.toHaveAttribute('href', 'https://amiiby.com/tokushoho/');
+		// 区切りの前後に空白を入れず、続けて出す。
+		const terms = page.getByRole('link', { name: new RegExp(m.terms_title()) }).element();
+		expect(terms.parentElement?.textContent).not.toMatch(/\s/);
 	});
 
 	it('同意すると Checkout の URL へ遷移する', async () => {

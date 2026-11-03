@@ -26,6 +26,7 @@ const NODE_MODULES = '/node_modules/';
 //   Rollup のモジュールにもアセットにも出てこない。中身は配る CSS に入っている。
 // - Service Worker の実行部分は、@vite-pwa/sveltekit がこのビルドの後で別に作る。
 // - 登録に使う workbox-window は、遅延して読むモジュールとして chunk に入り、chunk の moduleIds に出てこない。
+//   登録の処理 (`virtual:pwa-register`) の中身は @unplugin-pwa/vite のもので、下の REGISTER_PACKAGE_PATH で足す。
 const EXTRA_PACKAGES = [
 	'@inlang/paraglide-js',
 	'tailwindcss',
@@ -34,6 +35,9 @@ const EXTRA_PACKAGES = [
 	'@vite-pwa/workbox-swkit',
 	'@vite-pwa/workbox-window'
 ];
+
+// 直接の依存ではないので、@vite-pwa/sveltekit から辿って探す。
+const REGISTER_PACKAGE_PATH = ['@vite-pwa/sveltekit', '@unplugin-pwa/vite'];
 
 // ビルドの道具がバンドルに差し込む仮想モジュール (ID が `\0` で始まる) と、そのコードを持つパッケージ。
 // node_modules の外の ID なので、ここで対応を付けないと数え漏れる。
@@ -109,6 +113,7 @@ export function thirdPartyLicenses(): Plugin {
 				}
 			}
 			for (const name of EXTRA_PACKAGES) packageDirs.add(resolvePackage(root, name));
+			packageDirs.add(REGISTER_PACKAGE_PATH.reduce(resolvePackage, root));
 
 			const extracted: ExtractedPackage[] = [];
 			for (const dir of packageDirs) {

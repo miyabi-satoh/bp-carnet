@@ -6,14 +6,14 @@
 		     (無いとページがその上で止まり、帯の下に隙間が残る)。帯の中身は layout.css の pt-safe-* などで避ける。 -->
 		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 		<meta name="text-scale" content="scale" />
-		<!-- PWA (vite.config.ts の SvelteKitPWA)。SPA のフォールバック index.html にはプラグインが
+		<!-- PWA (vite.config.ts の withPwa)。SPA のフォールバック index.html にはプラグインが
 		     マニフェストのリンクを差し込まないため、ここに書く。色は layout.css のライトの背景。
 		     iOS はマニフェストのアイコンを使わないため apple-touch-icon を別に指定する。 -->
 		<link rel="manifest" href="/manifest.webmanifest" />
 		<meta name="theme-color" content="#fbf5ed" />
 		<link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
 		<!-- iPhone・iPad の Safari の上端に、App Store のアプリへの案内 (Smart App Banner) を出す。
-		     ID は $lib/app-store-link.ts の APP_STORE_URL と同じ値。 -->
+		     ID は #lib/app-store-link.ts の APP_STORE_URL と同じ値。 -->
 		<meta name="apple-itunes-app" content="app-id=6818718290" />
 		<script>
 			// SPA (ssr=false) のため mode-watcher 本体の初期化は Svelte マウント後になり、

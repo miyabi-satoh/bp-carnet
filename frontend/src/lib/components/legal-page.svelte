@@ -14,7 +14,7 @@
 <div class="mx-auto flex max-w-2xl flex-col px-5 pb-safe-8">
 	<PageHeader onback={back} {title} />
 
-	<!-- 本文はアプリに同梱した Markdown から作る ($lib/legal)。 -->
+	<!-- 本文はアプリに同梱した Markdown から作る (#lib/legal)。 -->
 	<article class="legal-document rounded-lg raised bg-card p-5 text-sm leading-7">
 		<Body />
 	</article>
