@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { userTimeZone } from '$lib/auth';
-	import * as m from '$lib/paraglide/messages.js';
-	import { currentYearIn, formatLocalDateTime, formatRecordCardDateTime } from '$lib/period';
-	import type { BpRecord } from '$lib/records';
-	import { Button } from '$lib/components/ui/button';
-	import RecordValues from '$lib/components/record-values.svelte';
+	import { userTimeZone } from '#lib/auth.js';
+	import * as m from '#lib/paraglide/messages.js';
+	import { currentYearIn, formatLocalDateTime, formatRecordCardDateTime } from '#lib/period.js';
+	import type { BpRecord } from '#lib/records.js';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import RecordValues from '#lib/components/record-values.svelte';
 	import PencilIcon from '@lucide/svelte/icons/pencil';
 	import Trash2Icon from '@lucide/svelte/icons/trash-2';
 

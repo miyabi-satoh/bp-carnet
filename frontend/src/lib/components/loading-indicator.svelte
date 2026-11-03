@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { Spinner } from '$lib/components/ui/spinner';
-	import * as m from '$lib/paraglide/messages.js';
-	import { cn } from '$lib/utils';
+	import { Spinner } from '#lib/components/ui/spinner/index.js';
+	import * as m from '#lib/paraglide/messages.js';
+	import { cn } from '#lib/utils.js';
 
 	/** 応答待ちの表示 (スピナー + 文言)。画面・ダイアログ本文の読み込み待ちに使う (ボタンの
 	 * 送信待ちは `loading-button.svelte`)。

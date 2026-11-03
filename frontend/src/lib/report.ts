@@ -1,6 +1,6 @@
 import { resolve } from '$app/paths';
-import { formatSeriesParam, parseSeriesParam, type ChartSeriesKey } from '$lib/bp-chart';
-import { parseDateParam } from '$lib/period';
+import { formatSeriesParam, parseSeriesParam, type ChartSeriesKey } from '#lib/bp-chart.js';
+import { parseDateParam } from '#lib/period.js';
 
 /** 期間 (YYYY-MM-DD、空文字は指定なし) とグラフに描く系列。 */
 export type RecordsView = { from: string; to: string; series: ChartSeriesKey[] };
@@ -20,7 +20,7 @@ export function buildReportHref(
 	to: string,
 	series: readonly ChartSeriesKey[]
 ): string {
-	return `${resolve('/report')}?${viewQuery(from, to, series)}`;
+	return `${resolve('report')}?${viewQuery(from, to, series)}`;
 }
 
 /** ADR: 印刷ページで再読み込みしても、戻ったときに復元できるよう sessionStorage に置く。 */

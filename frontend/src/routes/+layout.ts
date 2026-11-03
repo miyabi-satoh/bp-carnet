@@ -1,10 +1,10 @@
 import { redirect } from '@sveltejs/kit';
-import { browser } from '$app/environment';
+import { browser } from '$app/env';
 import { resolve } from '$app/paths';
-import { client } from '$lib/api/client';
-import { isPublicRoute, type LoadFailure } from '$lib/auth';
-import { browserTimeZone, saveDetectedTimezone } from '$lib/settings';
-import { getLocale } from '$lib/paraglide/runtime.js';
+import { client } from '#lib/api/client.js';
+import { isPublicRoute, type LoadFailure } from '#lib/auth.js';
+import { browserTimeZone, saveDetectedTimezone } from '#lib/settings.js';
+import { getLocale } from '#lib/paraglide/runtime.js';
 import type { LayoutLoad } from './$types';
 
 export const ssr = false;
@@ -48,7 +48,7 @@ export const load: LayoutLoad = async ({ route }) => {
 
 	// 401 のみ未ログインとみなす。
 	if (response.status === 401) {
-		redirect(307, resolve('/login'));
+		redirect(307, resolve('login'));
 	}
 	if (!response.ok || !data) return { user: null, loadFailure: 'server' as LoadFailure };
 

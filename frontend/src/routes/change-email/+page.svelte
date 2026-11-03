@@ -2,18 +2,18 @@
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { completeEmailChange, emailChangeTarget } from '$lib/auth';
-	import AuthCard from '$lib/components/auth-card.svelte';
-	import AuthPageHeader from '$lib/components/auth-page-header.svelte';
-	import CenteredScreen from '$lib/components/centered-screen.svelte';
-	import EmailLinkExpired from '$lib/components/email-link-expired.svelte';
-	import LoadError from '$lib/components/load-error.svelte';
-	import LoadingButton from '$lib/components/loading-button.svelte';
-	import LoadingIndicator from '$lib/components/loading-indicator.svelte';
-	import NoticeDialog from '$lib/components/notice-dialog.svelte';
-	import PageResult from '$lib/components/page-result.svelte';
-	import { Button } from '$lib/components/ui/button';
-	import * as m from '$lib/paraglide/messages.js';
+	import { completeEmailChange, emailChangeTarget } from '#lib/auth.js';
+	import AuthCard from '#lib/components/auth-card.svelte';
+	import AuthPageHeader from '#lib/components/auth-page-header.svelte';
+	import CenteredScreen from '#lib/components/centered-screen.svelte';
+	import EmailLinkExpired from '#lib/components/email-link-expired.svelte';
+	import LoadError from '#lib/components/load-error.svelte';
+	import LoadingButton from '#lib/components/loading-button.svelte';
+	import LoadingIndicator from '#lib/components/loading-indicator.svelte';
+	import NoticeDialog from '#lib/components/notice-dialog.svelte';
+	import PageResult from '#lib/components/page-result.svelte';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import * as m from '#lib/paraglide/messages.js';
 	import MailIcon from '@lucide/svelte/icons/mail';
 
 	/** メールアドレスの変更のリンクに載っているトークン。この画面の間は変わらない。 */
@@ -83,7 +83,7 @@
 	{:else if newEmail === null}
 		<EmailLinkExpired
 			description={m.change_email_expired_description()}
-			retryHref={resolve('/settings/change-email')}
+			retryHref={resolve('settings/change-email')}
 			retryLabel={m.change_email_expired_retry_button()}
 		/>
 	{:else if done}
@@ -105,6 +105,7 @@
 			<form onsubmit={handleSubmit}>
 				<p class="text-sm text-muted-foreground">{m.change_email_subtitle()}</p>
 				<p class="mt-2 text-lg font-bold break-all">{newEmail}</p>
+
 				<LoadingButton type="submit" class="mt-5 w-full text-base" {loading}
 					>{m.change_email_submit_button()}</LoadingButton
 				>

@@ -2,7 +2,7 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const token = vi.hoisted(() => ({ value: 'tok' as string | null }));
-vi.mock('$lib/native-app', () => ({
+vi.mock('#lib/native-app.js', () => ({
 	isNativeApp: true,
 	API_ORIGIN: 'https://bp.example.test',
 	appToken: () => Promise.resolve(token.value),
@@ -16,7 +16,7 @@ const fetchMock = vi.hoisted(() => {
 	return mock;
 });
 
-import { appUpdate } from '$lib/app-update.svelte';
+import { appUpdate } from '#lib/app-update.svelte.js';
 import { apiFetch, client } from './client';
 
 beforeEach(() => {

@@ -1,7 +1,7 @@
 <script lang="ts">
-	import LoadingButton from '$lib/components/loading-button.svelte';
-	import * as m from '$lib/paraglide/messages.js';
-	import { cn } from '$lib/utils';
+	import LoadingButton from '#lib/components/loading-button.svelte';
+	import * as m from '#lib/paraglide/messages.js';
+	import { cn } from '#lib/utils.js';
 
 	/** 読み込み・送信に失敗した理由の表示。`loading-indicator.svelte` と対になり、応答待ちが
 	 * 終わって差し替わる先として使う (入力エラーは `field-error-list.svelte`)。

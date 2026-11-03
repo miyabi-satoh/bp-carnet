@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('$lib/api/client', () => ({ client: { GET: vi.fn(), POST: vi.fn() } }));
-import { client } from '$lib/api/client';
-import { fetchOcrTopupResult, startOcrTopupCheckout } from '$lib/payments';
-import { respond } from '$lib/api/client.test-helpers';
+vi.mock('#lib/api/client.js', () => ({ client: { GET: vi.fn(), POST: vi.fn() } }));
+import { client } from '#lib/api/client.js';
+import { fetchOcrTopupResult, startOcrTopupCheckout } from '#lib/payments.js';
+import { respond } from '#lib/api/client.test-helpers.js';
 
 beforeEach(() => {
 	vi.mocked(client.GET).mockReset();

@@ -1,20 +1,20 @@
 import { page } from '$app/state';
-import { client } from '$lib/api/client';
+import { client } from '#lib/api/client.js';
 import {
 	type ApiResult,
 	ensureOkRequest,
 	GENERIC_ERROR_MESSAGE,
 	unwrapRequest
-} from '$lib/api/errors';
-import type { components } from '$lib/api/schema';
-import { clearAppToken, isNativeApp, saveAppToken } from '$lib/native-app';
+} from '#lib/api/errors.js';
+import type { components } from '#lib/api/schema.js';
+import { clearAppToken, isNativeApp, saveAppToken } from '#lib/native-app.js';
 import {
 	appleAuthorization,
 	googleServerAuthCode,
 	isSignInCanceled,
 	lineTokens
-} from '$lib/native-login';
-import * as m from '$lib/paraglide/messages.js';
+} from '#lib/native-login.js';
+import * as m from '#lib/paraglide/messages.js';
 
 /**
  * 未ログインでもアクセスできるページの route id。`+layout.ts` と `+layout.svelte` で共有する。

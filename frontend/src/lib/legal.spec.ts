@@ -1,6 +1,6 @@
 import { render } from 'svelte/server';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { legalDocumentComponent, type LegalDocument } from '$lib/legal';
+import { legalDocumentComponent, type LegalDocument } from '#lib/legal.js';
 
 const DOCUMENTS: readonly LegalDocument[] = ['terms', 'privacy', 'pricing'];
 

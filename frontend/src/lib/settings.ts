@@ -1,9 +1,9 @@
-import { client } from '$lib/api/client';
-import { type ApiResult, unwrapRequest } from '$lib/api/errors';
-import type { components } from '$lib/api/schema';
-import * as m from '$lib/paraglide/messages.js';
-import { getLocale } from '$lib/paraglide/runtime.js';
-import { parseClockTime, type DayPeriod } from '$lib/period';
+import { client } from '#lib/api/client.js';
+import { type ApiResult, unwrapRequest } from '#lib/api/errors.js';
+import type { components } from '#lib/api/schema.js';
+import * as m from '#lib/paraglide/messages.js';
+import { getLocale } from '#lib/paraglide/runtime.js';
+import { parseClockTime, type DayPeriod } from '#lib/period.js';
 
 export type Settings = components['schemas']['SettingsResponse'];
 

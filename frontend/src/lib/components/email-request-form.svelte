@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { tick, type Snippet } from 'svelte';
-	import { halfWidthInput } from '$lib/half-width';
-	import AuthCard from '$lib/components/auth-card.svelte';
-	import * as Field from '$lib/components/ui/field';
-	import { Input } from '$lib/components/ui/input';
-	import LoadingButton from '$lib/components/loading-button.svelte';
-	import EmailSentNotice from '$lib/components/email-sent-notice.svelte';
-	import * as m from '$lib/paraglide/messages.js';
-	import RequiredMark from '$lib/components/required-mark.svelte';
+	import { halfWidthInput } from '#lib/half-width.js';
+	import AuthCard from '#lib/components/auth-card.svelte';
+	import * as Field from '#lib/components/ui/field/index.js';
+	import { Input } from '#lib/components/ui/input/index.js';
+	import LoadingButton from '#lib/components/loading-button.svelte';
+	import EmailSentNotice from '#lib/components/email-sent-notice.svelte';
+	import * as m from '#lib/paraglide/messages.js';
+	import RequiredMark from '#lib/components/required-mark.svelte';
 
 	type Props = {
 		/** メール欄の下に出す補足。 */

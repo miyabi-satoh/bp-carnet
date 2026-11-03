@@ -1,7 +1,7 @@
 <script>
-	import HelpSteps from '$lib/components/help-steps.svelte';
-	import HelpStep from '$lib/components/help-step.svelte';
-	import HelpExternalLink from '$lib/components/help-external-link.svelte';
+	import HelpSteps from '#lib/components/help-steps.svelte';
+	import HelpStep from '#lib/components/help-step.svelte';
+	import HelpExternalLink from '#lib/components/help-external-link.svelte';
 </script>
 
 <!-- ブラウザのメニューはアプリの外なので画像を撮れない。表記はブラウザの版で変わるため、細かい操作は公式の手順 (Apple サポート・Chrome ヘルプ) に任せる。 -->

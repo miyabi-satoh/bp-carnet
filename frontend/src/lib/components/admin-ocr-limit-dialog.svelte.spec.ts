@@ -1,16 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { page, userEvent } from 'vitest/browser';
 import { render } from 'vitest-browser-svelte';
-import type { AdminUser } from '$lib/admin';
-import type { ApiResult } from '$lib/api/errors';
-import * as m from '$lib/paraglide/messages.js';
-import { requiredLabel } from '$lib/required-label';
+import type { AdminUser } from '#lib/admin.js';
+import type { ApiResult } from '#lib/api/errors.js';
+import * as m from '#lib/paraglide/messages.js';
+import { requiredLabel } from '#lib/required-label.js';
 
-vi.mock('$lib/admin', async (importOriginal) => ({
-	...(await importOriginal<typeof import('$lib/admin')>()),
+vi.mock('#lib/admin.js', async (importOriginal) => ({
+	...(await importOriginal<typeof import('#lib/admin.js')>()),
 	setUserOcrLimit: vi.fn()
 }));
-import { setUserOcrLimit } from '$lib/admin';
+import { setUserOcrLimit } from '#lib/admin.js';
 import { closeIcon } from './dialog.test-helpers';
 import Harness from './admin-ocr-limit-dialog.test-harness.svelte';
 

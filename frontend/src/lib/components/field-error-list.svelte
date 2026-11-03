@@ -1,6 +1,6 @@
 <script lang="ts">
 	import CircleAlertIcon from '@lucide/svelte/icons/circle-alert';
-	import * as Field from '$lib/components/ui/field';
+	import * as Field from '#lib/components/ui/field/index.js';
 
 	/** 欄の直下に出す入力エラー。横に並ぶ欄のエラーは並びの下にまとめて出し、同じ文言は1つにする
 	 * (上下の血圧の大小関係のように、2つの欄に同じ文言が入るエラーがあるため)。 */

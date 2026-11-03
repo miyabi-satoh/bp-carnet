@@ -1,4 +1,4 @@
-import type { components } from '$lib/api/schema';
+import type { components } from '#lib/api/schema.js';
 import {
 	fillPlaceholderTimes,
 	importRowStatus,
@@ -6,10 +6,10 @@ import {
 	parseCsvTable,
 	settleNewRows,
 	type ImportRow
-} from '$lib/import';
-import { instantWithOffset, isValidDateTime, toLocalDateTime } from '$lib/period';
-import { splitMeasuredAt } from '$lib/record-form';
-import type { PeriodThresholds } from '$lib/settings';
+} from '#lib/import.js';
+import { instantWithOffset, isValidDateTime, toLocalDateTime } from '#lib/period.js';
+import { splitMeasuredAt } from '#lib/record-form.js';
+import type { PeriodThresholds } from '#lib/settings.js';
 
 /** 他のアプリが書き出した表の形のテキスト (CSV など) の、列の意味。Gemini が先頭の数行から決める
  * (`POST /ocr/table-columns`、docs/import-export.md「他のアプリのファイル」)。 */
@@ -148,7 +148,7 @@ function clockTime(text: string): { hour: number; minute: number } | null | unde
 /** 他のアプリの日付と時刻の欄を、個人設定のタイムゾーンでの日付・時刻の2欄にする。
  * - 時刻が無ければ時刻を空で返す (仮の時刻は後で振る、`fillPlaceholderTimes`)。
  * - 秒は捨てる。他のアプリは秒まで書くものが多く、秒のある行を読めない日時にすると全行が取り込めなくなるため
- *   (このアプリが書き出した CSV は秒を捨てない、`$lib/import` の `csvMeasuredAt`)。
+ *   (このアプリが書き出した CSV は秒を捨てない、`#lib/import` の `csvMeasuredAt`)。
  * - 読めなければ `null`。 */
 export function tableMeasuredAt(
 	dateCell: string,
@@ -236,7 +236,7 @@ function rowFromGroup(
 }
 
 /** 他のアプリが書き出した表の形のテキストを、`columns` の列の意味で取り込みの行にする。
- * 行の検証・仮の時刻・チェックの初期状態は、このアプリの CSV と同じ (`$lib/import`)。 */
+ * 行の検証・仮の時刻・チェックの初期状態は、このアプリの CSV と同じ (`#lib/import.js`)。 */
 export function parseTableImport(
 	text: string,
 	columns: TableColumns,

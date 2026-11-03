@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { scheduleUserDeletion, type AdminUser } from '$lib/admin';
-	import { userDisplayName, userTimeZone } from '$lib/auth';
-	import TypedConfirmDeleteDialog from '$lib/components/typed-confirm-delete-dialog.svelte';
-	import * as m from '$lib/paraglide/messages.js';
-	import { formatFutureDateLabel } from '$lib/period';
+	import { scheduleUserDeletion, type AdminUser } from '#lib/admin.js';
+	import { userDisplayName, userTimeZone } from '#lib/auth.js';
+	import TypedConfirmDeleteDialog from '#lib/components/typed-confirm-delete-dialog.svelte';
+	import * as m from '#lib/paraglide/messages.js';
+	import { formatFutureDateLabel } from '#lib/period.js';
 
 	type Scheduled = { deletionScheduledAt: string };
 

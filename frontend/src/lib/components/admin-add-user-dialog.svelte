@@ -1,21 +1,21 @@
 <script lang="ts">
-	import { createUser } from '$lib/admin';
-	import DialogFormHeader from '$lib/components/dialog-form-header.svelte';
-	import DialogFormFooter from '$lib/components/dialog-form-footer.svelte';
-	import DialogResult from '$lib/components/dialog-result.svelte';
-	import LoadingButton from '$lib/components/loading-button.svelte';
-	import LoadingIndicator from '$lib/components/loading-indicator.svelte';
-	import LoadError from '$lib/components/load-error.svelte';
-	import NewPasswordFields from '$lib/components/new-password-fields.svelte';
-	import NoticeDialog from '$lib/components/notice-dialog.svelte';
-	import { Checkbox } from '$lib/components/ui/checkbox';
-	import * as Dialog from '$lib/components/ui/dialog';
-	import * as Field from '$lib/components/ui/field';
-	import UsernameField from '$lib/components/username-field.svelte';
-	import { busyCloseGuard, focusFirstFieldOnOpen } from '$lib/dialog';
-	import { NewPasswordState } from '$lib/new-password.svelte';
-	import * as m from '$lib/paraglide/messages.js';
-	import { usernameError } from '$lib/username';
+	import { createUser } from '#lib/admin.js';
+	import DialogFormHeader from '#lib/components/dialog-form-header.svelte';
+	import DialogFormFooter from '#lib/components/dialog-form-footer.svelte';
+	import DialogResult from '#lib/components/dialog-result.svelte';
+	import LoadingButton from '#lib/components/loading-button.svelte';
+	import LoadingIndicator from '#lib/components/loading-indicator.svelte';
+	import LoadError from '#lib/components/load-error.svelte';
+	import NewPasswordFields from '#lib/components/new-password-fields.svelte';
+	import NoticeDialog from '#lib/components/notice-dialog.svelte';
+	import { Checkbox } from '#lib/components/ui/checkbox/index.js';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
+	import * as Field from '#lib/components/ui/field/index.js';
+	import UsernameField from '#lib/components/username-field.svelte';
+	import { busyCloseGuard, focusFirstFieldOnOpen } from '#lib/dialog.js';
+	import { NewPasswordState } from '#lib/new-password.svelte.js';
+	import * as m from '#lib/paraglide/messages.js';
+	import { usernameError } from '#lib/username.js';
 
 	/** ユーザー追加モーダル。一覧の「追加...」から `bind:this` + `show()` で開く。 */
 	let { onadded }: { onadded: () => void } = $props();

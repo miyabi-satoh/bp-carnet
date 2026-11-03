@@ -7,5 +7,5 @@ import type { PageLoad } from './$types';
  * フォームを見せないようにする。 */
 export const load: PageLoad = async ({ parent }) => {
 	const { user } = await parent();
-	if (user && !user.passwordUsable) redirect(307, resolve('/settings'));
+	if (user && !user.passwordUsable) redirect(307, resolve('settings'));
 };

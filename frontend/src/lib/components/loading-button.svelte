@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { Button, type ButtonProps } from '$lib/components/ui/button';
-	import { Spinner } from '$lib/components/ui/spinner';
-	import * as m from '$lib/paraglide/messages.js';
-	import { cn } from '$lib/utils';
+	import { Button, type ButtonProps } from '#lib/components/ui/button/index.js';
+	import { Spinner } from '#lib/components/ui/spinner/index.js';
+	import * as m from '#lib/paraglide/messages.js';
+	import { cn } from '#lib/utils.js';
 
 	/** 送信中はスピナーを出すボタン。
 	 *

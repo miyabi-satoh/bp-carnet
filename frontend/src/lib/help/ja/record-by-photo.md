@@ -1,7 +1,7 @@
 <script>
-	import HelpSteps from '$lib/components/help-steps.svelte';
-	import HelpStep from '$lib/components/help-step.svelte';
-	import * as m from '$lib/paraglide/messages.js';
+	import HelpSteps from '#lib/components/help-steps.svelte';
+	import HelpStep from '#lib/components/help-step.svelte';
+	import * as m from '#lib/paraglide/messages.js';
 </script>
 
 <HelpSteps>

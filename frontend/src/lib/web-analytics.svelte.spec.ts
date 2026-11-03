@@ -2,12 +2,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const native = vi.hoisted(() => ({ value: false }));
 const fetchAnalyticsToken = vi.hoisted(() => vi.fn<() => Promise<string | null>>());
-vi.mock('$lib/native-app', () => ({
+vi.mock('#lib/native-app.js', () => ({
 	get isNativeApp() {
 		return native.value;
 	}
 }));
-vi.mock('$lib/auth', () => ({ fetchAnalyticsToken, isPublicRoute: () => true }));
+vi.mock('#lib/auth.js', () => ({ fetchAnalyticsToken, isPublicRoute: () => true }));
 
 function beacons(): HTMLScriptElement[] {
 	return [

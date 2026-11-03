@@ -10,11 +10,11 @@
 		visibleChartSeries,
 		type ChartPoint,
 		type ChartSeriesKey
-	} from '$lib/bp-chart';
-	import { formatDateTime, formatMonthDay } from '$lib/period';
-	import * as Chart from '$lib/components/ui/chart';
-	import BpChartLegend from '$lib/components/bp-chart-legend.svelte';
-	import * as m from '$lib/paraglide/messages.js';
+	} from '#lib/bp-chart.js';
+	import { formatDateTime, formatMonthDay } from '#lib/period.js';
+	import * as Chart from '#lib/components/ui/chart/index.js';
+	import BpChartLegend from '#lib/components/bp-chart-legend.svelte';
+	import * as m from '#lib/paraglide/messages.js';
 
 	type ChartSize = { width: number; height: number };
 

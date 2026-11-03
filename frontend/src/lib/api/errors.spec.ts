@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import * as m from '$lib/paraglide/messages.js';
+import * as m from '#lib/paraglide/messages.js';
 import {
 	GENERIC_ERROR_MESSAGE,
 	ensureOk,

@@ -1,7 +1,7 @@
 <script lang="ts">
 	// ADR: 角丸は shadcn-svelte 既定の rounded-lg から rounded-sm に改変。既定の lg は 10px 前後を想定しているが、layout.css の角丸トークンはデザインの実寸 (lg=20px) のため、10px の sm にする。
 	import { getChartContext, Tooltip as TooltipPrimitive } from "layerchart";
-	import { cn, type WithElementRef, type WithoutChildren } from "$lib/utils.js";
+	import { cn, type WithElementRef, type WithoutChildren } from "#lib/utils.js";
 	import { getPayloadConfigFromPayload, useChart, type TooltipPayload } from "./chart-utils.js";
 	import type { Snippet } from "svelte";
 	import type { HTMLAttributes } from "svelte/elements";

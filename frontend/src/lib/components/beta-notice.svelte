@@ -1,5 +1,5 @@
 <script lang="ts">
-	import * as m from '$lib/paraglide/messages.js';
+	import * as m from '#lib/paraglide/messages.js';
 </script>
 
 <!-- サインアップ画面に置く、オープンβテスト中の一文 (`[server] beta_notice`、docs/architecture.md)。 -->

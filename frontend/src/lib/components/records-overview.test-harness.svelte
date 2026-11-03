@@ -1,8 +1,8 @@
 <script lang="ts">
-	import RecordsOverview from '$lib/components/records-overview.svelte';
-	import type { ChartSeriesKey } from '$lib/bp-chart';
-	import type { BpRecord } from '$lib/records';
-	import { RECORD_LIST_PAGE_SIZE } from '$lib/records-view.svelte';
+	import RecordsOverview from '#lib/components/records-overview.svelte';
+	import type { ChartSeriesKey } from '#lib/bp-chart.js';
+	import type { BpRecord } from '#lib/records.js';
+	import { RECORD_LIST_PAGE_SIZE } from '#lib/records-view.svelte.js';
 
 	let { count }: { count: number } = $props();
 

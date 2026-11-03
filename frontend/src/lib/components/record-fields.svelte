@@ -1,14 +1,14 @@
 <script lang="ts">
-	import { halfWidthInput } from '$lib/half-width';
-	import { applyMemoSuggestion, memoSuggestions } from '$lib/memo-suggestions';
-	import type { RecordFormErrors } from '$lib/record-form';
-	import * as m from '$lib/paraglide/messages.js';
-	import * as Field from '$lib/components/ui/field';
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import { Textarea } from '$lib/components/ui/textarea';
-	import FieldErrorList from '$lib/components/field-error-list.svelte';
-	import RequiredMark from '$lib/components/required-mark.svelte';
+	import { halfWidthInput } from '#lib/half-width.js';
+	import { applyMemoSuggestion, memoSuggestions } from '#lib/memo-suggestions.js';
+	import type { RecordFormErrors } from '#lib/record-form.js';
+	import * as m from '#lib/paraglide/messages.js';
+	import * as Field from '#lib/components/ui/field/index.js';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import { Input } from '#lib/components/ui/input/index.js';
+	import { Textarea } from '#lib/components/ui/textarea/index.js';
+	import FieldErrorList from '#lib/components/field-error-list.svelte';
+	import RequiredMark from '#lib/components/required-mark.svelte';
 
 	/** 血圧を入れる欄一式。記録フォームのシート・写真で記録・取り込みの行を
 	 * 直すシートで共用する。見出しと送信ボタンは、シートに入れるかページに置くかを決める
@@ -30,7 +30,7 @@
 		measuredOnDate: string;
 		/** `<input type="time">` の値 ("HH:MM")。 */
 		time: string;
-		/** 数値の欄は入力されたままの文字列で持つ (`$lib/record-form`)。 */
+		/** 数値の欄は入力されたままの文字列で持つ (`#lib/record-form.js`)。 */
 		systolic: string;
 		diastolic: string;
 		pulse: string;
@@ -41,7 +41,7 @@
 		errors?: RecordFormErrors;
 		/** 送信中など、入力を受け付けないとき。 */
 		disabled?: boolean;
-		/** メモの候補にする言葉。よく使う順 (`$lib/memo-suggestions`)。 */
+		/** メモの候補にする言葉。よく使う順 (`#lib/memo-suggestions.js`)。 */
 		memoPhrases?: readonly string[];
 	} = $props();
 

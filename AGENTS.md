@@ -126,11 +126,11 @@
 
 基盤は docs/architecture.md「i18n」。ここではキーの命名規則と、ロケールの渡し方を定める。
 
-- 通して読む文章 (規約類・使い方の本文) はキーにせず、言語ごとの Markdown に書き、mdsvex でコンポーネントにする (`$lib/legal/<言語>/*.md`・`$lib/help/<言語>/*.md`)。
+- 通して読む文章 (規約類・使い方の本文) はキーにせず、言語ごとの Markdown に書き、mdsvex でコンポーネントにする (`#lib/legal/<言語>/*.md`・`#lib/help/<言語>/*.md`)。
   - 本文の中のボタン名など、画面の文言は `{m.xxx()}` で差し込み、書き写さない。Markdown は型検査の対象外なので、打ち間違いは本文を描くテスト (`help.spec.ts`) で拾う。
 
 - 日付の書式 (`toLocaleString` 等・`Intl.*`) や並べ替え (`localeCompare`) に渡すロケールは、
-  `'ja-JP'` と直書きせず `getLocale()` (`$lib/paraglide/runtime.js`) を使う。言語を足したときに表示言語に追従させるため。
+  `'ja-JP'` と直書きせず `getLocale()` (`#lib/paraglide/runtime.js`) を使う。言語を足したときに表示言語に追従させるため。
   - 表示に使わない書式 (日時の部品を取り出すための `'en-US'` など) は対象外。
 
 - キーは**フラットな snake_case** (Paraglideのメッセージキーがそのまま

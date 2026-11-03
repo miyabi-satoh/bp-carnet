@@ -2,18 +2,21 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { page } from 'vitest/browser';
 import { render } from 'vitest-browser-svelte';
-import * as m from '$lib/paraglide/messages.js';
+import * as m from '#lib/paraglide/messages.js';
 
 vi.mock('$app/navigation', () => ({
 	afterNavigate: vi.fn(),
 	beforeNavigate: vi.fn(),
 	goto: vi.fn(),
-	invalidateAll: vi.fn(),
+	refreshAll: vi.fn(),
 	preloadCode: vi.fn(async () => {}),
 	pushState: vi.fn(),
 	replaceState: vi.fn()
 }));
-vi.mock('$app/paths', () => ({ asset: (path: string) => path, resolve: (path: string) => path }));
+vi.mock('$app/paths', () => ({
+	asset: (path: string) => path,
+	resolve: (path: string) => `/${path.replace(/^\//, '')}`
+}));
 vi.mock('$app/state', () => ({
 	navigating: { to: null },
 	page: {
@@ -22,28 +25,28 @@ vi.mock('$app/state', () => ({
 		data: { user: { timezone: 'Asia/Tokyo' } }
 	}
 }));
-vi.mock('$lib/native-app', async (importOriginal) => ({
-	...(await importOriginal<typeof import('$lib/native-app')>()),
+vi.mock('#lib/native-app.js', async (importOriginal) => ({
+	...(await importOriginal<typeof import('#lib/native-app.js')>()),
 	isNativeApp: true
 }));
-vi.mock('$lib/app-store-purchase', () => ({
+vi.mock('#lib/app-store-purchase.js', () => ({
 	purchaseTopup: vi.fn(async () => ({ kind: 'granted' })),
 	topupDisplayPrice: vi.fn(async () => '¥300')
 }));
-vi.mock('$lib/auth', async (importOriginal) => ({
-	...(await importOriginal<typeof import('$lib/auth')>()),
+vi.mock('#lib/auth.js', async (importOriginal) => ({
+	...(await importOriginal<typeof import('#lib/auth.js')>()),
 	fetchContactUrl: vi.fn(async () => null)
 }));
-vi.mock('$lib/settings', async (importOriginal) => {
-	const original = await importOriginal<typeof import('$lib/settings')>();
+vi.mock('#lib/settings.js', async (importOriginal) => {
+	const original = await importOriginal<typeof import('#lib/settings.js')>();
 	return {
 		...original,
 		fetchPeriodThresholds: vi.fn(async () => original.DEFAULT_PERIOD_THRESHOLDS)
 	};
 });
-vi.mock('$lib/photo-taken-at', () => ({ photoTakenAt: vi.fn(async () => null) }));
-vi.mock('$lib/ocr', { spy: true });
-import { extractFromPhoto, fetchOcrStatus, photoFileHandoff, type OcrStatus } from '$lib/ocr';
+vi.mock('#lib/photo-taken-at.js', () => ({ photoTakenAt: vi.fn(async () => null) }));
+vi.mock('#lib/ocr.js', { spy: true });
+import { extractFromPhoto, fetchOcrStatus, photoFileHandoff, type OcrStatus } from '#lib/ocr.js';
 import PhotoPage from './+page.svelte';
 
 const status = (remainingPercent: number): OcrStatus => ({

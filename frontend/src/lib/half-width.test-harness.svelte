@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { halfWidthInput } from '$lib/half-width';
+	import { halfWidthInput } from '#lib/half-width.js';
 
 	/** テスト用: 親に bind した値を表示する。 */
 	let value = $state('');

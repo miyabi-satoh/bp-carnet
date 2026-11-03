@@ -1,5 +1,5 @@
-import { LatestRequest } from '$lib/latest-request';
-import { fetchOcrStatus, type OcrStatus } from '$lib/ocr';
+import { LatestRequest } from '#lib/latest-request.js';
+import { fetchOcrStatus, type OcrStatus } from '#lib/ocr.js';
 
 /** 取得する前の値。取得できなかったとき (`fetchOcrStatus`) と同じく、分からないものは出さない側にそろえる。 */
 const UNKNOWN_OCR_STATUS: OcrStatus = {

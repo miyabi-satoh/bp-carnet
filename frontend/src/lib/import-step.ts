@@ -1,4 +1,4 @@
-import { pushState, replaceState } from '$app/navigation';
+import { goto } from '$app/navigation';
 import { page } from '$app/state';
 
 // 「編集 → 取り込み内容の確認」の2段階のページ (CSV の取り込みのページ・写真で記録のページ) で
@@ -11,7 +11,12 @@ export function atPreviewStep(): boolean {
 
 /** 確認の段階へ進む。 */
 export function pushPreviewStep(): void {
-	pushState('', { ...page.state, importStep: 'preview' });
+	// 今のページの履歴に印を積むだけで、別のページへ移らない。
+	// eslint-disable-next-line svelte/no-navigation-without-resolve
+	goto('', {
+		shallow: true,
+		state: { ...page.state, importStep: 'preview' }
+	});
 }
 
 /** 確認の段階の履歴を消す。読み込む対象を選び直したとき、編集の段階から始めるために使う。
@@ -19,7 +24,9 @@ export function pushPreviewStep(): void {
  * 消えるのは `page.state` ごとで、確認の段階の印だけではない (記録フォームのシート・写真の拡大表示の印も消える)。
  * 対象を選び直す時点ではどれも積まれていないため。 */
 export function clearPreviewStep(): void {
-	if (page.state.importStep) replaceState('', {});
+	// 今のページの履歴を置き換えるだけで、別のページへ移らない。
+	// eslint-disable-next-line svelte/no-navigation-without-resolve
+	if (page.state.importStep) goto('', { shallow: true, replace: true });
 }
 
 /** 見出しの戻るボタン。確認の段階なら編集の段階へ戻り、そうでなければ `leave` でページを離れる。
@@ -37,7 +44,7 @@ export function backFromPreview(previewing: boolean, leave: () => void): void {
 /** 取り込み・登録を終えて元の画面へ戻るときに渡す結果。登録した記録の日付の範囲と件数。 */
 export type ImportResult = { from: string; to: string; created: number };
 
-/** 元の画面へ渡す結果。モジュールの変数で持つ (`$lib/file-handoff` と同じ)。 */
+/** 元の画面へ渡す結果。モジュールの変数で持つ (`#lib/file-handoff.js` と同じ)。 */
 let pendingResult: ImportResult | null = null;
 
 /** 元の画面へ戻る前に、取り込み・登録の結果を控える。 */

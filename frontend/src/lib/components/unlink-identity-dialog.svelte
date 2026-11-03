@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { invalidateAll } from '$app/navigation';
-	import { linkedProviderLabel, unlinkIdentity, type LinkedProvider } from '$lib/auth';
-	import DialogFormFooter from '$lib/components/dialog-form-footer.svelte';
-	import DialogFormHeader from '$lib/components/dialog-form-header.svelte';
-	import LoadingButton from '$lib/components/loading-button.svelte';
-	import NoticeDialog from '$lib/components/notice-dialog.svelte';
-	import * as Dialog from '$lib/components/ui/dialog';
-	import { busyCloseGuard } from '$lib/dialog';
-	import * as m from '$lib/paraglide/messages.js';
+	import { refreshAll } from '$app/navigation';
+	import { linkedProviderLabel, unlinkIdentity, type LinkedProvider } from '#lib/auth.js';
+	import DialogFormFooter from '#lib/components/dialog-form-footer.svelte';
+	import DialogFormHeader from '#lib/components/dialog-form-header.svelte';
+	import LoadingButton from '#lib/components/loading-button.svelte';
+	import NoticeDialog from '#lib/components/notice-dialog.svelte';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
+	import { busyCloseGuard } from '#lib/dialog.js';
+	import * as m from '#lib/paraglide/messages.js';
 
 	/** Google・LINE・Apple との連携を解除する確認のモーダル。設定画面の行から `bind:this` + `show()` で開く
 	 * (行ごとに置くと状態が増えるため、画面に1つだけ置いて対象を差し替える)。
@@ -42,7 +42,7 @@
 		const result = await unlinkIdentity(provider);
 		if (result.ok) {
 			// 一覧は `/auth/me` の値で描くので、閉じる前に読み直す (行が残ったまま閉じない)。
-			await invalidateAll();
+			await refreshAll();
 		}
 		loading = false;
 		if (!result.ok) {

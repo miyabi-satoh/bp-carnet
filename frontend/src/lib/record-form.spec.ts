@@ -5,7 +5,7 @@ import {
 	validateRecordForm,
 	type RecordFormInput
 } from './record-form';
-import * as m from '$lib/paraglide/messages.js';
+import * as m from '#lib/paraglide/messages.js';
 
 function input(overrides: Partial<RecordFormInput> = {}): RecordFormInput {
 	return {

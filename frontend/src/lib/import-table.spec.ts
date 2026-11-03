@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { parseTableImport, tableMeasuredAt, tableSample, type TableColumns } from './import-table';
-import { DEFAULT_PERIOD_THRESHOLDS } from '$lib/settings';
+import { DEFAULT_PERIOD_THRESHOLDS } from '#lib/settings.js';
 
 const TOKYO = 'Asia/Tokyo';
 

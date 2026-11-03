@@ -1,6 +1,6 @@
 <script lang="ts">
 	// ADR: 見出しの並びを shadcn-svelte 既定の中央寄せ (モバイル) から、Dialog.Header と同じ左寄せの縦並びに改変。ダイアログの種類によらず見出しの位置をそろえる。
-	import { cn, type WithElementRef } from "$lib/utils.js";
+	import { cn, type WithElementRef } from "#lib/utils.js";
 	import type { HTMLAttributes } from "svelte/elements";
 
 	let {

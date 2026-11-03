@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import * as m from '$lib/paraglide/messages.js';
+import * as m from '#lib/paraglide/messages.js';
 import {
 	DEFAULT_PERIOD_THRESHOLDS as defaults,
 	dayPeriodAt,
@@ -7,7 +7,7 @@ import {
 	periodThresholdErrors,
 	timezoneChoiceOptions,
 	timezoneLabel
-} from '$lib/settings';
+} from '#lib/settings.js';
 
 describe('dayPeriodAt', () => {
 	it('朝・夜とも [開始, 終了) として振り分ける', () => {

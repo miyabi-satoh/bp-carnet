@@ -2,29 +2,29 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import { buildChartData, parseSeriesParam, type ChartSeriesKey } from '$lib/bp-chart';
-	import { GENERIC_ERROR_MESSAGE } from '$lib/api/errors';
-	import { LatestRequest } from '$lib/latest-request';
-	import * as m from '$lib/paraglide/messages.js';
+	import { buildChartData, parseSeriesParam, type ChartSeriesKey } from '#lib/bp-chart.js';
+	import { GENERIC_ERROR_MESSAGE } from '#lib/api/errors.js';
+	import { LatestRequest } from '#lib/latest-request.js';
+	import * as m from '#lib/paraglide/messages.js';
 	import {
 		formatDateLabel,
 		formatLocalDateTimeWithWeekday,
 		parseDateParam,
 		parseLocalDate,
 		formatOpenPeriodLabel
-	} from '$lib/period';
-	import { fetchRecordsWithSummary, type BpSummary, type RecordResponse } from '$lib/records';
-	import { buildReportHref } from '$lib/report';
-	import { printPage } from '$lib/native-app';
+	} from '#lib/period.js';
+	import { fetchRecordsWithSummary, type BpSummary, type RecordResponse } from '#lib/records.js';
+	import { buildReportHref } from '#lib/report.js';
+	import { printPage } from '#lib/native-app.js';
 	import PrinterIcon from '@lucide/svelte/icons/printer';
-	import { Button } from '$lib/components/ui/button';
-	import PageHeader from '$lib/components/page-header.svelte';
-	import BpStatsSummary from '$lib/components/bp-stats-summary.svelte';
-	import BpChart from '$lib/components/bp-chart.svelte';
-	import LoadingIndicator from '$lib/components/loading-indicator.svelte';
-	import LoadError from '$lib/components/load-error.svelte';
-	import NoticeDialog from '$lib/components/notice-dialog.svelte';
-	import PeriodNav from '$lib/components/period-nav.svelte';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import PageHeader from '#lib/components/page-header.svelte';
+	import BpStatsSummary from '#lib/components/bp-stats-summary.svelte';
+	import BpChart from '#lib/components/bp-chart.svelte';
+	import LoadingIndicator from '#lib/components/loading-indicator.svelte';
+	import LoadError from '#lib/components/load-error.svelte';
+	import NoticeDialog from '#lib/components/notice-dialog.svelte';
+	import PeriodNav from '#lib/components/period-nav.svelte';
 
 	// 期間 (`from`/`to`、YYYY-MM-DD) と描く系列 (`series`) はURLクエリだけから決める。メイン画面から
 	// 引き継いだ値も、ページ内で変えた値 (`updateQuery`) もここを通る。`from`/`to` がどちらも
@@ -42,9 +42,8 @@
 		// ならないため、この規則では追えない。
 		// eslint-disable-next-line svelte/no-navigation-without-resolve
 		goto(buildReportHref(next.from, next.to, next.series), {
-			replaceState: true,
-			noScroll: true,
-			keepFocus: true
+			replace: true,
+			reset: false
 		});
 	}
 

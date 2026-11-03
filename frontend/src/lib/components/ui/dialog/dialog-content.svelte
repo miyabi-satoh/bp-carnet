@@ -4,7 +4,7 @@
 	// × を出すのはフォームのダイアログだけと決めたため。× は見出しに置く (`dialog-form-header.svelte`)。
 	// ADR: 幅と余白の改変 (shadcn-svelte 既定は max-w-[calc(100%-2rem)]・sm:max-w-sm・p-4)。デザインのダイアログは画面の端から 24px 内側に置き、中の余白も 24px。sm 以上の幅は記録フォームのシートと同じ max-w-md (文言の長いボタンを同じ幅で並べて収めるため)。
 	import { Dialog as DialogPrimitive } from "bits-ui";
-	import { cn, type WithoutChildrenOrChild } from "$lib/utils.js";
+	import { cn, type WithoutChildrenOrChild } from "#lib/utils.js";
 	import * as Dialog from "./index.js";
 	import DialogPortal from "./dialog-portal.svelte";
 	import type { Snippet } from "svelte";

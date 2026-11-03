@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import * as m from '$lib/paraglide/messages.js';
+import * as m from '#lib/paraglide/messages.js';
 import {
 	isNewPasswordValid,
 	newPasswordErrors,
 	passwordPolicyError,
 	passwordPolicyHint,
 	type PasswordPolicy
-} from '$lib/password';
+} from '#lib/password.js';
 
 const lenient: PasswordPolicy = { minLength: 4, requiredClasses: [] };
 

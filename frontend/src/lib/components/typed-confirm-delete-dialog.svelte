@@ -1,15 +1,15 @@
 <script lang="ts" generics="T extends object">
-	import type { ApiResult } from '$lib/api/errors';
-	import DialogAlertTitleRow from '$lib/components/dialog-alert-title-row.svelte';
-	import DialogFormFooter from '$lib/components/dialog-form-footer.svelte';
-	import DialogResult from '$lib/components/dialog-result.svelte';
-	import LoadingButton from '$lib/components/loading-button.svelte';
-	import NoticeDialog from '$lib/components/notice-dialog.svelte';
-	import RequiredMark from '$lib/components/required-mark.svelte';
-	import * as Dialog from '$lib/components/ui/dialog';
-	import * as Field from '$lib/components/ui/field';
-	import { Input } from '$lib/components/ui/input';
-	import { busyCloseGuard, DESTRUCTIVE_ACTION_CLASS } from '$lib/dialog';
+	import type { ApiResult } from '#lib/api/errors.js';
+	import DialogAlertTitleRow from '#lib/components/dialog-alert-title-row.svelte';
+	import DialogFormFooter from '#lib/components/dialog-form-footer.svelte';
+	import DialogResult from '#lib/components/dialog-result.svelte';
+	import LoadingButton from '#lib/components/loading-button.svelte';
+	import NoticeDialog from '#lib/components/notice-dialog.svelte';
+	import RequiredMark from '#lib/components/required-mark.svelte';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
+	import * as Field from '#lib/components/ui/field/index.js';
+	import { Input } from '#lib/components/ui/input/index.js';
+	import { busyCloseGuard, DESTRUCTIVE_ACTION_CLASS } from '#lib/dialog.js';
 
 	/** 決めた語を打ち込ませてから削除を予約する確認モーダル (本人の退会・管理者のユーザー削除)。
 	 * 違うのは文言と呼ぶ API だけなので、入れ物 (`delete-account-dialog.svelte` など) が渡す。

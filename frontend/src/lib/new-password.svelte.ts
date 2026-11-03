@@ -1,4 +1,4 @@
-import { fetchPasswordPolicy, isNewPasswordValid, type PasswordPolicy } from '$lib/password';
+import { fetchPasswordPolicy, isNewPasswordValid, type PasswordPolicy } from '#lib/password.js';
 
 /** 新しいパスワードと確認の2欄 (`new-password-fields.svelte`) を置く画面の状態。
  * ポリシーの取得と送信前の判定は画面によらず同じなので、ここに寄せる。 */

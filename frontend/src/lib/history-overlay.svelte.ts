@@ -1,4 +1,4 @@
-import { pushState } from '$app/navigation';
+import { goto } from '$app/navigation';
 import { page } from '$app/state';
 
 /** `PageState` のうち、開いた印 (`true`) を置く鍵。 */
@@ -6,7 +6,7 @@ type OverlayStateKey = {
 	[K in keyof App.PageState]-?: App.PageState[K] extends true | undefined ? K : never;
 }[keyof App.PageState];
 
-/** 開くと `pushState` で履歴に印を積み、端末の戻る操作でその印から出ると閉じる、ページの上に重ねるもの
+/** 開くと shallow routing で履歴に印を積み、端末の戻る操作でその印から出ると閉じる、ページの上に重ねるもの
  * (記録フォームのシート・写真の拡大)。コンポーネントの script で1つ作る (中で `$effect` を張る)。
  *
  * 開いているかは印から決める (`$derived`) のではなく自分で持つ。閉じた後の「進む」で開き直さないため。 */
@@ -21,6 +21,9 @@ export class HistoryOverlay {
 	 * 残っているのは、開いたまま別のページへ移ってブラウザの戻る操作で戻ってきたときや、印の付いた履歴へ
 	 * 戻ってから開き直したときなどで、そこで戻ると戻ってきたページを飛ばしてさらに前へ行ってしまう。 */
 	#openedHere = false;
+	/** 印を積む `goto` の途中か。`goto` は非同期で、開いた直後はまだ印が無く、戻る操作で印から出たのと見分けが付かない。
+	 * $state にしないのは、`#leaving` と同じ理由。 */
+	#marking = false;
 
 	/** `onBackWhileOpen` は、開いたまま戻る操作で印から出たときに呼ぶ。閉じるなら `true` を返す。
 	 * `false` なら印を積み直して開いたままにする。渡さなければいつも閉じる。 */
@@ -34,6 +37,7 @@ export class HistoryOverlay {
 				if (!this.open && !this.#leaving && this.#openedHere) history.back();
 				return;
 			}
+			if (this.#marking) return;
 			if (!this.open) {
 				this.#leaving = false;
 				return;
@@ -57,7 +61,12 @@ export class HistoryOverlay {
 	}
 
 	#keepOpen() {
-		pushState('', { ...page.state, [this.#key]: true });
+		this.#marking = true;
+		// 今のページの履歴に印を積むだけで、別のページへ移らない。
+		// eslint-disable-next-line svelte/no-navigation-without-resolve
+		goto('', { shallow: true, state: { ...page.state, [this.#key]: true } }).finally(() => {
+			this.#marking = false;
+		});
 	}
 
 	/** すぐ閉じ、開いたときに積んだ印を戻す。 */

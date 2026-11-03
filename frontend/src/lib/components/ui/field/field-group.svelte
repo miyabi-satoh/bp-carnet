@@ -1,6 +1,6 @@
 <script lang="ts">
 	// ADR: 欄の間隔は shadcn-svelte 既定 (gap-5) から gap-4 に改変。デザインは縦に並べた欄の間を 16px にしている。
-	import { cn, type WithElementRef } from "$lib/utils.js";
+	import { cn, type WithElementRef } from "#lib/utils.js";
 	import type { HTMLAttributes } from "svelte/elements";
 
 	let {

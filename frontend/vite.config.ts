@@ -5,9 +5,8 @@ import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vitest/config';
 import { playwright } from '@vitest/browser-playwright';
 import adapter from '@sveltejs/adapter-static';
-import { sveltekit } from '@sveltejs/kit/vite';
 import { mdsvex } from 'mdsvex';
-import { SvelteKitPWA } from '@vite-pwa/sveltekit';
+import { withPwa } from '@vite-pwa/sveltekit';
 import { thirdPartyLicenses } from './scripts/third-party-licenses.ts';
 import { dataDir } from './scripts/repo-paths.ts';
 
@@ -66,79 +65,75 @@ export default defineConfig({
 	plugins: [
 		tailwindcss(),
 		thirdPartyLicenses(),
-		sveltekit({
-			// 規約類 (`$lib/legal/<言語>/*.md`) と使い方の本文 (`$lib/help/<言語>/*.md`) を Svelte のコンポーネントにする。
-			extensions: ['.svelte', '.md'],
-			// 文中の引用符 ("" '') を曲がった引用符に変えない。
-			preprocess: mdsvex({
-				extensions: ['.md'],
-				smartypants: false,
-				rehypePlugins: [removeNofollow]
-			}),
-			compilerOptions: {
-				// Force runes mode for the project, except for libraries. Can be removed in svelte 6.
-				runes: ({ filename }) =>
-					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
+		withPwa(
+			{
+				// 規約類 (`#lib/legal/<言語>/*.md`) と使い方の本文 (`#lib/help/<言語>/*.md`) を Svelte のコンポーネントにする。
+				extensions: ['.svelte', '.md'],
+				// 文中の引用符 ("" '') を曲がった引用符に変えない。
+				preprocess: mdsvex({
+					extensions: ['.md'],
+					smartypants: false,
+					rehypePlugins: [removeNofollow]
+				}),
+				compilerOptions: {
+					// Force runes mode for the project, except for libraries. Can be removed in svelte 6.
+					runes: ({ filename }) =>
+						filename.split(/[/\\]/).includes('node_modules') ? undefined : true
+				},
+				adapter: adapter({ fallback: 'index.html' }),
+				// 開いたままのタブが定期的に版を聞くと、通信の無いときに止めている本番の Machine を起こす。
+				// 新しい版への切り替えは Service Worker の autoUpdate に任せているので、定期の確かめは要らない。
+				version: { pollInterval: 0 }
 			},
-			// e2e (Playwright)・開発のスクリプトとアプリの設定も svelte-check の型検査と、型情報を使う eslint の対象にする。
-			typescript: {
-				config: (config) => {
-					config.include.push(
-						'../e2e/**/*.ts',
-						'../scripts/**/*.ts',
-						'../playwright.config.ts',
-						'../capacitor.config.ts'
-					);
-				}
-			},
-			adapter: adapter({
-				fallback: 'index.html'
-			})
-		}),
-
-		// docs/architecture.md: Service Worker は静的アセットだけをキャッシュし、API の応答はキャッシュしない。
-		// 登録はセキュアコンテキストのときだけ `+layout.svelte` で行うため、自動の登録は切る。
-		SvelteKitPWA({
-			injectRegister: false,
-			registerType: 'autoUpdate',
-			kit: { spa: true, adapterFallback: 'index.html' },
-			manifest: {
-				name: 'BP Carnet',
-				short_name: 'BP Carnet',
-				lang: 'ja',
-				start_url: '/',
+			// docs/architecture.md: Service Worker は静的アセットだけをキャッシュし、API の応答はキャッシュしない。
+			// 登録はセキュアコンテキストのときだけ `+layout.svelte` で行うため、自動の登録は切る。
+			{
+				injectRegister: false,
+				// 既定は開いているページからの相対パスになり、ページごとに別の Service Worker を探してしまう。
+				base: '/',
 				scope: '/',
-				display: 'standalone',
-				// layout.css のライトの --background。
-				background_color: '#fbf5ed',
-				theme_color: '#fbf5ed',
-				// `static/` の PNG は src/lib/assets/favicon.svg (ライトの配色) から rsvg-convert で作った。
-				// maskable は、端末ごとの形に切り抜かれても欠けないよう地を正方形に塗った版。
-				icons: [
-					{ src: '/pwa-192x192.png', sizes: '192x192', type: 'image/png' },
-					{ src: '/pwa-512x512.png', sizes: '512x512', type: 'image/png' },
-					{
-						src: '/maskable-icon-512x512.png',
-						sizes: '512x512',
-						type: 'image/png',
-						purpose: 'maskable'
-					}
-				]
-			},
-			workbox: {
-				// 新しい Service Worker をすぐ有効にし、開いているタブも読み直させる (autoUpdate)。
-				// プラグインがこの2つを自動で入れるのは injectRegister が auto のときだけで、ここでは明示が要る。
-				// 入れないと、古い画面が開いている間は古いフロントが配信され続け、新しい API と食い違う。
-				skipWaiting: true,
-				clientsClaim: true,
-				// 先読みの対象は既定のまま (日本語フォントの woff2 は含まれない)。ビルド時の
-				// `prerendered/**` が一致しないという警告は、事前生成するページの無い SPA では常に出る。
-				// Google ログインのリダイレクトや CSV のダウンロードなど、`/api` への画面遷移は
-				// index.html に差し替えずサーバーへ届ける。特定商取引法の表記 (`/tokushoho`) も、サーバーの
-				// 301 で amiiby.com へ送るために届ける。
-				navigateFallbackDenylist: [/^\/api\//, /^\/tokushoho\/?$/]
+				registerType: 'autoUpdate',
+				kit: { spa: true, adapterFallback: 'index.html' },
+				manifest: {
+					name: 'BP Carnet',
+					short_name: 'BP Carnet',
+					lang: 'ja',
+					start_url: '/',
+					scope: '/',
+					display: 'standalone',
+					// layout.css のライトの --background。
+					background_color: '#fbf5ed',
+					theme_color: '#fbf5ed',
+					// `static/` の PNG は src/lib/assets/favicon.svg (ライトの配色) から rsvg-convert で作った。
+					// maskable は、端末ごとの形に切り抜かれても欠けないよう地を正方形に塗った版。
+					icons: [
+						{ src: '/pwa-192x192.png', sizes: '192x192', type: 'image/png' },
+						{ src: '/pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+						{
+							src: '/maskable-icon-512x512.png',
+							sizes: '512x512',
+							type: 'image/png',
+							purpose: 'maskable'
+						}
+					]
+				},
+				generateSW: {
+					// 新しい Service Worker をすぐ有効にし、開いているタブも読み直させる (autoUpdate)。
+					// プラグインがこの2つを自動で入れるのは injectRegister が auto のときだけで、ここでは明示が要る。
+					// 入れないと、古い画面が開いている間は古いフロントが配信され続け、新しい API と食い違う。
+					skipWaiting: true,
+					cleanupOutdatedCaches: true,
+					clientsClaim: true,
+					// 先読みの対象は既定のまま (日本語フォントの woff2 は含まれない)。既定に入る `prerendered/**` は、
+					// 事前生成するページの無い SPA では一致せず、一致しないパターンがあると止まる設定のままだとビルドが失敗する。
+					globStrict: false,
+					// Google ログインのリダイレクトや CSV のダウンロードなど、`/api` への画面遷移は
+					// index.html に差し替えずサーバーへ届ける。特定商取引法の表記 (`/tokushoho`) も、サーバーの
+					// 301 で amiiby.com へ送るために届ける。
+					navigateFallbackDenylist: [/^\/api\//, /^\/tokushoho\/?$/]
+				}
 			}
-		}),
+		),
 
 		paraglideVitePlugin({
 			project: './project.inlang',

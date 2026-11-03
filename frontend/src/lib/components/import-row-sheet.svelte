@@ -1,9 +1,9 @@
 <script lang="ts" generics="T extends ImportRow">
-	import { applyEditedRow, type ImportRow, type ImportRowStatus } from '$lib/import';
-	import * as m from '$lib/paraglide/messages.js';
-	import type { CreateRecordRequest } from '$lib/records';
-	import RecordFormSheet from '$lib/components/record-form-sheet.svelte';
-	import PhotoPreview from '$lib/components/photo-preview.svelte';
+	import { applyEditedRow, type ImportRow, type ImportRowStatus } from '#lib/import.js';
+	import * as m from '#lib/paraglide/messages.js';
+	import type { CreateRecordRequest } from '#lib/records.js';
+	import RecordFormSheet from '#lib/components/record-form-sheet.svelte';
+	import PhotoPreview from '#lib/components/photo-preview.svelte';
 
 	/** 取り込みの記録を直すシート (docs/import-export.md)。CSV の取り込みと手書きメモの読み取りで共通。
 	 * 一覧から開くので削除は出さない (モード「編集・削除なし」)。開いた時点から入力エラーを出す。

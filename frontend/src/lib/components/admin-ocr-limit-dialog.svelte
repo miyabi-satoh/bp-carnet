@@ -1,20 +1,20 @@
 <script lang="ts">
-	import { setUserOcrLimit, type AdminUser } from '$lib/admin';
-	import { userDisplayName } from '$lib/auth';
-	import DialogFormHeader from '$lib/components/dialog-form-header.svelte';
-	import DialogFormFooter from '$lib/components/dialog-form-footer.svelte';
-	import LoadingButton from '$lib/components/loading-button.svelte';
-	import NoticeDialog from '$lib/components/notice-dialog.svelte';
-	import * as Dialog from '$lib/components/ui/dialog';
-	import * as Field from '$lib/components/ui/field';
-	import { busyCloseGuard, focusFirstFieldOnOpen } from '$lib/dialog';
-	import * as m from '$lib/paraglide/messages.js';
-	import { inRange, parseStrictInt } from '$lib/utils';
-	import { FIELD_SELECT_CLASS } from '$lib/styles';
-	import FieldErrorList from '$lib/components/field-error-list.svelte';
-	import { Input } from '$lib/components/ui/input';
-	import RequiredMark from '$lib/components/required-mark.svelte';
-	import { halfWidthInput } from '$lib/half-width';
+	import { setUserOcrLimit, type AdminUser } from '#lib/admin.js';
+	import { userDisplayName } from '#lib/auth.js';
+	import DialogFormHeader from '#lib/components/dialog-form-header.svelte';
+	import DialogFormFooter from '#lib/components/dialog-form-footer.svelte';
+	import LoadingButton from '#lib/components/loading-button.svelte';
+	import NoticeDialog from '#lib/components/notice-dialog.svelte';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
+	import * as Field from '#lib/components/ui/field/index.js';
+	import { busyCloseGuard, focusFirstFieldOnOpen } from '#lib/dialog.js';
+	import * as m from '#lib/paraglide/messages.js';
+	import { inRange, parseStrictInt } from '#lib/utils.js';
+	import { FIELD_SELECT_CLASS } from '#lib/styles.js';
+	import FieldErrorList from '#lib/components/field-error-list.svelte';
+	import { Input } from '#lib/components/ui/input/index.js';
+	import RequiredMark from '#lib/components/required-mark.svelte';
+	import { halfWidthInput } from '#lib/half-width.js';
 
 	/** バックエンドの `src/validation.rs` と同じ値域・無制限の値。送信前に弾き、422 で往復するのを避ける。 */
 	const BUDGET_RANGE = [0, 100000] as const;

@@ -2,10 +2,10 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { GENERIC_ERROR_MESSAGE, type ErrorCode } from '$lib/api/errors';
-	import { userTimeZone } from '$lib/auth';
-	import { fetchExistingEntries, importDateRange } from '$lib/import';
-	import { ImportConfirmation } from '$lib/import-confirmation.svelte';
+	import { GENERIC_ERROR_MESSAGE, type ErrorCode } from '#lib/api/errors.js';
+	import { userTimeZone } from '#lib/auth.js';
+	import { fetchExistingEntries, importDateRange } from '#lib/import.js';
+	import { ImportConfirmation } from '#lib/import-confirmation.svelte.js';
 	import {
 		atPreviewStep,
 		backFromPreview,
@@ -13,8 +13,8 @@
 		leaveImportPage,
 		pushPreviewStep,
 		setImportResult
-	} from '$lib/import-step';
-	import { LeaveGuard } from '$lib/leave-guard.svelte';
+	} from '#lib/import-step.js';
+	import { LeaveGuard } from '#lib/leave-guard.svelte.js';
 	import {
 		carryOverMemos,
 		confidenceLevel,
@@ -31,41 +31,41 @@
 		photoFileHandoff,
 		type MemoRow,
 		type OcrReading
-	} from '$lib/ocr';
+	} from '#lib/ocr.js';
 	import {
 		DEFAULT_PERIOD_THRESHOLDS,
 		fetchPeriodThresholds,
 		type PeriodThresholds
-	} from '$lib/settings';
-	import * as m from '$lib/paraglide/messages.js';
-	import { currentYearIn, localToday, toLocalDateTime } from '$lib/period';
-	import { LatestRequest } from '$lib/latest-request';
-	import { OcrStatusState } from '$lib/ocr-status.svelte';
-	import { photoTakenAt } from '$lib/photo-taken-at';
-	import { recordFormSubmitLabel, requestManualEntry, splitMeasuredAt } from '$lib/record-form';
-	import { hasSameRecord, saveRecord, type CreateRecordRequest } from '$lib/records';
-	import { openFilePicker } from '$lib/utils';
-	import ButtonRow from '$lib/components/button-row.svelte';
-	import ImportPreview from '$lib/components/import-preview.svelte';
-	import LeaveConfirmDialog from '$lib/components/leave-confirm-dialog.svelte';
-	import LoadingButton from '$lib/components/loading-button.svelte';
-	import LoadingIndicator from '$lib/components/loading-indicator.svelte';
-	import LoadError from '$lib/components/load-error.svelte';
-	import OcrQuotaCard from '$lib/components/ocr-quota-card.svelte';
-	import NoticeDialog from '$lib/components/notice-dialog.svelte';
-	import OcrConfidence from '$lib/components/ocr-confidence.svelte';
-	import OcrConsentDialog from '$lib/components/ocr-consent-dialog.svelte';
-	import ImportRows from '$lib/components/import-rows.svelte';
-	import ImportRowSheet from '$lib/components/import-row-sheet.svelte';
-	import PageHeader from '$lib/components/page-header.svelte';
-	import PhotoLightbox from '$lib/components/photo-lightbox.svelte';
-	import PhotoPreview from '$lib/components/photo-preview.svelte';
-	import RecordForm from '$lib/components/record-form.svelte';
-	import SameRecordDialog from '$lib/components/same-record-dialog.svelte';
-	import ScreenFooter from '$lib/components/screen-footer.svelte';
-	import TopupConfirmDialog from '$lib/components/topup-confirm-dialog.svelte';
-	import { Button } from '$lib/components/ui/button';
-	import { FIELD_SELECT_CLASS } from '$lib/styles';
+	} from '#lib/settings.js';
+	import * as m from '#lib/paraglide/messages.js';
+	import { currentYearIn, localToday, toLocalDateTime } from '#lib/period.js';
+	import { LatestRequest } from '#lib/latest-request.js';
+	import { OcrStatusState } from '#lib/ocr-status.svelte.js';
+	import { photoTakenAt } from '#lib/photo-taken-at.js';
+	import { recordFormSubmitLabel, requestManualEntry, splitMeasuredAt } from '#lib/record-form.js';
+	import { hasSameRecord, saveRecord, type CreateRecordRequest } from '#lib/records.js';
+	import { openFilePicker } from '#lib/utils.js';
+	import ButtonRow from '#lib/components/button-row.svelte';
+	import ImportPreview from '#lib/components/import-preview.svelte';
+	import LeaveConfirmDialog from '#lib/components/leave-confirm-dialog.svelte';
+	import LoadingButton from '#lib/components/loading-button.svelte';
+	import LoadingIndicator from '#lib/components/loading-indicator.svelte';
+	import LoadError from '#lib/components/load-error.svelte';
+	import OcrQuotaCard from '#lib/components/ocr-quota-card.svelte';
+	import NoticeDialog from '#lib/components/notice-dialog.svelte';
+	import OcrConfidence from '#lib/components/ocr-confidence.svelte';
+	import OcrConsentDialog from '#lib/components/ocr-consent-dialog.svelte';
+	import ImportRows from '#lib/components/import-rows.svelte';
+	import ImportRowSheet from '#lib/components/import-row-sheet.svelte';
+	import PageHeader from '#lib/components/page-header.svelte';
+	import PhotoLightbox from '#lib/components/photo-lightbox.svelte';
+	import PhotoPreview from '#lib/components/photo-preview.svelte';
+	import RecordForm from '#lib/components/record-form.svelte';
+	import SameRecordDialog from '#lib/components/same-record-dialog.svelte';
+	import ScreenFooter from '#lib/components/screen-footer.svelte';
+	import TopupConfirmDialog from '#lib/components/topup-confirm-dialog.svelte';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import { FIELD_SELECT_CLASS } from '#lib/styles.js';
 
 	/** `pick` は写真がまだ無い (再読み込み・URL を直接開いた)、`confirm` は選んだ写真を読み取る前に確かめている、
 	 * `result` は読み取りが終わった。 */

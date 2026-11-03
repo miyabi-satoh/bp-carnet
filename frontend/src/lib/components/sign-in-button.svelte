@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { LinkedProvider } from '$lib/auth';
-	import googleGLogo from '$lib/assets/google-g-logo.svg';
-	import lineLoginIcon from '$lib/assets/line-login-icon.png';
+	import type { LinkedProvider } from '#lib/auth.js';
+	import googleGLogo from '#lib/assets/google-g-logo.svg';
+	import lineLoginIcon from '#lib/assets/line-login-icon.png';
 
 	/** LINE・Google・Apple でのログインを始めるボタン (backend のログインの開始へのリンク)。
 	 * 各社のガイドラインを守ったうえで骨組みをそろえる (docs/authentication.md)。

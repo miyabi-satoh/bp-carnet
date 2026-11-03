@@ -1,11 +1,11 @@
 // アプリ (Capacitor) の中で、メールのリンクを申し込んだあとの画面 (docs/mobile-app.md)。
 import { expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
-import * as m from '$lib/paraglide/messages.js';
-import { requiredLabel } from '$lib/required-label';
+import * as m from '#lib/paraglide/messages.js';
+import { requiredLabel } from '#lib/required-label.js';
 
-vi.mock('$lib/native-app', async (importOriginal) => ({
-	...(await importOriginal<typeof import('$lib/native-app')>()),
+vi.mock('#lib/native-app.js', async (importOriginal) => ({
+	...(await importOriginal<typeof import('#lib/native-app.js')>()),
 	isNativeApp: true
 }));
 import EmailRequestForm from './email-request-form.svelte';

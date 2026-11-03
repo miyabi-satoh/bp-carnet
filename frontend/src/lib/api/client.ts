@@ -1,10 +1,10 @@
 import createClient from 'openapi-fetch';
 import { goto } from '$app/navigation';
 import { resolve } from '$app/paths';
-import { appUpdate } from '$lib/app-update.svelte';
-import { errorCode } from '$lib/api/errors';
-import type { paths } from '$lib/api/schema';
-import { API_ORIGIN, appToken, appVersion, isNativeApp } from '$lib/native-app';
+import { appUpdate } from '#lib/app-update.svelte.js';
+import { errorCode } from '#lib/api/errors.js';
+import type { paths } from '#lib/api/schema.js';
+import { API_ORIGIN, appToken, appVersion, isNativeApp } from '#lib/native-app.js';
 
 /** 問い合わせを打ち切るまでの時間。サーバーが応えないまま待ち続け、読み込み中から抜けられなくなるのを防ぐ。 */
 const REQUEST_TIMEOUT_MS = 30_000;
@@ -76,7 +76,7 @@ async function leaveIfSessionEnded(path: string, response: Response): Promise<vo
 		.catch(() => null);
 	if (errorCode(body) !== 'unauthorized') return;
 	// 同じ画面の問い合わせが揃って切れていたときに、ログイン画面への移動を重ねない。
-	leaving ??= goto(resolve('/login'), { replaceState: true }).finally(() => (leaving = undefined));
+	leaving ??= goto(resolve('login'), { replace: true }).finally(() => (leaving = undefined));
 	await leaving;
 }
 

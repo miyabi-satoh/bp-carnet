@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { invalidateAll } from '$app/navigation';
-	import { scheduleAccountDeletion } from '$lib/auth';
-	import TypedConfirmDeleteDialog from '$lib/components/typed-confirm-delete-dialog.svelte';
-	import * as m from '$lib/paraglide/messages.js';
+	import { refreshAll } from '$app/navigation';
+	import { scheduleAccountDeletion } from '#lib/auth.js';
+	import TypedConfirmDeleteDialog from '#lib/components/typed-confirm-delete-dialog.svelte';
+	import * as m from '#lib/paraglide/messages.js';
 
 	/** アカウント削除の確認モーダル。ヘッダーのユーザーメニューと設定画面の両方から開くため、
 	 * `logout-dialog.svelte` と同じ `bind:this` + `show()` のパターンにする。 */
@@ -25,5 +25,5 @@
 	scheduledTitle={m.delete_account_dialog_scheduled_title()}
 	scheduledDescription={() => m.delete_account_dialog_scheduled_description()}
 	schedule={scheduleAccountDeletion}
-	onscheduled={() => invalidateAll()}
+	onscheduled={() => refreshAll()}
 />

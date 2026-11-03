@@ -1,18 +1,18 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import DialogFormFooter from '$lib/components/dialog-form-footer.svelte';
-	import LoadingButton from '$lib/components/loading-button.svelte';
-	import NoticeDialog from '$lib/components/notice-dialog.svelte';
-	import * as Dialog from '$lib/components/ui/dialog';
-	import { busyCloseGuard } from '$lib/dialog';
-	import { navigateTo } from '$lib/external-navigation';
-	import { startOcrTopupCheckout } from '$lib/payments';
-	import { purchaseTopup, topupDisplayPrice } from '$lib/app-store-purchase';
-	import { fetchContactUrl } from '$lib/auth';
-	import { isNativeApp } from '$lib/native-app';
-	import { isTaxIncluded } from '$lib/tax';
-	import * as m from '$lib/paraglide/messages.js';
-	import NewTabLink from '$lib/components/new-tab-link.svelte';
+	import DialogFormFooter from '#lib/components/dialog-form-footer.svelte';
+	import LoadingButton from '#lib/components/loading-button.svelte';
+	import NoticeDialog from '#lib/components/notice-dialog.svelte';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
+	import { busyCloseGuard } from '#lib/dialog.js';
+	import { navigateTo } from '#lib/external-navigation.js';
+	import { startOcrTopupCheckout } from '#lib/payments.js';
+	import { purchaseTopup, topupDisplayPrice } from '#lib/app-store-purchase.js';
+	import { fetchContactUrl } from '#lib/auth.js';
+	import { isNativeApp } from '#lib/native-app.js';
+	import { isTaxIncluded } from '#lib/tax.js';
+	import * as m from '#lib/paraglide/messages.js';
+	import NewTabLink from '#lib/components/new-tab-link.svelte';
 
 	/** 写真の読み取りを買い足す前の確認ダイアログ。
 	 * 写真で記録ページ・設定の買い足しボタンから `bind:this` + `show()` で開く。「同意して購入へ進む」で
@@ -148,21 +148,21 @@
 		<!-- ボタンの上の余白は DialogFormFooter が持つので、フォームで包むのはリンクとボタンだけ。 -->
 		<form onsubmit={agree}>
 			<!-- 規約類 (別タブで開く。ダイアログを離れずに読めるように)。 -->
+
 			<p class="text-xs leading-relaxed text-muted-foreground">
-				<NewTabLink href={resolve('/terms')}>{m.terms_title()}</NewTabLink
-				>{m.common_list_separator()}<NewTabLink href={resolve('/privacy')}
-					>{m.privacy_title()}</NewTabLink
-				>{m.common_list_separator()}<NewTabLink href={resolve('/pricing')}
-					>{m.pricing_title()}</NewTabLink
-				>{m.common_list_separator()}<NewTabLink href={TOKUSHOHO_URL}
-					>{m.tokushoho_title()}</NewTabLink
-				>
+				<NewTabLink href={resolve('terms')}>{m.terms_title()}</NewTabLink>
+				{m.common_list_separator()}
+				<NewTabLink href={resolve('privacy')}>{m.privacy_title()}</NewTabLink>
+				{m.common_list_separator()}
+				<NewTabLink href={resolve('pricing')}>{m.pricing_title()}</NewTabLink>
+				{m.common_list_separator()}
+				<NewTabLink href={TOKUSHOHO_URL}>{m.tokushoho_title()}</NewTabLink>
 			</p>
 
 			<DialogFormFooter loading={starting} oncancel={() => (open = false)}>
-				<LoadingButton type="submit" loading={starting} disabled={isNativeApp && !appPrice}>
-					{m.topup_confirm_agree_button()}
-				</LoadingButton>
+				<LoadingButton type="submit" loading={starting} disabled={isNativeApp && !appPrice}
+					>{m.topup_confirm_agree_button()}</LoadingButton
+				>
 			</DialogFormFooter>
 		</form>
 	</Dialog.Content>

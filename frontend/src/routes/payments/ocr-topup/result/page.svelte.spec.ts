@@ -1,16 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
-import * as m from '$lib/paraglide/messages.js';
+import * as m from '#lib/paraglide/messages.js';
 
 vi.mock('$app/navigation', () => ({ goto: vi.fn() }));
-vi.mock('$app/paths', () => ({ resolve: (path: string) => path }));
+vi.mock('$app/paths', () => ({ resolve: (path: string) => `/${path.replace(/^\//, '')}` }));
 const mockPage = vi.hoisted(() => ({
 	url: new URL('http://localhost/payments/ocr-topup/result')
 }));
 vi.mock('$app/state', () => ({ page: mockPage }));
-vi.mock('$lib/payments', () => ({ fetchOcrTopupResult: vi.fn() }));
+vi.mock('#lib/payments.js', () => ({ fetchOcrTopupResult: vi.fn() }));
 import { goto } from '$app/navigation';
-import { fetchOcrTopupResult } from '$lib/payments';
+import { fetchOcrTopupResult } from '#lib/payments.js';
 import ResultPage from './+page.svelte';
 
 function withSessionId(sessionId: string | null) {

@@ -1,9 +1,9 @@
 // アプリ (Capacitor) の中で開いたときの使い方の項目 (App Review Guidelines 2.3.10)。
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('$lib/native-app', () => ({ isNativeApp: true }));
+vi.mock('#lib/native-app.js', () => ({ isNativeApp: true }));
 
-import { errorHelpSlug } from '$lib/api/errors';
+import { errorHelpSlug } from '#lib/api/errors.js';
 import { findHelpTopic, HELP_TOPICS, loadHelpTopicContent } from './help';
 
 describe('使い方の項目 (アプリ)', () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { bpValueIssues } from './bp-values';
-import * as m from '$lib/paraglide/messages.js';
+import * as m from '#lib/paraglide/messages.js';
 
 describe('bpValueIssues', () => {
 	it('targets both fields when systolic is not greater than diastolic', () => {

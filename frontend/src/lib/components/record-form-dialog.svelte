@@ -1,17 +1,17 @@
 <script lang="ts">
-	import * as m from '$lib/paraglide/messages.js';
-	import { userTimeZone } from '$lib/auth';
-	import { toLocalDateTime } from '$lib/period';
-	import type { ApiFailure } from '$lib/api/errors';
-	import { splitMeasuredAt, type RecordFormMode, type RecordFormValues } from '$lib/record-form';
+	import * as m from '#lib/paraglide/messages.js';
+	import { userTimeZone } from '#lib/auth.js';
+	import { toLocalDateTime } from '#lib/period.js';
+	import type { ApiFailure } from '#lib/api/errors.js';
+	import { splitMeasuredAt, type RecordFormMode, type RecordFormValues } from '#lib/record-form.js';
 	import {
 		fetchRecord,
 		saveRecord,
 		type CreateRecordRequest,
 		type RecordResponse
-	} from '$lib/records';
-	import RecordFormSheet from '$lib/components/record-form-sheet.svelte';
-	import NoticeDialog from '$lib/components/notice-dialog.svelte';
+	} from '#lib/records.js';
+	import RecordFormSheet from '#lib/components/record-form-sheet.svelte';
+	import NoticeDialog from '#lib/components/notice-dialog.svelte';
 
 	/** 記録の登録・編集フォーム。シートの作りと命令的に開く理由は `record-form-sheet.svelte` にあり、
 	 * ここは API の呼び出しと通信エラーの表示 (エラーダイアログ) だけを受け持つ。 */

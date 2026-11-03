@@ -1,6 +1,6 @@
-import { client } from '$lib/api/client';
-import { type ApiResult, unwrapRequest } from '$lib/api/errors';
-import type { components } from '$lib/api/schema';
+import { client } from '#lib/api/client.js';
+import { type ApiResult, unwrapRequest } from '#lib/api/errors.js';
+import type { components } from '#lib/api/schema.js';
 
 /** 買い足しの結果 (`GET /payments/ocr-topup/result`) の状態。 */
 export type OcrTopupResultStatus = components['schemas']['OcrTopupResultStatus'];

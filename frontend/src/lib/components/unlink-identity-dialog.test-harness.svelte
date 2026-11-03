@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { LinkedProvider } from '$lib/auth';
-	import UnlinkIdentityDialog from '$lib/components/unlink-identity-dialog.svelte';
+	import type { LinkedProvider } from '#lib/auth.js';
+	import UnlinkIdentityDialog from '#lib/components/unlink-identity-dialog.svelte';
 
 	/** テスト用: ボタンで開く。 */
 	let { provider }: { provider: LinkedProvider } = $props();

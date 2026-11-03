@@ -1,13 +1,13 @@
 <script lang="ts" generics="T extends ImportRow">
 	import type { Snippet } from 'svelte';
-	import type { ImportRow, ImportRowStatus } from '$lib/import';
-	import * as m from '$lib/paraglide/messages.js';
-	import { formatImportRowDateTime } from '$lib/period';
-	import { dayPeriodAt, type PeriodThresholds } from '$lib/settings';
-	import { Button } from '$lib/components/ui/button';
-	import { Checkbox } from '$lib/components/ui/checkbox';
-	import NoticeBox from '$lib/components/notice-box.svelte';
-	import RecordValues from '$lib/components/record-values.svelte';
+	import type { ImportRow, ImportRowStatus } from '#lib/import.js';
+	import * as m from '#lib/paraglide/messages.js';
+	import { formatImportRowDateTime } from '#lib/period.js';
+	import { dayPeriodAt, type PeriodThresholds } from '#lib/settings.js';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import { Checkbox } from '#lib/components/ui/checkbox/index.js';
+	import NoticeBox from '#lib/components/notice-box.svelte';
+	import RecordValues from '#lib/components/record-values.svelte';
 	import CheckIcon from '@lucide/svelte/icons/check';
 	import CircleAlertIcon from '@lucide/svelte/icons/circle-alert';
 	import ListFilterIcon from '@lucide/svelte/icons/list-filter';
@@ -54,7 +54,7 @@
 	/** 確かめてほしい行だけに絞るか。行が多いときのための絞り込み (docs/import-export.md)。 */
 	let needsReviewOnly = $state(false);
 
-	// 送る行の条件 (`$lib/import` の `includedRows`) と揃える。チェックの入ったエラー行を
+	// 送る行の条件 (`#lib/import` の `includedRows`) と揃える。チェックの入ったエラー行を
 	// 数えると、出した件数より送る件数が少なくなる。
 	const keptCount = $derived(rows.filter((row) => row.keep && !row.rowError).length);
 	const shown = $derived(

@@ -1,8 +1,8 @@
 <script lang="ts">
-	import AuthCard from '$lib/components/auth-card.svelte';
-	import PageResult from '$lib/components/page-result.svelte';
-	import { Button } from '$lib/components/ui/button';
-	import * as m from '$lib/paraglide/messages.js';
+	import AuthCard from '#lib/components/auth-card.svelte';
+	import PageResult from '#lib/components/page-result.svelte';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import * as m from '#lib/paraglide/messages.js';
 
 	let {
 		description,

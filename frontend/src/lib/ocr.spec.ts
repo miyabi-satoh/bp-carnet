@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
-import * as m from '$lib/paraglide/messages.js';
+import * as m from '#lib/paraglide/messages.js';
 
-vi.mock('$lib/api/client', () => ({ client: { GET: vi.fn(), POST: vi.fn() } }));
+vi.mock('#lib/api/client.js', () => ({ client: { GET: vi.fn(), POST: vi.fn() } }));
 // 写真の縮小はブラウザの API に頼るので、読み取りの失敗の扱いだけを見るテストでは素通しにする。
-vi.mock('$lib/ocr-image', () => ({ resizeImage: vi.fn(async (file: File) => file) }));
-import { client } from '$lib/api/client';
+vi.mock('#lib/ocr-image.js', () => ({ resizeImage: vi.fn(async (file: File) => file) }));
+import { client } from '#lib/api/client.js';
 import {
 	carryOverMemos,
 	confidenceLevel,
@@ -19,9 +19,9 @@ import {
 	type MemoRow,
 	type OcrReading
 } from './ocr';
-import type { ImportEntry } from '$lib/import';
-import { DEFAULT_PERIOD_THRESHOLDS } from '$lib/settings';
-import { respond } from '$lib/api/client.test-helpers';
+import type { ImportEntry } from '#lib/import.js';
+import { DEFAULT_PERIOD_THRESHOLDS } from '#lib/settings.js';
+import { respond } from '#lib/api/client.test-helpers.js';
 
 describe('fetchOcrStatus', () => {
 	it('成功したレスポンスをそのまま返す', async () => {

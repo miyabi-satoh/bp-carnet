@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { importRowNote, importRowStatus, type ImportRow } from '$lib/import';
-	import ImportRows from '$lib/components/import-rows.svelte';
-	import { DEFAULT_PERIOD_THRESHOLDS } from '$lib/settings';
+	import { importRowNote, importRowStatus, type ImportRow } from '#lib/import.js';
+	import ImportRows from '#lib/components/import-rows.svelte';
+	import { DEFAULT_PERIOD_THRESHOLDS } from '#lib/settings.js';
 
 	let rows = $state<ImportRow[]>([
 		{

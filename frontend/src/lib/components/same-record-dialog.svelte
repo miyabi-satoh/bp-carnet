@@ -1,6 +1,6 @@
 <script lang="ts">
-	import * as AlertDialog from '$lib/components/ui/alert-dialog';
-	import * as m from '$lib/paraglide/messages.js';
+	import * as AlertDialog from '#lib/components/ui/alert-dialog/index.js';
+	import * as m from '#lib/paraglide/messages.js';
 
 	/** 同じ日時・同じ値の記録がすでにあるとき、登録を続けるかを聞く。
 	 * `show()` は「登録する」なら `true`、やめる・閉じるなら `false` で解決する。 */

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { navigating } from '$app/state';
-	import { delayedFlag, NAVIGATION_SHOW_DELAY_MS } from '$lib/delayed-flag.svelte';
-	import * as m from '$lib/paraglide/messages.js';
+	import { delayedFlag, NAVIGATION_SHOW_DELAY_MS } from '#lib/delayed-flag.svelte.js';
+	import * as m from '#lib/paraglide/messages.js';
 
 	/** 画面遷移中のインジケーター。遷移のたびに `+layout.ts` が `/auth/me` を待つため、
 	 * 遷移前の画面が残ったまま反応が無い時間ができる。それを画面上端の細いバーで示す。

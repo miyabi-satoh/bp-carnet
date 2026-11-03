@@ -1,7 +1,7 @@
-import { client } from '$lib/api/client';
-import { type ApiResult, unwrapRequest } from '$lib/api/errors';
-import type { TableColumns } from '$lib/import-table';
-import type { OcrReading } from '$lib/ocr';
+import { client } from '#lib/api/client.js';
+import { type ApiResult, unwrapRequest } from '#lib/api/errors.js';
+import type { TableColumns } from '#lib/import-table.js';
+import type { OcrReading } from '#lib/ocr.js';
 
 /** 他のアプリが書き出したファイルの読み取り (Gemini 連携、docs/import-export.md「他のアプリのファイル」)。
  * 送る前の同意は画面が取る (`file-read-consent-dialog.svelte`)。 */
@@ -28,7 +28,7 @@ export async function readDocument(file: File): Promise<ApiResult<{ data: OcrRea
 function postDocument(formData: FormData) {
 	return client.POST('/api/v1/ocr/document', {
 		// FIX: openapi-typescript は multipart のボディを JSON 的な形で型付けするため、実際に渡す
-		// `FormData` とは型が一致しない (`$lib/ocr` の `postPhoto` と同じ)。
+		// `FormData` とは型が一致しない (`#lib/ocr` の `postPhoto` と同じ)。
 		// @ts-expect-error -- 上記の理由による。
 		body: formData
 	});

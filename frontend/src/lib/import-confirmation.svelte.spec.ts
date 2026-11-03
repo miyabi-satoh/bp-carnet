@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('$lib/import', async (importOriginal) => ({
-	...(await importOriginal<typeof import('$lib/import')>()),
+vi.mock('#lib/import.js', async (importOriginal) => ({
+	...(await importOriginal<typeof import('#lib/import.js')>()),
 	importRows: vi.fn()
 }));
-import { importRows, type ImportOutcome, type ImportRow } from '$lib/import';
-import * as m from '$lib/paraglide/messages.js';
+import { importRows, type ImportOutcome, type ImportRow } from '#lib/import.js';
+import * as m from '#lib/paraglide/messages.js';
 import { ImportConfirmation } from './import-confirmation.svelte';
 
 /** `importRows` は差し替えているので、行の中身は使われない。 */

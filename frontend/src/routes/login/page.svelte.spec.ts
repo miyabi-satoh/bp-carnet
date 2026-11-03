@@ -1,29 +1,29 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
-import * as m from '$lib/paraglide/messages.js';
+import * as m from '#lib/paraglide/messages.js';
 
 vi.mock('$app/navigation', () => ({
 	afterNavigate: vi.fn(),
 	goto: vi.fn(),
-	invalidateAll: vi.fn(),
+	refreshAll: vi.fn(),
 	replaceState: vi.fn()
 }));
 vi.mock('$app/paths', () => ({
 	resolve: (path: string, params: Record<string, string> = {}) =>
-		path.replace(/\[(\w+)\]/g, (_, key: string) => params[key])
+		`/${path.replace(/^\//, '')}`.replace(/\[(\w+)\]/g, (_, key: string) => params[key])
 }));
 vi.mock('$app/state', () => ({ page: { url: new URL('http://localhost/login'), data: {} } }));
-vi.mock('$lib/auth', async (importOriginal) => ({
-	...(await importOriginal<typeof import('$lib/auth')>()),
+vi.mock('#lib/auth.js', async (importOriginal) => ({
+	...(await importOriginal<typeof import('#lib/auth.js')>()),
 	fetchAuthProviders: vi.fn(),
 	login: vi.fn()
 }));
-vi.mock('$lib/in-app-browser', () => ({ isInAppBrowser: vi.fn(() => false) }));
-vi.mock('$lib/ios-web-app', () => ({ isIosWebApp: vi.fn(() => false) }));
+vi.mock('#lib/in-app-browser.js', () => ({ isInAppBrowser: vi.fn(() => false) }));
+vi.mock('#lib/ios-web-app.js', () => ({ isIosWebApp: vi.fn(() => false) }));
 import { goto } from '$app/navigation';
-import { isInAppBrowser } from '$lib/in-app-browser';
-import { isIosWebApp } from '$lib/ios-web-app';
-import { fetchAuthProviders, login, type LoginResult } from '$lib/auth';
+import { isInAppBrowser } from '#lib/in-app-browser.js';
+import { isIosWebApp } from '#lib/ios-web-app.js';
+import { fetchAuthProviders, login, type LoginResult } from '#lib/auth.js';
 import LoginPage from './+page.svelte';
 
 const providers = {
@@ -78,7 +78,7 @@ describe('ユーザーIDの入力欄', () => {
 
 		await vi.waitFor(() => expect(login).toHaveBeenCalledWith('sakura', '1234'));
 		// ログイン画面は履歴に残さない。
-		await vi.waitFor(() => expect(goto).toHaveBeenCalledWith('/', { replaceState: true }));
+		await vi.waitFor(() => expect(goto).toHaveBeenCalledWith('/', { replace: true }));
 	});
 });
 

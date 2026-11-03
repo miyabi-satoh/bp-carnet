@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { AdminUser } from '$lib/admin';
-	import AdminOcrLimitDialog from '$lib/components/admin-ocr-limit-dialog.svelte';
+	import type { AdminUser } from '#lib/admin.js';
+	import AdminOcrLimitDialog from '#lib/components/admin-ocr-limit-dialog.svelte';
 
 	/** テスト用: ボタンで対象ユーザーを渡して開き、保存の通知の回数を表示する。 */
 	let { user }: { user: AdminUser } = $props();

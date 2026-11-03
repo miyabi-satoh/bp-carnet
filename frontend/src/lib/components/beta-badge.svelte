@@ -1,5 +1,5 @@
 <script lang="ts">
-	import * as m from '$lib/paraglide/messages.js';
+	import * as m from '#lib/paraglide/messages.js';
 
 	/** 「オープンβテスト中」の小さなバッジ (`[server] beta_notice`、docs/architecture.md)。
 	 * 色に意味を持たせず (朝・夜の色と衝突しないよう)、muted の中立色にする。 */

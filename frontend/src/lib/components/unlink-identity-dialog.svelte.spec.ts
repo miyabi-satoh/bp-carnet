@@ -1,25 +1,25 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { page, userEvent } from 'vitest/browser';
 import { render } from 'vitest-browser-svelte';
-import type { ApiResult } from '$lib/api/errors';
-import * as m from '$lib/paraglide/messages.js';
+import type { ApiResult } from '#lib/api/errors.js';
+import * as m from '#lib/paraglide/messages.js';
 
 vi.mock('$app/state', () => ({ page: { data: { user: { timezone: 'Asia/Tokyo' } } } }));
 vi.mock('$app/navigation', () => ({
 	goto: vi.fn(),
-	invalidateAll: vi.fn(() => Promise.resolve())
+	refreshAll: vi.fn(() => Promise.resolve())
 }));
-vi.mock('$lib/auth', async (importOriginal) => ({
-	...(await importOriginal<typeof import('$lib/auth')>()),
+vi.mock('#lib/auth.js', async (importOriginal) => ({
+	...(await importOriginal<typeof import('#lib/auth.js')>()),
 	unlinkIdentity: vi.fn()
 }));
-import { invalidateAll } from '$app/navigation';
-import { unlinkIdentity } from '$lib/auth';
+import { refreshAll } from '$app/navigation';
+import { unlinkIdentity } from '#lib/auth.js';
 import Harness from './unlink-identity-dialog.test-harness.svelte';
 
 beforeEach(() => {
 	vi.mocked(unlinkIdentity).mockReset();
-	vi.mocked(invalidateAll).mockClear();
+	vi.mocked(refreshAll).mockClear();
 });
 
 describe('UnlinkIdentityDialog', () => {
@@ -36,7 +36,7 @@ describe('UnlinkIdentityDialog', () => {
 		await page.getByRole('button', { name: m.unlink_identity_dialog_submit_button() }).click();
 
 		await vi.waitFor(() => expect(unlinkIdentity).toHaveBeenCalledWith('line'));
-		await vi.waitFor(() => expect(invalidateAll).toHaveBeenCalledTimes(1));
+		await vi.waitFor(() => expect(refreshAll).toHaveBeenCalledTimes(1));
 		await expect.element(page.getByRole('dialog')).not.toBeInTheDocument();
 	});
 
@@ -78,7 +78,7 @@ describe('UnlinkIdentityDialog', () => {
 		await page.getByRole('button', { name: m.unlink_identity_dialog_submit_button() }).click();
 
 		await expect.element(page.getByText(m.unlink_identity_dialog_error_title())).toBeVisible();
-		expect(invalidateAll).not.toHaveBeenCalled();
+		expect(refreshAll).not.toHaveBeenCalled();
 	});
 
 	it('解除中はキャンセルできず、Esc でも閉じない', async () => {

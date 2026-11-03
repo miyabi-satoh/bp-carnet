@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { render } from 'vitest-browser-svelte';
-import { Spinner } from '$lib/components/ui/spinner';
+import { Spinner } from '#lib/components/ui/spinner/index.js';
 
 describe('Spinner', () => {
 	// 未指定の stroke を undefined で渡すと、@lucide/svelte の既定の線の色が消えて何も描かれない。

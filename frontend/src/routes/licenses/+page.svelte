@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { backOrLogin } from '$lib/back-or-login';
-	import PageHeader from '$lib/components/page-header.svelte';
-	import { isNativeApp } from '$lib/native-app';
-	import * as m from '$lib/paraglide/messages.js';
-	import { SECTION_TITLE_CLASS } from '$lib/styles';
+	import { backOrLogin } from '#lib/back-or-login.js';
+	import PageHeader from '#lib/components/page-header.svelte';
+	import { isNativeApp } from '#lib/native-app.js';
+	import * as m from '#lib/paraglide/messages.js';
+	import { SECTION_TITLE_CLASS } from '#lib/styles.js';
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
 	import { SvelteSet } from 'svelte/reactivity';
 	import type { DisplayPackage, LicenseDisplay } from '../../../scripts/license-display';

@@ -1,6 +1,5 @@
-import { resolve } from '$app/paths';
-import { client } from '$lib/api/client';
-import { createFileHandoff } from '$lib/file-handoff';
+import { client } from '#lib/api/client.js';
+import { createFileHandoff } from '#lib/file-handoff.js';
 import {
 	type ApiFailure,
 	type ApiResult,
@@ -9,8 +8,8 @@ import {
 	GENERIC_ERROR_MESSAGE,
 	unwrap,
 	unwrapRequest
-} from '$lib/api/errors';
-import type { components } from '$lib/api/schema';
+} from '#lib/api/errors.js';
+import type { components } from '#lib/api/schema.js';
 import {
 	fillPlaceholderTimes,
 	importRowStatus,
@@ -19,13 +18,13 @@ import {
 	type ImportEntry,
 	type ImportRow,
 	type ImportRowStatus
-} from '$lib/import';
-import { isNativeApp } from '$lib/native-app';
-import * as m from '$lib/paraglide/messages.js';
-import { formatDateOnly, isValidDateTime } from '$lib/period';
-import { resizeImage } from '$lib/ocr-image';
-import { dayPeriodAt, type PeriodThresholds } from '$lib/settings';
-import { parseStrictInt } from '$lib/utils';
+} from '#lib/import.js';
+import { isNativeApp } from '#lib/native-app.js';
+import * as m from '#lib/paraglide/messages.js';
+import { formatDateOnly, isValidDateTime } from '#lib/period.js';
+import { resizeImage } from '#lib/ocr-image.js';
+import { dayPeriodAt, type PeriodThresholds } from '#lib/settings.js';
+import { parseStrictInt } from '#lib/utils.js';
 
 export type OcrResult = components['schemas']['OcrResult'];
 export type OcrReading = components['schemas']['OcrReading'];
@@ -54,7 +53,7 @@ export function quotasExhausted(quotas: OcrQuota[] | null): boolean {
 export const PHOTO_FILE_ACCEPT = 'image/*';
 
 /** ホーム画面で選んだ、写真で記録のページへ渡す写真。 */
-export const photoFileHandoff = createFileHandoff(resolve('/record/photo'));
+export const photoFileHandoff = createFileHandoff('/record/photo');
 
 /** `GET /api/v1/ocr/status` — 未ログイン以外は失敗させない。取得できなければ、有効かは `null`
  * (分からない)、買い足しは出さない扱いにする (通信エラー等で誤って買い足しの導線を出さないため)。
@@ -157,7 +156,7 @@ export function confidenceLevel(confidence: number): ConfidenceLevel {
 }
 
 /** 手書きメモの複数行読み取り結果 1 行分。CSV の行 (`ImportRow`) に読み取り固有のものを足した
- * 形で、取り込みの一覧・確認・送信は CSV と同じ道を通る (`$lib/import`)。 */
+ * 形で、取り込みの一覧・確認・送信は CSV と同じ道を通る (`#lib/import.js`)。 */
 export type MemoRow = ImportRow & {
 	confidence: number;
 	/** Gemini からの補足 (判読できない字など)。記録には取り込まない。 */
@@ -262,7 +261,7 @@ export function memoRowsFromReadings(
 	today: Date
 ): MemoRow[] {
 	const rows = readings.map((r): MemoRow => {
-		// PDF の読み取り (`$lib/ocr-files`) は、年が書かれていれば年まで返す。年はアプリが決めたものでないので、
+		// PDF の読み取り (`#lib/ocr-files.js`) は、年が書かれていれば年まで返す。年はアプリが決めたものでないので、
 		// 「年」の欄では動かさない。
 		const fullDate = /^\d{4}-\d{2}-\d{2}$/.test(r.measuredOn ?? '') ? (r.measuredOn ?? '') : '';
 		const measuredOnDate = fullDate || inferMeasuredOnYear(r.measuredOn, today);
@@ -308,6 +307,7 @@ export function carryOverMemos(
 		const diastolic = parseStrictInt(row.diastolic);
 		return remaining.findIndex((entry) => {
 			const [date, time] = entry.measuredAtLocal.split('T');
+
 			return (
 				date === row.measuredOnDate &&
 				(sameTime ? time === row.time : dayPeriodAt(time, periods) === period) &&

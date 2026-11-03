@@ -8,15 +8,15 @@
 		type ImportDiffRow,
 		type ImportDiffStatus,
 		type ImportRow
-	} from '$lib/import';
-	import * as m from '$lib/paraglide/messages.js';
-	import { formatDateWithWeekday, parseLocalDate } from '$lib/period';
-	import { Button } from '$lib/components/ui/button';
-	import LoadingButton from '$lib/components/loading-button.svelte';
-	import LoadingIndicator from '$lib/components/loading-indicator.svelte';
-	import LoadError from '$lib/components/load-error.svelte';
-	import NoticeBox from '$lib/components/notice-box.svelte';
-	import ScreenFooter from '$lib/components/screen-footer.svelte';
+	} from '#lib/import.js';
+	import * as m from '#lib/paraglide/messages.js';
+	import { formatDateWithWeekday, parseLocalDate } from '#lib/period.js';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import LoadingButton from '#lib/components/loading-button.svelte';
+	import LoadingIndicator from '#lib/components/loading-indicator.svelte';
+	import LoadError from '#lib/components/load-error.svelte';
+	import NoticeBox from '#lib/components/notice-box.svelte';
+	import ScreenFooter from '#lib/components/screen-footer.svelte';
 
 	/** 取り込み内容の確認 (CSVの取り込みのページ・写真で記録のページで共通)。見出しは呼び出し側の
 	 * ページがこの前に置く。
@@ -30,7 +30,7 @@
 		onback,
 		onconfirm
 	}: {
-		/** 取り込む行。`rowError` のある行は対象外 (`$lib/import`)。 */
+		/** 取り込む行。`rowError` のある行は対象外 (`#lib/import.js`)。 */
 		rows: ImportRow[];
 		/** 取り込み中か。この間は左のボタンも押せなくする。 */
 		importing: boolean;

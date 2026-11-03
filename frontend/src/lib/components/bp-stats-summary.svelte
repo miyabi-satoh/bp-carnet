@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { components } from '$lib/api/schema';
-	import * as m from '$lib/paraglide/messages.js';
-	import { cn } from '$lib/utils';
+	import type { components } from '#lib/api/schema.js';
+	import * as m from '#lib/paraglide/messages.js';
+	import { cn } from '#lib/utils.js';
 
 	type BpAverage = components['schemas']['BpAverageResponse'];
 

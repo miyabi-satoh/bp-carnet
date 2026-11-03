@@ -1,7 +1,7 @@
 <script>
-	import HelpSteps from '$lib/components/help-steps.svelte';
-	import HelpStep from '$lib/components/help-step.svelte';
-	import * as m from '$lib/paraglide/messages.js';
+	import HelpSteps from '#lib/components/help-steps.svelte';
+	import HelpStep from '#lib/components/help-step.svelte';
+	import * as m from '#lib/paraglide/messages.js';
 </script>
 
 すべての記録を CSV ファイルに保存します。Excel などで開いたり、控えとして取っておいたりできます。

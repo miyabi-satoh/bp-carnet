@@ -1,12 +1,11 @@
-import { beforeNavigate, goto } from '$app/navigation';
-import type { BeforeNavigate } from '@sveltejs/kit';
+import { beforeNavigate, goto, type BeforeNavigate } from '$app/navigation';
 
 /** 入力の途中でページを離れる前に確認する。コンポーネントの script で1つ作り、
  * `LeaveConfirmDialog` に渡す。
  *
  * - アプリの中の移動 (戻る操作・リンク・`goto`) は止めて、アプリのダイアログで聞く。
  * - 再読み込み・タブを閉じるときは、ブラウザ標準の確認に任せる (SvelteKit は `leave` を止めると出す)。
- * - `pushState` で積んだ履歴の行き来は `beforeNavigate` を通らないので、止めない。 */
+ * - shallow routing で積むときと、積んだ履歴の行き来は、止めない (行き来は `beforeNavigate` を通らない)。 */
 export class LeaveGuard {
 	/** 確認のダイアログを開いているか。 */
 	dialogOpen = $state(false);
@@ -25,6 +24,7 @@ export class LeaveGuard {
 		this.#isDirty = isDirty;
 		this.#isBusy = isBusy;
 		beforeNavigate((navigation) => {
+			if (navigation.shallow && navigation.type === 'goto') return;
 			if (this.#allowed) return;
 			if (this.#isBusy()) {
 				navigation.cancel();

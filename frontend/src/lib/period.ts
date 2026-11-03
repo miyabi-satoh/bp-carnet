@@ -1,7 +1,7 @@
-import type { components } from '$lib/api/schema';
-import * as m from '$lib/paraglide/messages.js';
-import { getLocale } from '$lib/paraglide/runtime.js';
-import { inRange } from '$lib/utils';
+import type { components } from '#lib/api/schema.js';
+import * as m from '#lib/paraglide/messages.js';
+import { getLocale } from '#lib/paraglide/runtime.js';
+import { inRange } from '#lib/utils.js';
 
 export type DayPeriod = components['schemas']['DayPeriod'];
 type RecordListItem = components['schemas']['RecordListItem'];

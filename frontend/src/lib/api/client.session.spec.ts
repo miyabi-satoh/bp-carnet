@@ -2,9 +2,9 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('$app/navigation', () => ({ goto: vi.fn() }));
-vi.mock('$app/paths', () => ({ resolve: (path: string) => path }));
+vi.mock('$app/paths', () => ({ resolve: (path: string) => `/${path.replace(/^\//, '')}` }));
 // Node には相対 URL の基点が無いので、呼び先のオリジンを与える。
-vi.mock('$lib/native-app', () => ({
+vi.mock('#lib/native-app.js', () => ({
 	isNativeApp: false,
 	API_ORIGIN: 'http://localhost',
 	appToken: () => Promise.resolve(null)
@@ -37,7 +37,7 @@ describe('ログインの切れ', () => {
 	it('操作の応答で切れていたら、ログイン画面へ送る', async () => {
 		fetchMock.mockResolvedValue(error(401, 'unauthorized'));
 		await client.GET('/api/v1/settings');
-		expect(goto).toHaveBeenCalledWith('/login', { replaceState: true });
+		expect(goto).toHaveBeenCalledWith('/login', { replace: true });
 	});
 
 	it('同時にいくつ切れても、移動は1回だけ', async () => {
@@ -57,7 +57,7 @@ describe('ログインの切れ', () => {
 	it('本文を読まない呼び出し (apiFetch) でも送る', async () => {
 		fetchMock.mockResolvedValue(error(401, 'unauthorized'));
 		await apiFetch('/api/v1/records/export');
-		expect(goto).toHaveBeenCalledWith('/login', { replaceState: true });
+		expect(goto).toHaveBeenCalledWith('/login', { replace: true });
 	});
 
 	it('パスワードの誤りなど、ほかの 401 では送らない', async () => {

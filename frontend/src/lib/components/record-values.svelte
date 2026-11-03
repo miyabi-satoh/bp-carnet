@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import * as m from '$lib/paraglide/messages.js';
+	import * as m from '#lib/paraglide/messages.js';
 
 	/** 記録の中身の組み方 (日時 → 上/下・脈拍 → メモ)。ホームの記録カードと
 	 * 取り込みの行で共通。`<label>` の中にも置けるよう、要素は `span` で組む。 */

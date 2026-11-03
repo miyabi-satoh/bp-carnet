@@ -1,8 +1,8 @@
 <script lang="ts">
-	import * as m from '$lib/paraglide/messages.js';
-	import { APP_STORE_URL } from '$lib/app-store-link';
-	import { isIosWebApp } from '$lib/ios-web-app';
-	import { Button } from '$lib/components/ui/button';
+	import * as m from '#lib/paraglide/messages.js';
+	import { APP_STORE_URL } from '#lib/app-store-link.js';
+	import { isIosWebApp } from '#lib/ios-web-app.js';
+	import { Button } from '#lib/components/ui/button/index.js';
 	import XIcon from '@lucide/svelte/icons/x';
 
 	/** 置く画面ごとの外側の余白・幅。 */

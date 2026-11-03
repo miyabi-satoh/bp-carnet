@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import * as Field from '$lib/components/ui/field';
-	import AuthCard from '$lib/components/auth-card.svelte';
-	import LoadError from '$lib/components/load-error.svelte';
-	import LoadingButton from '$lib/components/loading-button.svelte';
-	import LoadingIndicator from '$lib/components/loading-indicator.svelte';
-	import NewPasswordFields from '$lib/components/new-password-fields.svelte';
-	import { NewPasswordState } from '$lib/new-password.svelte';
+	import * as Field from '#lib/components/ui/field/index.js';
+	import AuthCard from '#lib/components/auth-card.svelte';
+	import LoadError from '#lib/components/load-error.svelte';
+	import LoadingButton from '#lib/components/loading-button.svelte';
+	import LoadingIndicator from '#lib/components/loading-indicator.svelte';
+	import NewPasswordFields from '#lib/components/new-password-fields.svelte';
+	import { NewPasswordState } from '#lib/new-password.svelte.js';
 
 	type Props = {
 		passwordLabel: string;

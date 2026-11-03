@@ -23,7 +23,7 @@ import {
 	toLocalDateTime,
 	withHour,
 	withMinute
-} from '$lib/period';
+} from '#lib/period.js';
 
 describe('minutesToTimeText', () => {
 	it('分を H:MM 表記にする', () => {

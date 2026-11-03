@@ -1,7 +1,7 @@
-import type { ApiResult } from '$lib/api/errors';
-import { DEFAULT_VISIBLE_SERIES_KEYS } from '$lib/bp-chart';
-import { LatestRequest } from '$lib/latest-request';
-import type { BpRecord, BpSummary } from '$lib/records';
+import type { ApiResult } from '#lib/api/errors.js';
+import { DEFAULT_VISIBLE_SERIES_KEYS } from '#lib/bp-chart.js';
+import { LatestRequest } from '#lib/latest-request.js';
+import type { BpRecord, BpSummary } from '#lib/records.js';
 
 /** 記録の一覧に一度に出す件数。全期間などで件数が多いと、全部をカードにするのが重いため
  * (3年分・約2,300件で、スマホ並みの速さだと約4秒)。 */

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import DeleteAccountDialog from '$lib/components/delete-account-dialog.svelte';
+	import DeleteAccountDialog from '#lib/components/delete-account-dialog.svelte';
 
 	/** テスト用: ボタンで開く。 */
 	let dialog = $state<ReturnType<typeof DeleteAccountDialog> | null>(null);

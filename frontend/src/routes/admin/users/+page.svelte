@@ -9,23 +9,23 @@
 		fetchAdminUsers,
 		setUserFrozen,
 		type AdminUser
-	} from '$lib/admin';
-	import type { ApiResult } from '$lib/api/errors';
-	import { userTimeZone } from '$lib/auth';
-	import { filterAdminUsers } from '$lib/admin-search';
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import AdminAddUserDialog from '$lib/components/admin-add-user-dialog.svelte';
-	import AdminDeleteUserDialog from '$lib/components/admin-delete-user-dialog.svelte';
-	import AdminOcrLimitDialog from '$lib/components/admin-ocr-limit-dialog.svelte';
-	import AdminResetPasswordDialog from '$lib/components/admin-reset-password-dialog.svelte';
-	import LoadingButton from '$lib/components/loading-button.svelte';
-	import LoadError from '$lib/components/load-error.svelte';
-	import LoadingIndicator from '$lib/components/loading-indicator.svelte';
-	import NoticeDialog from '$lib/components/notice-dialog.svelte';
-	import PageHeader from '$lib/components/page-header.svelte';
-	import * as m from '$lib/paraglide/messages.js';
-	import { formatDateLabel, formatFutureDateLabel } from '$lib/period';
+	} from '#lib/admin.js';
+	import type { ApiResult } from '#lib/api/errors.js';
+	import { userTimeZone } from '#lib/auth.js';
+	import { filterAdminUsers } from '#lib/admin-search.js';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import { Input } from '#lib/components/ui/input/index.js';
+	import AdminAddUserDialog from '#lib/components/admin-add-user-dialog.svelte';
+	import AdminDeleteUserDialog from '#lib/components/admin-delete-user-dialog.svelte';
+	import AdminOcrLimitDialog from '#lib/components/admin-ocr-limit-dialog.svelte';
+	import AdminResetPasswordDialog from '#lib/components/admin-reset-password-dialog.svelte';
+	import LoadingButton from '#lib/components/loading-button.svelte';
+	import LoadError from '#lib/components/load-error.svelte';
+	import LoadingIndicator from '#lib/components/loading-indicator.svelte';
+	import NoticeDialog from '#lib/components/notice-dialog.svelte';
+	import PageHeader from '#lib/components/page-header.svelte';
+	import * as m from '#lib/paraglide/messages.js';
+	import { formatDateLabel, formatFutureDateLabel } from '#lib/period.js';
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
 	import PlusIcon from '@lucide/svelte/icons/plus';
 	import SearchIcon from '@lucide/svelte/icons/search';
