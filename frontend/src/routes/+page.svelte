@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
-	import { afterNavigate, beforeNavigate, goto, replaceState } from '$app/navigation';
+	import { afterNavigate, beforeNavigate, goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import * as m from '$lib/paraglide/messages.js';
-	import { userTimeZone } from '$lib/auth';
+	import * as m from '#lib/paraglide/messages.js';
+	import { userTimeZone } from '#lib/auth.js';
 	import {
 		formatDateOnly,
 		localToday,
@@ -12,25 +12,29 @@
 		periodCovering,
 		periodFor,
 		periodToShow
-	} from '$lib/period';
-	import { takeImportResult } from '$lib/import-step';
-	import { takeManualEntryRequest } from '$lib/record-form';
-	import { fetchLatestRecordDate, fetchRecordsWithSummary, type BpRecord } from '$lib/records';
-	import { RecordsViewState } from '$lib/records-view.svelte';
-	import { LatestRequest } from '$lib/latest-request';
-	import { buildReportHref, saveHomeViewBeforeReport, takeHomeViewBeforeReport } from '$lib/report';
-	import { Button } from '$lib/components/ui/button';
-	import NoticeDialog from '$lib/components/notice-dialog.svelte';
-	import AppStoreNotice from '$lib/components/app-store-notice.svelte';
-	import RecordsOverview from '$lib/components/records-overview.svelte';
-	import RecordFormDialog from '$lib/components/record-form-dialog.svelte';
-	import RecordDeleteDialog from '$lib/components/record-delete-dialog.svelte';
-	import PeriodNav from '$lib/components/period-nav.svelte';
+	} from '#lib/period.js';
+	import { takeImportResult } from '#lib/import-step.js';
+	import { takeManualEntryRequest } from '#lib/record-form.js';
+	import { fetchLatestRecordDate, fetchRecordsWithSummary, type BpRecord } from '#lib/records.js';
+	import { RecordsViewState } from '#lib/records-view.svelte.js';
+	import { LatestRequest } from '#lib/latest-request.js';
+	import {
+		buildReportHref,
+		saveHomeViewBeforeReport,
+		takeHomeViewBeforeReport
+	} from '#lib/report.js';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import NoticeDialog from '#lib/components/notice-dialog.svelte';
+	import AppStoreNotice from '#lib/components/app-store-notice.svelte';
+	import RecordsOverview from '#lib/components/records-overview.svelte';
+	import RecordFormDialog from '#lib/components/record-form-dialog.svelte';
+	import RecordDeleteDialog from '#lib/components/record-delete-dialog.svelte';
+	import PeriodNav from '#lib/components/period-nav.svelte';
 	import CameraIcon from '@lucide/svelte/icons/camera';
 	import PlusIcon from '@lucide/svelte/icons/plus';
 	import PrinterIcon from '@lucide/svelte/icons/printer';
-	import { fetchOcrStatus, PHOTO_FILE_ACCEPT, photoFileHandoff } from '$lib/ocr';
-	import { openFilePicker } from '$lib/utils';
+	import { fetchOcrStatus, PHOTO_FILE_ACCEPT, photoFileHandoff } from '#lib/ocr.js';
+	import { openFilePicker } from '#lib/utils.js';
 
 	/** 記録の一覧と集計。初期表示は最新の記録を含む週 (記録が無ければ今週)。 */
 	const recordsView = new RecordsViewState(fetchRecordsWithSummary);
@@ -90,7 +94,8 @@
 	);
 
 	// リンクに限らず、ブラウザの進むで印刷ページへ行くときも控える。
-	beforeNavigate(({ to }) => {
+	beforeNavigate(({ to, shallow, type }) => {
+		if (shallow && type === 'goto') return;
 		if (to?.route.id !== '/report') return;
 		saveHomeViewBeforeReport({
 			from: recordsView.from,
@@ -115,7 +120,7 @@
 		const file = (e.currentTarget as HTMLInputElement).files?.[0];
 		if (!file) return;
 		photoFileHandoff.set(file);
-		goto(resolve('/record/photo'));
+		goto(resolve('record/photo'));
 	}
 
 	/** 登録・編集フォーム (モーダル)。開く操作は `show` で呼び出す。 */
@@ -131,13 +136,17 @@
 	// ログイン画面がこのクエリを付け、Google コールバックはサーバーがこの URL へ返す。
 	// 表示後は URL からクエリを取り除く (リロードで再表示しないため、ログイン画面の
 	// `oauthError` と同じ作り)。
-	afterNavigate(() => {
+	afterNavigate(({ shallow, type }) => {
+		if (shallow && type === 'goto') return;
 		if (page.url.searchParams.get('deletionCancelled') !== '1') return;
+
 		noticeDialog?.show(
 			m.account_deletion_cancelled_title(),
 			m.account_deletion_cancelled_description()
 		);
-		replaceState(page.url.pathname, {});
+		// `page.url.pathname` は今のページの URL で、`resolve` 済み。
+		// eslint-disable-next-line svelte/no-navigation-without-resolve
+		goto(page.url.pathname, { shallow: true, replace: true });
 	});
 
 	/** 下部アクションバーの「手動で入力...」押下時、新規登録モードでフォームを開く。 */
@@ -153,7 +162,9 @@
 	// 印刷ページから戻ったときは、行く前の期間・系列のまま表示する。
 	// 遷移元が分かるここで決めるため、初回の取得も onMount ではなくここで行う。控えは遷移元に
 	// よらず消す (印刷ページから別の画面を経て開いたときに、古い状態を出さないため)。
-	afterNavigate(async ({ from }) => {
+	afterNavigate(async ({ from, shallow, type }) => {
+		if (shallow && type === 'goto') return;
+
 		const restoredView = takeHomeViewBeforeReport();
 		if (restoredView && from?.route.id === '/report') {
 			// 月タブの初期位置 (`defaultAnchor`) は期間ナビの生成時に決まるため、先に最新の日を得る。

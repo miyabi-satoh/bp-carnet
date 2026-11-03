@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { OcrStatus } from '$lib/ocr';
+import type { OcrStatus } from '#lib/ocr.js';
 
-vi.mock('$lib/ocr', () => ({ fetchOcrStatus: vi.fn() }));
-import { fetchOcrStatus } from '$lib/ocr';
+vi.mock('#lib/ocr.js', () => ({ fetchOcrStatus: vi.fn() }));
+import { fetchOcrStatus } from '#lib/ocr.js';
 import { OcrStatusState } from './ocr-status.svelte';
 
 function status(changes: Partial<OcrStatus> = {}): OcrStatus {

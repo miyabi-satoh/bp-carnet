@@ -1,9 +1,9 @@
 <script lang="ts">
 	import ChevronLeftIcon from '@lucide/svelte/icons/chevron-left';
 	import XIcon from '@lucide/svelte/icons/x';
-	import RoundButton from '$lib/components/round-button.svelte';
-	import * as Dialog from '$lib/components/ui/dialog';
-	import * as m from '$lib/paraglide/messages.js';
+	import RoundButton from '#lib/components/round-button.svelte';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
+	import * as m from '#lib/paraglide/messages.js';
 
 	/** ダイアログの見出しに置く丸い閉じるボタン。shadcn の Dialog.Content 既定の閉じるボタン
 	 * (28px) はタップ領域の基準に届かないため、こちらを使う。地の色は置き場所で変わるので `class` で渡す。 */

@@ -14,12 +14,12 @@ vi.mock('@capacitor/core', async (importOriginal) => ({
 	...(await importOriginal<typeof import('@capacitor/core')>()),
 	registerPlugin: () => plugin
 }));
-vi.mock('$lib/api/client', () => ({ client: { POST: vi.fn() } }));
+vi.mock('#lib/api/client.js', () => ({ client: { POST: vi.fn() } }));
 const app = vi.hoisted(() => ({ addListener: vi.fn() }));
 vi.mock('@capacitor/app', () => ({ App: app }));
 
-import { client } from '$lib/api/client';
-import { respond } from '$lib/api/client.test-helpers';
+import { client } from '#lib/api/client.js';
+import { respond } from '#lib/api/client.test-helpers.js';
 import {
 	debugRefundAvailable,
 	purchaseTopup,

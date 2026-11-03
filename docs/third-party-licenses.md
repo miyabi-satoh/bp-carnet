@@ -25,7 +25,7 @@
 
 - **画面の分**は Vite のプラグイン (`frontend/scripts/third-party-licenses.ts`) が、ビルドのたびに `build/third-party-licenses/npm.json` に書き出す。リポジトリには入れない。
   - `package.json` の依存ではなく、実際に配る JavaScript・CSS・フォントに入ったモジュールから集める (lint やテストの道具を混ぜないため)。
-  - Service Worker の実行部分 (workbox) は @vite-pwa/sveltekit が別に作るので、プラグインの中で名前を挙げて足す。
+  - Service Worker の実行部分 (`@vite-pwa/workbox-swkit`) は @vite-pwa/sveltekit が別に作り、登録に使う `@unplugin-pwa/vite`・`@vite-pwa/workbox-window` は chunk の moduleIds に出ないので、プラグインの中で名前を挙げて足す。
   - 開発サーバーには無いので、`just dev` では「画面」が読み込めない表示になる。
 - **iPhone アプリの分**は `just licenses` (`frontend/scripts/generate-ios-licenses.ts`) が作り、`frontend/static/third-party-licenses/ios.json` としてリポジトリに入れる。
   - Swift Package Manager の部品は、`Package.resolved` の固定したコミットのライセンスのファイルを、上流のリポジトリから取る (取ったリポジトリは `data/license-cache/` に置く)。ライセンスの種類は本文から見分ける。

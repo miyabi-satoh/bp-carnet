@@ -1,5 +1,5 @@
 <script lang="ts">
-	import TopupConfirmDialog from '$lib/components/topup-confirm-dialog.svelte';
+	import TopupConfirmDialog from '#lib/components/topup-confirm-dialog.svelte';
 
 	let { onpurchased }: { onpurchased?: () => void } = $props();
 

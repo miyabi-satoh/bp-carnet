@@ -1,8 +1,8 @@
 import { App } from '@capacitor/app';
 import { registerPlugin } from '@capacitor/core';
-import { client } from '$lib/api/client';
-import { unwrapRequest } from '$lib/api/errors';
-import type { components } from '$lib/api/schema';
+import { client } from '#lib/api/client.js';
+import { unwrapRequest } from '#lib/api/errors.js';
+import type { components } from '#lib/api/schema.js';
 
 /** アプリ内課金 (`mobile/plugins/app-store-purchase`、docs/payments.md)。 */
 interface AppStorePurchasePlugin {

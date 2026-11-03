@@ -5,7 +5,7 @@
 // 呼び出し側は現在時刻を使う。リサイズ (ocr-image.ts) した画像は Exif を持たないので、
 // 選んだ元のファイルから読む。
 
-import { isLocalDateTime, toLocalDateTime } from '$lib/period';
+import { isLocalDateTime, toLocalDateTime } from '#lib/period.js';
 
 /** Exif の入る APP1 は JPEG の先頭近くにあり、最大 64KB。 */
 const HEAD_BYTES = 128 * 1024;

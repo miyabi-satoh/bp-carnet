@@ -1,14 +1,14 @@
 <script lang="ts">
-	import { buttonVariants } from '$lib/components/ui/button';
-	import * as Popover from '$lib/components/ui/popover';
-	import * as m from '$lib/paraglide/messages.js';
+	import { buttonVariants } from '#lib/components/ui/button/index.js';
+	import * as Popover from '#lib/components/ui/popover/index.js';
+	import * as m from '#lib/paraglide/messages.js';
 	import {
 		DAY_MINUTES_MAX,
 		TIME_PICKER_STEP_MIN,
 		minutesToTimeText,
 		withHour,
 		withMinute
-	} from '$lib/period';
+	} from '#lib/period.js';
 
 	/** 時刻の欄。タップすると「時」「分」を選ぶポップオーバーを開き、
 	 * どちらかを選ぶたびに `value` を変える。 */

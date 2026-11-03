@@ -1,6 +1,6 @@
-import { importRowStatus, settleNewRows, type ImportRow } from '$lib/import';
-import { instantWithOffset, toLocalDateTime } from '$lib/period';
-import { splitMeasuredAt } from '$lib/record-form';
+import { importRowStatus, settleNewRows, type ImportRow } from '#lib/import.js';
+import { instantWithOffset, toLocalDateTime } from '#lib/period.js';
+import { splitMeasuredAt } from '#lib/record-form.js';
 
 /** Apple の「ヘルスケア」が書き出したデータ (`書き出したデータ.zip`、中の `export.xml`) から、血圧の記録を
  * 取り出す (docs/import-export.md「他のアプリのファイル」)。形が決まっているので Gemini は使わず、

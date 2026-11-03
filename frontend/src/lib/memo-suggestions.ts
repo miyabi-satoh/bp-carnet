@@ -1,9 +1,9 @@
 // メモの候補。過去のメモを「、」で区切った言葉を、直近の期間でよく使う順に並べ、
 // メモ欄の下にチップで出す。タップすると「、」を挟んで後ろに足す。
 
-import { client } from '$lib/api/client';
-import { unwrapRequest } from '$lib/api/errors';
-import { formatDateOnly, localToday } from '$lib/period';
+import { client } from '#lib/api/client.js';
+import { unwrapRequest } from '#lib/api/errors.js';
+import { formatDateOnly, localToday } from '#lib/period.js';
 
 /** メモの言葉の区切り。候補を足すときにも挟む。 */
 export const MEMO_SEPARATOR = '、';

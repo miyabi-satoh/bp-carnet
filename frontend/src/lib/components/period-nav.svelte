@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
-	import * as m from '$lib/paraglide/messages.js';
-	import { userTimeZone } from '$lib/auth';
+	import * as m from '#lib/paraglide/messages.js';
+	import { userTimeZone } from '#lib/auth.js';
 	import {
 		detectPeriodMode,
 		formatDateOnly,
@@ -13,14 +13,14 @@
 		shiftAnchor,
 		splitPeriodLabel,
 		type Period
-	} from '$lib/period';
-	import ButtonRow from '$lib/components/button-row.svelte';
-	import FieldErrorList from '$lib/components/field-error-list.svelte';
-	import * as Field from '$lib/components/ui/field';
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import LoadingButton from '$lib/components/loading-button.svelte';
-	import RoundButton from '$lib/components/round-button.svelte';
+	} from '#lib/period.js';
+	import ButtonRow from '#lib/components/button-row.svelte';
+	import FieldErrorList from '#lib/components/field-error-list.svelte';
+	import * as Field from '#lib/components/ui/field/index.js';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import { Input } from '#lib/components/ui/input/index.js';
+	import LoadingButton from '#lib/components/loading-button.svelte';
+	import RoundButton from '#lib/components/round-button.svelte';
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 	import ChevronLeftIcon from '@lucide/svelte/icons/chevron-left';
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';

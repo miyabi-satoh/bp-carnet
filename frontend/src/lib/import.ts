@@ -1,26 +1,25 @@
-import { resolve } from '$app/paths';
-import { client } from '$lib/api/client';
-import { createFileHandoff } from '$lib/file-handoff';
-import { type ApiResult, unwrapRequest } from '$lib/api/errors';
-import * as m from '$lib/paraglide/messages.js';
+import { client } from '#lib/api/client.js';
+import { createFileHandoff } from '#lib/file-handoff.js';
+import { type ApiResult, unwrapRequest } from '#lib/api/errors.js';
+import * as m from '#lib/paraglide/messages.js';
 import {
 	type DayPeriod,
 	instantWithOffset,
 	isValidDateTime,
 	minutesToClockTime,
 	toLocalDateTime
-} from '$lib/period';
-import { firstRecordFormError, splitMeasuredAt, validateRecordForm } from '$lib/record-form';
+} from '#lib/period.js';
+import { firstRecordFormError, splitMeasuredAt, validateRecordForm } from '#lib/record-form.js';
 import {
 	fetchRecords,
 	type CreateRecordRequest,
 	type RecordRef,
 	type RecordResponse
-} from '$lib/records';
-import type { PeriodThresholds } from '$lib/settings';
+} from '#lib/records.js';
+import type { PeriodThresholds } from '#lib/settings.js';
 
 /** 取り込む1行分。取り込みボタンを押すまでの間、値の編集と採否を保持する。CSV の行も
- * 手書きメモの読み取り結果 (`MemoRow`、`$lib/ocr`) もこの形で扱い、同じ一覧の部品で並べる
+ * 手書きメモの読み取り結果 (`MemoRow`、`#lib/ocr.js`) もこの形で扱い、同じ一覧の部品で並べる
  * (docs/import-export.md)。 */
 export type ImportRow = {
 	/** この行を取り込むか。初期状態はアプリが決める (`initialKeep`)。 */
@@ -34,7 +33,7 @@ export type ImportRow = {
 	timeIsPlaceholder?: boolean;
 	/** 手書きメモの行に書かれていた朝・夜。仮の時刻をこちらの時間帯に振る (`fillPlaceholderTimes`)。 */
 	periodHint?: DayPeriod;
-	/** 数値の欄は記録フォームと同じく入力されたままの文字列で持つ (`$lib/record-form`)。 */
+	/** 数値の欄は記録フォームと同じく入力されたままの文字列で持つ (`#lib/record-form.js`)。 */
 	systolic: string;
 	diastolic: string;
 	pulse: string;
@@ -51,7 +50,7 @@ export type ImportRow = {
  * 橙 (`warn`) は取り込めるが確かめてほしいときに使う。 */
 export type ImportRowStatus = 'error' | 'warn' | 'ok';
 
-/** CSV の行の状態。手書きメモの行は読み取りの自信も見る (`$lib/ocr` の `memoRowStatus`)。
+/** CSV の行の状態。手書きメモの行は読み取りの自信も見る (`#lib/ocr` の `memoRowStatus`)。
  *
  * 仮の時刻を振った行は「注意」にしない: 時刻を書かない使い方が普通で、行ごとに知らせると
  * 全行に並んで邪魔になるため。自動で振ったことは、時刻の代わりに「朝」「夜」と出して伝える
@@ -100,7 +99,7 @@ export function importFileType(file: File): ImportFileType {
 }
 
 /** 設定画面で選んだ、取り込みのページへ渡すファイル。 */
-export const importFileHandoff = createFileHandoff(resolve('/settings/import'));
+export const importFileHandoff = createFileHandoff('/settings/import');
 
 // --- CSV パース -------------------------------------------------------------
 
@@ -108,7 +107,7 @@ export const importFileHandoff = createFileHandoff(resolve('/settings/import'));
  * `\r\n`/`\n` 混在に対応する。ライブラリを使わず自前実装するのは、型定義を持つ軽量な
  * 既存ライブラリが無いため。空行 (フィールドが1個だけで空文字列) は読み飛ばす。先頭の UTF-8 BOM は取り除く
  * (エクスポートが Excel 対策で付けていて、他のアプリのファイルにも付くことがある)。
- * `delimiter` は、他のアプリのファイル (`$lib/import-table`) がセミコロン・タブ区切りを読むのに使う。 */
+ * `delimiter` は、他のアプリのファイル (`#lib/import-table.js`) がセミコロン・タブ区切りを読むのに使う。 */
 export function parseCsvTable(rawText: string, delimiter = ','): string[][] {
 	const text = rawText.replace(/^\uFEFF/, '');
 	const rows: string[][] = [];
@@ -197,6 +196,7 @@ function csvMeasuredAt(
 		/^(\d{4})([-/])(\d{1,2})\2(\d{1,2})(?:[T ](\d{1,2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?)?$/.exec(
 			trimmed
 		);
+
 	if (local) {
 		const [, yearText, , monthText, dayText, hourText, minuteText, seconds, fraction] = local;
 		const measuredOnDate = `${yearText}-${pad(monthText)}-${pad(dayText)}`;
@@ -205,6 +205,7 @@ function csvMeasuredAt(
 			return isValidDateTime(year, month, day) ? { measuredOnDate, time: '' } : null;
 		}
 		if (!isValidDateTime(year, month, day, Number(hourText), Number(minuteText))) return null;
+
 		if (
 			(seconds !== undefined && Number(seconds) !== 0) ||
 			(fraction !== undefined && !/^0+$/.test(fraction))
@@ -375,6 +376,7 @@ export function parseCsvImport(
 				idx.memo >= 0 ? (cols[idx.memo] ?? '') : ''
 			)
 		);
+
 	fillPlaceholderTimes(rows, periods);
 	settleNewRows(rows, importRowStatus);
 	return { rows };

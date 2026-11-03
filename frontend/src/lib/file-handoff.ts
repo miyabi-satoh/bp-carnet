@@ -1,4 +1,5 @@
 import { preloadCode } from '$app/navigation';
+import type { RouteId } from '$app/types';
 
 /** 画面で選んだファイルを、移った先のページへ渡す (ホーム → 写真で記録、設定 → 取り込み)。
  *
@@ -14,12 +15,12 @@ export interface FileHandoff {
 	take(): File | null;
 }
 
-/** `href` は移る先のページ (`resolve` 済み)。 */
-export function createFileHandoff(href: string): FileHandoff {
+/** `route` は移る先のページ。 */
+export function createFileHandoff(route: RouteId): FileHandoff {
 	let pending: File | null = null;
 	return {
 		preload() {
-			preloadCode(href).catch(() => {});
+			preloadCode(route).catch(() => {});
 		},
 		set(file) {
 			pending = file;

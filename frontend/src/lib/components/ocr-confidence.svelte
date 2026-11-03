@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { confidenceLevel, type ConfidenceLevel } from '$lib/ocr';
-	import * as m from '$lib/paraglide/messages.js';
-	import { cn } from '$lib/utils';
+	import { confidenceLevel, type ConfidenceLevel } from '#lib/ocr.js';
+	import * as m from '#lib/paraglide/messages.js';
+	import { cn } from '#lib/utils.js';
 
 	/** 読み取り信頼度 (「読み取り信頼度: 高」)。帯にするか小さなラベルにするかは、置き場所ごとに `class` で決める。 */
 	let { confidence, class: className }: { confidence: number; class?: string } = $props();

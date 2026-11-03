@@ -1,5 +1,5 @@
-import { fetchAnalyticsToken, isPublicRoute } from '$lib/auth';
-import { isNativeApp } from '$lib/native-app';
+import { fetchAnalyticsToken, isPublicRoute } from '#lib/auth.js';
+import { isNativeApp } from '#lib/native-app.js';
 
 /** Cloudflare Web Analytics のスクリプト (Cloudflare の資料の手で入れる形)。 */
 const BEACON_SRC = 'https://static.cloudflareinsights.com/beacon.min.js';

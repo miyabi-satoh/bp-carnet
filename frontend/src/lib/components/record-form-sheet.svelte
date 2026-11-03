@@ -1,23 +1,23 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import { busyCloseGuard } from '$lib/dialog';
-	import { HistoryOverlay } from '$lib/history-overlay.svelte';
-	import { LeaveGuard } from '$lib/leave-guard.svelte';
-	import * as m from '$lib/paraglide/messages.js';
-	import type { CreateRecordRequest } from '$lib/records';
+	import { busyCloseGuard } from '#lib/dialog.js';
+	import { HistoryOverlay } from '#lib/history-overlay.svelte.js';
+	import { LeaveGuard } from '#lib/leave-guard.svelte.js';
+	import * as m from '#lib/paraglide/messages.js';
+	import type { CreateRecordRequest } from '#lib/records.js';
 	import {
 		recordFormSubmitLabel,
 		recordFormTitle,
 		type RecordFormMode,
 		type RecordFormValues
-	} from '$lib/record-form';
-	import * as Dialog from '$lib/components/ui/dialog';
-	import * as Field from '$lib/components/ui/field';
-	import { Button } from '$lib/components/ui/button';
-	import LoadingButton from '$lib/components/loading-button.svelte';
-	import DialogFormHeader from '$lib/components/dialog-form-header.svelte';
-	import LeaveConfirmDialog from '$lib/components/leave-confirm-dialog.svelte';
-	import RecordForm from '$lib/components/record-form.svelte';
+	} from '#lib/record-form.js';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
+	import * as Field from '#lib/components/ui/field/index.js';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import LoadingButton from '#lib/components/loading-button.svelte';
+	import DialogFormHeader from '#lib/components/dialog-form-header.svelte';
+	import LeaveConfirmDialog from '#lib/components/leave-confirm-dialog.svelte';
+	import RecordForm from '#lib/components/record-form.svelte';
 
 	/** 血圧を入れるシート。記録の登録・編集にも、取り込みの行を直すのにも使う。
 	 * 見出しとボタンの文言はモードから決まるので、呼び出し側から渡さない。
@@ -25,7 +25,7 @@
 	 * ADR: 開閉制御は `bind:open` ではなく `bind:this` + `show()` の命令的APIにする。
 	 * 入口ごとに開く時点の初期値が違い、開くのと初期値を渡すのを1回で済ませたいため。
 	 *
-	 * 開くと `pushState` で履歴を積み、端末の戻る操作でも閉じる。 */
+	 * 開くと shallow routing で履歴を積み、端末の戻る操作でも閉じる。 */
 	let {
 		mode,
 		idPrefix = 'record',

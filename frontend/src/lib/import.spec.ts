@@ -20,14 +20,14 @@ import {
 	type ImportRowStatus
 } from './import';
 import { splitMeasuredAt } from './record-form';
-import { DEFAULT_PERIOD_THRESHOLDS } from '$lib/settings';
-import type { DayPeriod } from '$lib/period';
-import * as m from '$lib/paraglide/messages.js';
+import { DEFAULT_PERIOD_THRESHOLDS } from '#lib/settings.js';
+import type { DayPeriod } from '#lib/period.js';
+import * as m from '#lib/paraglide/messages.js';
 
-vi.mock('$lib/api/client', () => ({
+vi.mock('#lib/api/client.js', () => ({
 	client: { POST: vi.fn(), GET: vi.fn() }
 }));
-import { client } from '$lib/api/client';
+import { client } from '#lib/api/client.js';
 
 const postMock = client.POST as unknown as ReturnType<typeof vi.fn>;
 const getMock = client.GET as unknown as ReturnType<typeof vi.fn>;

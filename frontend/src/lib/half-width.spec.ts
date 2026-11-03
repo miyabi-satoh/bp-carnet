@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { toHalfWidth } from '$lib/half-width';
+import { toHalfWidth } from '#lib/half-width.js';
 
 describe('toHalfWidth', () => {
 	it('全角の数字・英字・記号を半角にする', () => {

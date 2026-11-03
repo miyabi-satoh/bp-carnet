@@ -4,7 +4,7 @@
 // リンクの書き方だけのように、読む人から見て同じなら上げない。
 
 import type { Component } from 'svelte';
-import { baseLocale, getLocale } from '$lib/paraglide/runtime.js';
+import { baseLocale, getLocale } from '#lib/paraglide/runtime.js';
 
 // 料金のページは買い足し (有料化) 用の情報開示。規約・ポリシーと違い
 // 同意の対象ではないので、変えても規約の版 (src/terms.rs の VERSION) は上げない。

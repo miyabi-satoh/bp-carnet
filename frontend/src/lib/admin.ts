@@ -1,9 +1,9 @@
-import { client } from '$lib/api/client';
-import { type ApiResult, ensureOkRequest, unwrapRequest } from '$lib/api/errors';
-import type { components } from '$lib/api/schema';
-import { userDisplayName } from '$lib/auth';
-import * as m from '$lib/paraglide/messages.js';
-import type { BpRecord, BpSummary } from '$lib/records';
+import { client } from '#lib/api/client.js';
+import { type ApiResult, ensureOkRequest, unwrapRequest } from '#lib/api/errors.js';
+import type { components } from '#lib/api/schema.js';
+import { userDisplayName } from '#lib/auth.js';
+import * as m from '#lib/paraglide/messages.js';
+import type { BpRecord, BpSummary } from '#lib/records.js';
 
 export type AdminUser = components['schemas']['AdminUserResponse'];
 export type AdminUserDetail = components['schemas']['AdminUserDetailResponse'];

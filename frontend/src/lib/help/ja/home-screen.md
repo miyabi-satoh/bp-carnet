@@ -1,9 +1,9 @@
 <script>
-	import HelpSteps from '$lib/components/help-steps.svelte';
-	import HelpStep from '$lib/components/help-step.svelte';
-	import HelpExternalLink from '$lib/components/help-external-link.svelte';
-	import { APP_STORE_URL } from '$lib/app-store-link';
-	import * as m from '$lib/paraglide/messages.js';
+	import HelpSteps from '#lib/components/help-steps.svelte';
+	import HelpStep from '#lib/components/help-step.svelte';
+	import HelpExternalLink from '#lib/components/help-external-link.svelte';
+	import { APP_STORE_URL } from '#lib/app-store-link.js';
+	import * as m from '#lib/paraglide/messages.js';
 </script>
 
 <!-- App Store とホーム画面の操作はアプリの外なので画像を撮れない。 -->

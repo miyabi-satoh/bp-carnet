@@ -1,26 +1,26 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
-import * as m from '$lib/paraglide/messages.js';
-import { requiredLabel } from '$lib/required-label';
+import * as m from '#lib/paraglide/messages.js';
+import { requiredLabel } from '#lib/required-label.js';
 
-vi.mock('$app/navigation', () => ({ goto: vi.fn(), invalidateAll: vi.fn() }));
-vi.mock('$app/paths', () => ({ resolve: (path: string) => path }));
+vi.mock('$app/navigation', () => ({ goto: vi.fn(), refreshAll: vi.fn() }));
+vi.mock('$app/paths', () => ({ resolve: (path: string) => `/${path.replace(/^\//, '')}` }));
 // テストごとに `page.url` を差し替える (モックのモジュールは、テストの import と同じもの)。
 vi.mock('$app/state', () => ({
 	page: { url: new URL('http://localhost:3000/reset-password?token=reset-token'), data: {} }
 }));
-vi.mock('$lib/auth', async (importOriginal) => ({
-	...(await importOriginal<typeof import('$lib/auth')>()),
+vi.mock('#lib/auth.js', async (importOriginal) => ({
+	...(await importOriginal<typeof import('#lib/auth.js')>()),
 	completePasswordReset: vi.fn(),
 	isEmailLinkUsable: vi.fn()
 }));
-vi.mock('$lib/password', async (importOriginal) => ({
-	...(await importOriginal<typeof import('$lib/password')>()),
+vi.mock('#lib/password.js', async (importOriginal) => ({
+	...(await importOriginal<typeof import('#lib/password.js')>()),
 	fetchPasswordPolicy: vi.fn()
 }));
-import { completePasswordReset, isEmailLinkUsable } from '$lib/auth';
+import { completePasswordReset, isEmailLinkUsable } from '#lib/auth.js';
 import { page } from '$app/state';
-import { fetchPasswordPolicy } from '$lib/password';
+import { fetchPasswordPolicy } from '#lib/password.js';
 import ResetPasswordPage from './+page.svelte';
 
 beforeEach(() => {

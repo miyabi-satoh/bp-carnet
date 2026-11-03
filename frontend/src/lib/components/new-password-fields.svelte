@@ -1,9 +1,9 @@
 <script lang="ts">
-	import * as Field from '$lib/components/ui/field';
-	import FieldErrorList from '$lib/components/field-error-list.svelte';
-	import PasswordInput from '$lib/components/password-input.svelte';
-	import { newPasswordErrors, passwordPolicyHint, type PasswordPolicy } from '$lib/password';
-	import RequiredMark from '$lib/components/required-mark.svelte';
+	import * as Field from '#lib/components/ui/field/index.js';
+	import FieldErrorList from '#lib/components/field-error-list.svelte';
+	import PasswordInput from '#lib/components/password-input.svelte';
+	import { newPasswordErrors, passwordPolicyHint, type PasswordPolicy } from '#lib/password.js';
+	import RequiredMark from '#lib/components/required-mark.svelte';
 
 	type Props = {
 		policy: PasswordPolicy;

@@ -1,8 +1,8 @@
 import type { SplineProps } from 'layerchart';
-import type { components } from '$lib/api/schema';
-import type { ChartConfig } from '$lib/components/ui/chart';
-import * as m from '$lib/paraglide/messages.js';
-import { parseLocalDate } from '$lib/period';
+import type { components } from '#lib/api/schema.js';
+import type { ChartConfig } from '#lib/components/ui/chart/index.js';
+import * as m from '#lib/paraglide/messages.js';
+import { parseLocalDate } from '#lib/period.js';
 
 type DailyAverages = components['schemas']['DailyAveragesResponse'];
 

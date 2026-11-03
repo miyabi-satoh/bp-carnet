@@ -1,7 +1,7 @@
 <script lang="ts">
 	// ADR: 角丸は shadcn-svelte 既定の rounded-lg から rounded-sm に改変。layout.css の角丸トークンはデザインの実寸で、入力欄は radius-sm (10px)。
 	// ADR: 地の色は shadcn-svelte 既定の bg-transparent / dark:bg-input/30 から bg-field (layout.css) に改変。デザインの入力欄は、ライトは白、ダークはカードより少し明るい地。
-	import { cn, type WithElementRef, type WithoutChildren } from "$lib/utils.js";
+	import { cn, type WithElementRef, type WithoutChildren } from "#lib/utils.js";
 	import type { HTMLTextareaAttributes } from "svelte/elements";
 
 	let {

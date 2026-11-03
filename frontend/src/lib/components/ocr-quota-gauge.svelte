@@ -1,5 +1,5 @@
 <script lang="ts">
-	import * as m from '$lib/paraglide/messages.js';
+	import * as m from '#lib/paraglide/messages.js';
 
 	/** 読み取りの枠1つの残りのゲージと割合 (docs/ocr.md)。写真で記録と設定の枠の一覧で使う。
 	 * - `low` は全部の枠を足した残りが少ないとき。ゲージと割合を注意の色にする。

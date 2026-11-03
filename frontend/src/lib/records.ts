@@ -1,6 +1,6 @@
-import { client } from '$lib/api/client';
-import { type ApiResult, ensureOkRequest, unwrapRequest } from '$lib/api/errors';
-import type { components } from '$lib/api/schema';
+import { client } from '#lib/api/client.js';
+import { type ApiResult, ensureOkRequest, unwrapRequest } from '#lib/api/errors.js';
+import type { components } from '#lib/api/schema.js';
 
 /** 一覧の1件 (朝/夜の区分付き)。 */
 export type BpRecord = components['schemas']['RecordListItem'];

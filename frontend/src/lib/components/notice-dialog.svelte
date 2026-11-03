@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import * as AlertDialog from '$lib/components/ui/alert-dialog';
-	import * as m from '$lib/paraglide/messages.js';
+	import * as AlertDialog from '#lib/components/ui/alert-dialog/index.js';
+	import * as m from '#lib/paraglide/messages.js';
 
 	/** 知らせるだけのダイアログ (通信・保存の失敗、操作の完了)。タイトルと本文以外は
 	 * どの画面でも同じ (閉じるボタン1つ) なので共通化した。開く操作は

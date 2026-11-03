@@ -1,12 +1,12 @@
 <script lang="ts">
-	import * as m from '$lib/paraglide/messages.js';
-	import { busyCloseGuard, DESTRUCTIVE_ACTION_CLASS } from '$lib/dialog';
-	import { formatLocalDateTime } from '$lib/period';
-	import { deleteRecord, type BpRecord } from '$lib/records';
-	import * as AlertDialog from '$lib/components/ui/alert-dialog';
-	import DialogAlertTitleRow from '$lib/components/dialog-alert-title-row.svelte';
-	import LoadingButton from '$lib/components/loading-button.svelte';
-	import NoticeDialog from '$lib/components/notice-dialog.svelte';
+	import * as m from '#lib/paraglide/messages.js';
+	import { busyCloseGuard, DESTRUCTIVE_ACTION_CLASS } from '#lib/dialog.js';
+	import { formatLocalDateTime } from '#lib/period.js';
+	import { deleteRecord, type BpRecord } from '#lib/records.js';
+	import * as AlertDialog from '#lib/components/ui/alert-dialog/index.js';
+	import DialogAlertTitleRow from '#lib/components/dialog-alert-title-row.svelte';
+	import LoadingButton from '#lib/components/loading-button.svelte';
+	import NoticeDialog from '#lib/components/notice-dialog.svelte';
 
 	/** 一覧のカードのゴミ箱から開く、記録の削除の確認。
 	 * 開く操作は `record-form-dialog.svelte` と同じ `bind:this` + `show()` にそろえる。 */

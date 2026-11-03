@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { tick } from 'svelte';
 	import XIcon from '@lucide/svelte/icons/x';
-	import * as Dialog from '$lib/components/ui/dialog';
-	import { HistoryOverlay } from '$lib/history-overlay.svelte';
-	import * as m from '$lib/paraglide/messages.js';
-	import { PhotoZoom } from '$lib/photo-zoom.svelte';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
+	import { HistoryOverlay } from '#lib/history-overlay.svelte.js';
+	import * as m from '#lib/paraglide/messages.js';
+	import { PhotoZoom } from '#lib/photo-zoom.svelte.js';
 
 	/** 写真を全画面で見るダイアログ。ピンチ・ダブルタップ・ホイールで拡大し、
-	 * 拡大中はドラッグで動かす。開くと `pushState` で履歴を積み、端末の戻る操作でも閉じる。
+	 * 拡大中はドラッグで動かす。開くと shallow routing で履歴を積み、端末の戻る操作でも閉じる。
 	 * 開く・ボタンや Esc で閉じるときは、View Transitions API で元の写真との間を行き来させる
 	 * (未対応のブラウザ・動きを減らす設定ではそのまま切り替える。戻る操作はブラウザが先に履歴を戻すので包めない)。
 	 *

@@ -1,19 +1,19 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
-	import { changePassword } from '$lib/auth';
-	import * as Field from '$lib/components/ui/field';
-	import LoadingButton from '$lib/components/loading-button.svelte';
-	import LoadingIndicator from '$lib/components/loading-indicator.svelte';
-	import LoadError from '$lib/components/load-error.svelte';
-	import NewPasswordFields from '$lib/components/new-password-fields.svelte';
-	import NoticeDialog from '$lib/components/notice-dialog.svelte';
-	import PageHeader from '$lib/components/page-header.svelte';
-	import PageResult from '$lib/components/page-result.svelte';
-	import PasswordInput from '$lib/components/password-input.svelte';
-	import { NewPasswordState } from '$lib/new-password.svelte';
-	import * as m from '$lib/paraglide/messages.js';
-	import RequiredMark from '$lib/components/required-mark.svelte';
+	import { changePassword } from '#lib/auth.js';
+	import * as Field from '#lib/components/ui/field/index.js';
+	import LoadingButton from '#lib/components/loading-button.svelte';
+	import LoadingIndicator from '#lib/components/loading-indicator.svelte';
+	import LoadError from '#lib/components/load-error.svelte';
+	import NewPasswordFields from '#lib/components/new-password-fields.svelte';
+	import NoticeDialog from '#lib/components/notice-dialog.svelte';
+	import PageHeader from '#lib/components/page-header.svelte';
+	import PageResult from '#lib/components/page-result.svelte';
+	import PasswordInput from '#lib/components/password-input.svelte';
+	import { NewPasswordState } from '#lib/new-password.svelte.js';
+	import * as m from '#lib/paraglide/messages.js';
+	import RequiredMark from '#lib/components/required-mark.svelte';
 
 	const passwordForm = new NewPasswordState();
 
@@ -47,7 +47,8 @@
      求めるのは、セッションだけを奪った相手にパスワードを置き換えられないようにするため。 -->
 <div class="mx-auto flex max-w-2xl flex-col px-5 pb-safe-5">
 	<!-- 見出しは設定画面と同じ PageHeader (設定画面から続けて開くため)。 -->
-	<PageHeader backHref={resolve('/settings')} title={m.settings_change_password_button()} />
+
+	<PageHeader backHref={resolve('settings')} title={m.settings_change_password_button()} />
 
 	{#if changed}
 		<!-- カードの枠はこの画面のフォームに合わせる。 -->

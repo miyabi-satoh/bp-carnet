@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { onMount, tick, type Snippet } from 'svelte';
-	import { userTimeZone } from '$lib/auth';
-	import { fetchMemoPhrases } from '$lib/memo-suggestions';
-	import type { CreateRecordRequest } from '$lib/records';
-	import { validateRecordForm, type RecordFormErrors } from '$lib/record-form';
-	import * as Field from '$lib/components/ui/field';
-	import RecordFields from '$lib/components/record-fields.svelte';
+	import { userTimeZone } from '#lib/auth.js';
+	import { fetchMemoPhrases } from '#lib/memo-suggestions.js';
+	import type { CreateRecordRequest } from '#lib/records.js';
+	import { validateRecordForm, type RecordFormErrors } from '#lib/record-form.js';
+	import * as Field from '#lib/components/ui/field/index.js';
+	import RecordFields from '#lib/components/record-fields.svelte';
 
 	/** 血圧を入れるフォーム。欄・検証・送信までを受け持ち、シートに入れるか
 	 * ページに置くかは外側で決める (記録フォーム・取り込みの行を直すシートは

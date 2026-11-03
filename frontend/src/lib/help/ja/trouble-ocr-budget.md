@@ -1,7 +1,7 @@
 <script>
-	import HelpSteps from '$lib/components/help-steps.svelte';
-	import HelpStep from '$lib/components/help-step.svelte';
-	import * as m from '$lib/paraglide/messages.js';
+	import HelpSteps from '#lib/components/help-steps.svelte';
+	import HelpStep from '#lib/components/help-step.svelte';
+	import * as m from '#lib/paraglide/messages.js';
 </script>
 
 写真の読み取りには無料の枠があります（血圧計の写真で約60回、手帳のページで約13ページが目安です。写真によって前後します）。使い切っても、数字を入れての記録はこれまでどおりできます。写真で記録し続けたいときは、読み取りを購入します。

@@ -3,9 +3,9 @@
 	// ADR: 角丸は shadcn-svelte 既定の rounded-xl から rounded-lg に改変。layout.css の角丸トークンはデザインの実寸で、モーダル・カードは radius-lg (20px)。
 	// ADR: 閉じるボタンの文言は shadcn-svelte 既定の "Close" から i18n の文言に改変。
 	import { Dialog as DialogPrimitive } from "bits-ui";
-	import * as m from "$lib/paraglide/messages.js";
-	import { Button } from "$lib/components/ui/button/index.js";
-	import { cn, type WithElementRef } from "$lib/utils.js";
+	import * as m from "#lib/paraglide/messages.js";
+	import { Button } from "#lib/components/ui/button/index.js";
+	import { cn, type WithElementRef } from "#lib/utils.js";
 	import type { HTMLAttributes } from "svelte/elements";
 
 	let {

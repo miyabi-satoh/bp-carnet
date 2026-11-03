@@ -13,7 +13,7 @@ export function inRange(value: number, [min, max]: readonly [number, number]): b
 
 /** 10進整数の文字列表現として厳密に解釈できなければ `null`。前後の空白は許容する
  * (`Number()` 単独だと "0x80" や "1e2" も数値として通ってしまうため、ここで規定する)。
- * `$lib/import` のCSV行パースとも共有する。 */
+ * `#lib/import.js` のCSV行パースとも共有する。 */
 export function parseStrictInt(raw: string): number | null {
 	const trimmed = raw.trim();
 	if (!/^-?\d+$/.test(trimmed)) return null;

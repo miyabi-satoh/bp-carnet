@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { usernameError } from '$lib/username';
+import { usernameError } from '#lib/username.js';
 
 describe('usernameError', () => {
 	it('メールアドレスも任意のIDも受け付ける', () => {

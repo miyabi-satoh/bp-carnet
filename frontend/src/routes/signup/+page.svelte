@@ -1,16 +1,16 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { fetchAuthProviders, type LoadFailure, requestSignup } from '$lib/auth';
-	import AuthPageHeader from '$lib/components/auth-page-header.svelte';
-	import BackToLoginLink from '$lib/components/back-to-login-link.svelte';
-	import BetaNotice from '$lib/components/beta-notice.svelte';
-	import CenteredScreen from '$lib/components/centered-screen.svelte';
-	import EmailRequestForm from '$lib/components/email-request-form.svelte';
-	import LoadingIndicator from '$lib/components/loading-indicator.svelte';
-	import LoadFailureScreen from '$lib/components/load-failure-screen.svelte';
-	import NoticeDialog from '$lib/components/notice-dialog.svelte';
-	import TermsConsentNote from '$lib/components/terms-consent-note.svelte';
-	import * as m from '$lib/paraglide/messages.js';
+	import { fetchAuthProviders, type LoadFailure, requestSignup } from '#lib/auth.js';
+	import AuthPageHeader from '#lib/components/auth-page-header.svelte';
+	import BackToLoginLink from '#lib/components/back-to-login-link.svelte';
+	import BetaNotice from '#lib/components/beta-notice.svelte';
+	import CenteredScreen from '#lib/components/centered-screen.svelte';
+	import EmailRequestForm from '#lib/components/email-request-form.svelte';
+	import LoadingIndicator from '#lib/components/loading-indicator.svelte';
+	import LoadFailureScreen from '#lib/components/load-failure-screen.svelte';
+	import NoticeDialog from '#lib/components/notice-dialog.svelte';
+	import TermsConsentNote from '#lib/components/terms-consent-note.svelte';
+	import * as m from '#lib/paraglide/messages.js';
 	import MailIcon from '@lucide/svelte/icons/mail';
 
 	/** 使えるログイン方式を問い合わせ終えたか。 */

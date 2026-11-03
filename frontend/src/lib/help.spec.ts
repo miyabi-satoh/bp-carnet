@@ -8,7 +8,7 @@ import {
 	HELP_SECTIONS,
 	HELP_TOPICS,
 	loadHelpTopicContent
-} from '$lib/help';
+} from '#lib/help.js';
 import HelpContent from './help.test-harness.svelte';
 
 const STATIC_DIR = path.join(import.meta.dirname, '..', '..', 'static');

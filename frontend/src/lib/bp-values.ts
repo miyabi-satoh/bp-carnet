@@ -1,5 +1,5 @@
-import * as m from '$lib/paraglide/messages.js';
-import { inRange } from '$lib/utils';
+import * as m from '#lib/paraglide/messages.js';
+import { inRange } from '#lib/utils.js';
 
 /** バックエンドの `src/validation.rs` と同じ値域。送信前に弾き、サーバー側の 422 で往復するのを避ける。 */
 const SYSTOLIC_RANGE = [60, 260] as const;

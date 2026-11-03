@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { NewPasswordState } from './new-password.svelte';
-import type { PasswordPolicy } from '$lib/password';
+import type { PasswordPolicy } from '#lib/password.js';
 
-vi.mock('$lib/password', async (importOriginal) => ({
-	...(await importOriginal<typeof import('$lib/password')>()),
+vi.mock('#lib/password.js', async (importOriginal) => ({
+	...(await importOriginal<typeof import('#lib/password.js')>()),
 	fetchPasswordPolicy: vi.fn()
 }));
-import { fetchPasswordPolicy } from '$lib/password';
+import { fetchPasswordPolicy } from '#lib/password.js';
 
 const fetchMock = vi.mocked(fetchPasswordPolicy);
 

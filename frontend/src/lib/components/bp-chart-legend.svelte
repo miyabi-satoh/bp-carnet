@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { toggleSeriesKey, type ChartSeries, type ChartSeriesKey } from '$lib/bp-chart';
-	import * as m from '$lib/paraglide/messages.js';
+	import { toggleSeriesKey, type ChartSeries, type ChartSeriesKey } from '#lib/bp-chart.js';
+	import * as m from '#lib/paraglide/messages.js';
 
 	/** 線サンプル付きの凡例。layerchart 標準の凡例は
 	 * 色の四角しか描けないため、線種も描ける凡例に差し替えている。

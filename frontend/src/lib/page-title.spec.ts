@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { pageTitle } from '$lib/page-title';
+import { pageTitle } from '#lib/page-title.js';
 
 describe('pageTitle', () => {
 	it('公開ページはページ別の title にする', () => {

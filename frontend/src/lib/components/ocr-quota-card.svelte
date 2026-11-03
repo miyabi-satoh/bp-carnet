@@ -2,9 +2,9 @@
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
 	import CircleAlertIcon from '@lucide/svelte/icons/circle-alert';
 	import { resolve } from '$app/paths';
-	import OcrQuotaGauge from '$lib/components/ocr-quota-gauge.svelte';
-	import type { OcrQuota } from '$lib/ocr';
-	import * as m from '$lib/paraglide/messages.js';
+	import OcrQuotaGauge from '#lib/components/ocr-quota-gauge.svelte';
+	import type { OcrQuota } from '#lib/ocr.js';
+	import * as m from '#lib/paraglide/messages.js';
 
 	/** 写真で記録の、読み取りの枠の残り (docs/ocr.md)。今使っている枠を1本だけ、見出し・ゲージ・割合の
 	 * 同じ枠で出し、量に応じて色と文言だけを変える。使い切りはデザインの残量バナー。
@@ -59,11 +59,12 @@
 			{quota.kind === 'paid' ? m.ocr_quota_paid_title() : m.ocr_quota_free_title()}
 		</p>
 		<OcrQuotaGauge percent={quota.remainingPercent} {low} />
+
 		{#if othersRemaining}
 			<!-- 設定の「写真の読み取り」の節へ移る。resolve() はハッシュを付けられないので、付けた後の値を渡す。 -->
 			<!-- eslint-disable svelte/no-navigation-without-resolve -->
 			<a
-				href={resolve('/settings') + '#ocr'}
+				href={resolve('settings') + '#ocr'}
 				class="flex items-center gap-0.5 self-start text-sm font-bold text-primary"
 			>
 				{m.photo_page_other_quotas_link()}

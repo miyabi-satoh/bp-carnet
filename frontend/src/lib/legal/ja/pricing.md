@@ -1,11 +1,11 @@
 <!--
 料金のページ。特定商取引法の表示事項のうち、製品ごとに違う販売価格と動作環境を載せる。
 支払方法・支払時期・引き渡し・返品などの条件は、amiiby.com の全製品で共通の表記が載せるので、ここではリンクだけにする。
-販売価格の消費税の書き方は、インボイスの登録の日 ($lib/tax.ts) に切り替わる。
+販売価格の消費税の書き方は、インボイスの登録の日 (#lib/tax.ts) に切り替わる。
 -->
 
 <script>
-	import { isTaxIncluded } from '$lib/tax';
+	import { isTaxIncluded } from '#lib/tax.js';
 </script>
 
 # 料金と購入の条件

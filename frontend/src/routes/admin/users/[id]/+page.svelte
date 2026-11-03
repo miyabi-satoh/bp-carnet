@@ -8,24 +8,24 @@
 		fetchAdminUser,
 		fetchAdminUserRecords,
 		type AdminUserDetail
-	} from '$lib/admin';
-	import { LINKED_PROVIDERS, linkedProviderLabel, userTimeZone } from '$lib/auth';
-	import * as m from '$lib/paraglide/messages.js';
+	} from '#lib/admin.js';
+	import { LINKED_PROVIDERS, linkedProviderLabel, userTimeZone } from '#lib/auth.js';
+	import * as m from '#lib/paraglide/messages.js';
 	import {
 		formatDateLabel,
 		formatDateOnly,
 		localToday,
 		minutesToTimeText,
 		periodFor
-	} from '$lib/period';
-	import { RecordsViewState } from '$lib/records-view.svelte';
-	import { timezoneLabel } from '$lib/settings';
-	import { SECTION_TITLE_CLASS } from '$lib/styles';
-	import LoadError from '$lib/components/load-error.svelte';
-	import LoadingIndicator from '$lib/components/loading-indicator.svelte';
-	import PageHeader from '$lib/components/page-header.svelte';
-	import PeriodNav from '$lib/components/period-nav.svelte';
-	import RecordsOverview from '$lib/components/records-overview.svelte';
+	} from '#lib/period.js';
+	import { RecordsViewState } from '#lib/records-view.svelte.js';
+	import { timezoneLabel } from '#lib/settings.js';
+	import { SECTION_TITLE_CLASS } from '#lib/styles.js';
+	import LoadError from '#lib/components/load-error.svelte';
+	import LoadingIndicator from '#lib/components/loading-indicator.svelte';
+	import PageHeader from '#lib/components/page-header.svelte';
+	import PeriodNav from '#lib/components/period-nav.svelte';
+	import RecordsOverview from '#lib/components/records-overview.svelte';
 
 	/** 管理者による利用者のアカウント情報・血圧記録の閲覧 (docs/authentication.md)。読み取り専用で、
 	 * 記録の追加・編集の導線は置かない。id の形式は `+page.ts` で確かめ済み。 */
@@ -52,13 +52,26 @@
 		user
 			? [
 					{ label: m.common_username_label(), value: user.username },
-					{ label: m.admin_user_detail_status_label(), value: adminUserStatusLabel(user) },
+					{
+						label: m.admin_user_detail_status_label(),
+						value: adminUserStatusLabel(user)
+					},
+
 					{
 						label: m.admin_user_detail_created_at_label(),
 						value: formatDateLabel(new Date(user.createdAt), true, userTimeZone())
 					},
-					{ label: m.admin_user_detail_login_method_label(), value: loginMethodLabel(user) },
-					{ label: m.admin_user_detail_timezone_label(), value: timezoneLabel(user.timezone) },
+
+					{
+						label: m.admin_user_detail_login_method_label(),
+						value: loginMethodLabel(user)
+					},
+
+					{
+						label: m.admin_user_detail_timezone_label(),
+						value: timezoneLabel(user.timezone)
+					},
+
 					{
 						label: m.admin_user_detail_period_label({
 							period: m.record_day_period_morning_label()
@@ -98,7 +111,7 @@
      丸い戻るボタンと見出しを置き、記録の部分はメイン画面の並びに揃える。 -->
 <div class="mx-auto flex max-w-2xl flex-col px-5 pb-safe-5">
 	<PageHeader
-		backHref={resolve('/admin/users')}
+		backHref={resolve('admin/users')}
 		backLabel={m.admin_user_detail_back_label()}
 		title={user ? adminUserName(user) : m.admin_users_title()}
 	/>

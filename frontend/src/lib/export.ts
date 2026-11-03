@@ -1,6 +1,6 @@
-import { apiFetch } from '$lib/api/client';
-import { type ApiResult, errorMessage, GENERIC_ERROR_MESSAGE } from '$lib/api/errors';
-import { saveFile } from '$lib/native-app';
+import { apiFetch } from '#lib/api/client.js';
+import { type ApiResult, errorMessage, GENERIC_ERROR_MESSAGE } from '#lib/api/errors.js';
+import { saveFile } from '#lib/native-app.js';
 
 /** サーバーの `Content-Disposition` (src/api/records.rs) から名前が取れなかったときのファイル名。 */
 const FALLBACK_FILENAME = 'bp-records.csv';

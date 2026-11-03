@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { backOrLogin } from '$lib/back-or-login';
-	import { legalDocumentComponent, type LegalDocument } from '$lib/legal';
-	import PageHeader from '$lib/components/page-header.svelte';
+	import { backOrLogin } from '#lib/back-or-login.js';
+	import { legalDocumentComponent, type LegalDocument } from '#lib/legal.js';
+	import PageHeader from '#lib/components/page-header.svelte';
 
 	/** 利用規約・プライバシーポリシーのページ。規約を出さない構成では、ページの load が 404 にする。 */
 	let { document, title }: { document: LegalDocument; title: string } = $props();
@@ -14,7 +14,7 @@
 <div class="mx-auto flex max-w-2xl flex-col px-5 pb-safe-8">
 	<PageHeader onback={back} {title} />
 
-	<!-- 本文はアプリに同梱した Markdown から作る ($lib/legal)。 -->
+	<!-- 本文はアプリに同梱した Markdown から作る (#lib/legal)。 -->
 	<article class="legal-document rounded-lg raised bg-card p-5 text-sm leading-7">
 		<Body />
 	</article>

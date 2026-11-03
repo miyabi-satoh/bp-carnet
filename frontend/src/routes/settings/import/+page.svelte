@@ -2,11 +2,11 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { GENERIC_ERROR_MESSAGE } from '$lib/api/errors';
-	import { AppleHealthError, readAppleHealthExport } from '$lib/apple-health';
-	import { userTimeZone } from '$lib/auth';
-	import { currentYearIn, localToday } from '$lib/period';
-	import { LatestRequest } from '$lib/latest-request';
+	import { GENERIC_ERROR_MESSAGE } from '#lib/api/errors.js';
+	import { AppleHealthError, readAppleHealthExport } from '#lib/apple-health.js';
+	import { userTimeZone } from '#lib/auth.js';
+	import { currentYearIn, localToday } from '#lib/period.js';
+	import { LatestRequest } from '#lib/latest-request.js';
 	import {
 		IMPORT_FILE_ACCEPT,
 		importDateRange,
@@ -18,8 +18,8 @@
 		importFileHandoff,
 		type ImportRow,
 		type ImportRowStatus
-	} from '$lib/import';
-	import { parseTableImport, TABLE_MAX_BYTES, tableSample } from '$lib/import-table';
+	} from '#lib/import.js';
+	import { parseTableImport, TABLE_MAX_BYTES, tableSample } from '#lib/import-table.js';
 	import {
 		fetchOcrStatus,
 		memoRowNote,
@@ -27,9 +27,14 @@
 		memoRowsFromReadings,
 		quotasExhausted,
 		type MemoRow
-	} from '$lib/ocr';
-	import { DOCUMENT_MAX_BYTES, fetchTableColumns, PDF_MAGIC, readDocument } from '$lib/ocr-files';
-	import { ImportConfirmation } from '$lib/import-confirmation.svelte';
+	} from '#lib/ocr.js';
+	import {
+		DOCUMENT_MAX_BYTES,
+		fetchTableColumns,
+		PDF_MAGIC,
+		readDocument
+	} from '#lib/ocr-files.js';
+	import { ImportConfirmation } from '#lib/import-confirmation.svelte.js';
 	import {
 		atPreviewStep,
 		backFromPreview,
@@ -37,25 +42,25 @@
 		leaveImportPage,
 		pushPreviewStep,
 		setImportResult
-	} from '$lib/import-step';
-	import { LeaveGuard } from '$lib/leave-guard.svelte';
-	import * as m from '$lib/paraglide/messages.js';
-	import { openFilePicker } from '$lib/utils';
+	} from '#lib/import-step.js';
+	import { LeaveGuard } from '#lib/leave-guard.svelte.js';
+	import * as m from '#lib/paraglide/messages.js';
+	import { openFilePicker } from '#lib/utils.js';
 	import {
 		fetchPeriodThresholds,
 		DEFAULT_PERIOD_THRESHOLDS,
 		type PeriodThresholds
-	} from '$lib/settings';
-	import { Button } from '$lib/components/ui/button';
-	import FileReadConsentDialog from '$lib/components/file-read-consent-dialog.svelte';
-	import ImportRows from '$lib/components/import-rows.svelte';
-	import ImportPreview from '$lib/components/import-preview.svelte';
-	import ImportRowSheet from '$lib/components/import-row-sheet.svelte';
-	import LeaveConfirmDialog from '$lib/components/leave-confirm-dialog.svelte';
-	import LoadError from '$lib/components/load-error.svelte';
-	import LoadingIndicator from '$lib/components/loading-indicator.svelte';
-	import PageHeader from '$lib/components/page-header.svelte';
-	import ScreenFooter from '$lib/components/screen-footer.svelte';
+	} from '#lib/settings.js';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import FileReadConsentDialog from '#lib/components/file-read-consent-dialog.svelte';
+	import ImportRows from '#lib/components/import-rows.svelte';
+	import ImportPreview from '#lib/components/import-preview.svelte';
+	import ImportRowSheet from '#lib/components/import-row-sheet.svelte';
+	import LeaveConfirmDialog from '#lib/components/leave-confirm-dialog.svelte';
+	import LoadError from '#lib/components/load-error.svelte';
+	import LoadingIndicator from '#lib/components/loading-indicator.svelte';
+	import PageHeader from '#lib/components/page-header.svelte';
+	import ScreenFooter from '#lib/components/screen-footer.svelte';
 
 	/** `pick` はファイルがまだ無い (再読み込み・URL を直接開いた)、`rows` は読み込めた。 */
 	type Stage = 'pick' | 'reading' | 'error' | 'rows';
@@ -302,7 +307,7 @@
 
 	/** 取り込みのページを離れて設定画面へ戻る。 */
 	function leave() {
-		leaveImportPage(fromSettings, () => goto(resolve('/settings')));
+		leaveImportPage(fromSettings, () => goto(resolve('settings')));
 	}
 
 	function back() {
@@ -366,9 +371,10 @@
 
 		{#if stage === 'rows'}
 			<ScreenFooter>
-				<Button type="button" variant="outline" class="flex-1 text-muted-foreground" onclick={back}>
-					{m.common_back_button()}
-				</Button>
+				<Button type="button" variant="outline" class="flex-1 text-muted-foreground" onclick={back}
+					>{m.common_back_button()}</Button
+				>
+
 				<Button
 					type="button"
 					class="flex-1 shadow-soft dark:shadow-none"

@@ -1,26 +1,26 @@
 <script lang="ts">
 	import './layout.css';
-	import favicon from '$lib/assets/favicon.svg';
+	import favicon from '#lib/assets/favicon.svg';
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { ModeWatcher, mode } from 'mode-watcher';
-	import { fetchBetaNotice, isPublicRoute, userInitial } from '$lib/auth';
-	import { isNativeApp, setStatusBarDark } from '$lib/native-app';
-	import { startTopupSync } from '$lib/app-store-purchase';
-	import { isAnalyticsRoute, startWebAnalytics } from '$lib/web-analytics';
-	import * as Avatar from '$lib/components/ui/avatar';
-	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import BetaBadge from '$lib/components/beta-badge.svelte';
-	import ModeToggle from '$lib/components/mode-toggle.svelte';
-	import LoadFailureScreen from '$lib/components/load-failure-screen.svelte';
-	import AppUpdateScreen from '$lib/components/app-update-screen.svelte';
-	import { appUpdate } from '$lib/app-update.svelte';
-	import LogoutDialog from '$lib/components/logout-dialog.svelte';
-	import NavigationProgress from '$lib/components/navigation-progress.svelte';
-	import { pageTitle } from '$lib/page-title';
-	import * as m from '$lib/paraglide/messages.js';
+	import { fetchBetaNotice, isPublicRoute, userInitial } from '#lib/auth.js';
+	import { isNativeApp, setStatusBarDark } from '#lib/native-app.js';
+	import { startTopupSync } from '#lib/app-store-purchase.js';
+	import { isAnalyticsRoute, startWebAnalytics } from '#lib/web-analytics.js';
+	import * as Avatar from '#lib/components/ui/avatar/index.js';
+	import * as DropdownMenu from '#lib/components/ui/dropdown-menu/index.js';
+	import BetaBadge from '#lib/components/beta-badge.svelte';
+	import ModeToggle from '#lib/components/mode-toggle.svelte';
+	import LoadFailureScreen from '#lib/components/load-failure-screen.svelte';
+	import AppUpdateScreen from '#lib/components/app-update-screen.svelte';
+	import { appUpdate } from '#lib/app-update.svelte.js';
+	import LogoutDialog from '#lib/components/logout-dialog.svelte';
+	import NavigationProgress from '#lib/components/navigation-progress.svelte';
+	import { pageTitle } from '#lib/page-title.js';
+	import * as m from '#lib/paraglide/messages.js';
 
 	let { children } = $props();
 
@@ -128,18 +128,18 @@
 				</DropdownMenu.Trigger>
 				<!-- 既定の幅は開くボタン (アバター) に揃い、項目が折り返すため、中身の幅にする。 -->
 				<DropdownMenu.Content align="end" class="w-auto">
-					<DropdownMenu.Item onclick={() => goto(resolve('/settings'))}>
-						{m.settings_title()}
-					</DropdownMenu.Item>
-					<DropdownMenu.Item onclick={() => goto(resolve('/help'))}>
-						{m.help_title()}
-					</DropdownMenu.Item>
+					<DropdownMenu.Item onclick={() => goto(resolve('settings'))}
+						>{m.settings_title()}</DropdownMenu.Item
+					>
+					<DropdownMenu.Item onclick={() => goto(resolve('help'))}
+						>{m.help_title()}</DropdownMenu.Item
+					>
 					<!-- 管理画面の入口はここだけ (設定画面には置かない)。全画面から届き、管理者以外には
 					     そもそも出さないため (docs/authentication.md)。 -->
 					{#if page.data.user?.role === 'admin'}
-						<DropdownMenu.Item onclick={() => goto(resolve('/admin/users'))}>
-							{m.admin_users_menu_link()}
-						</DropdownMenu.Item>
+						<DropdownMenu.Item onclick={() => goto(resolve('admin/users'))}
+							>{m.admin_users_menu_link()}</DropdownMenu.Item
+						>
 					{/if}
 					<DropdownMenu.Separator />
 					<DropdownMenu.Item onclick={() => logoutDialog?.show()}>

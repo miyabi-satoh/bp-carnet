@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('$app/state', () => ({ page: { data: {} } }));
-vi.mock('$lib/api/client', () => ({ client: {} }));
+vi.mock('#lib/api/client.js', () => ({ client: {} }));
 import { canUnlinkIdentity } from './auth';
 
 describe('canUnlinkIdentity', () => {

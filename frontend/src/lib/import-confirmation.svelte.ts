@@ -1,6 +1,6 @@
-import { importRows, type ExistingEntry, type ImportOutcome, type ImportRow } from '$lib/import';
-import { LatestRequest } from '$lib/latest-request';
-import * as m from '$lib/paraglide/messages.js';
+import { importRows, type ExistingEntry, type ImportOutcome, type ImportRow } from '#lib/import.js';
+import { LatestRequest } from '#lib/latest-request.js';
+import * as m from '#lib/paraglide/messages.js';
 
 /** 確認画面 (`ImportPreview`) で確定した取り込みの実行と、その間の状態 (CSV の取り込みのページ・写真で
  * 記録のページで共通)。ページの script で1つ作り、破棄するときに `reset` する。

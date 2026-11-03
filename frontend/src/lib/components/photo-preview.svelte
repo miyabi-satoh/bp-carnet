@@ -1,10 +1,10 @@
 <script lang="ts">
 	import type { HTMLAttributes } from 'svelte/elements';
 	import Maximize2Icon from '@lucide/svelte/icons/maximize-2';
-	import * as m from '$lib/paraglide/messages.js';
-	import { PhotoZoom } from '$lib/photo-zoom.svelte';
-	import { cn } from '$lib/utils';
-	import RoundButton from '$lib/components/round-button.svelte';
+	import * as m from '#lib/paraglide/messages.js';
+	import { PhotoZoom } from '#lib/photo-zoom.svelte.js';
+	import { cn } from '#lib/utils.js';
+	import RoundButton from '#lib/components/round-button.svelte';
 
 	/** 読み取りに使った写真の枠 (docs/ocr.md)。写真で記録のページと、行を直すシートで共通。枠の大きさは `class` で決める。
 	 * 拡大率は写真を差し替えても戻さないので、写真ごとに作り直す (`{#key}`)。

@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { halfWidthInput } from '$lib/half-width';
+	import { halfWidthInput } from '#lib/half-width.js';
 	import { onMount } from 'svelte';
-	import { afterNavigate, goto, replaceState } from '$app/navigation';
+	import { afterNavigate, goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import {
@@ -10,7 +10,7 @@
 		needsContact,
 		errorHelpSlug,
 		oauthErrorMessage
-	} from '$lib/api/errors';
+	} from '#lib/api/errors.js';
 	import {
 		type AuthProviders,
 		fetchAuthProviders,
@@ -23,25 +23,25 @@
 		loginWithApple,
 		loginWithGoogle,
 		loginWithLine
-	} from '$lib/auth';
-	import { isInAppBrowser } from '$lib/in-app-browser';
-	import AppStoreNotice from '$lib/components/app-store-notice.svelte';
-	import { isIosWebApp } from '$lib/ios-web-app';
-	import { isNativeApp } from '$lib/native-app';
-	import BetaBadge from '$lib/components/beta-badge.svelte';
-	import AuthCard from '$lib/components/auth-card.svelte';
-	import * as Field from '$lib/components/ui/field';
-	import * as m from '$lib/paraglide/messages.js';
-	import { Input } from '$lib/components/ui/input';
-	import CenteredScreen from '$lib/components/centered-screen.svelte';
-	import NoticeDialog from '$lib/components/notice-dialog.svelte';
-	import PasswordInput from '$lib/components/password-input.svelte';
-	import SignInButton from '$lib/components/sign-in-button.svelte';
-	import { Button } from '$lib/components/ui/button';
-	import LoadingButton from '$lib/components/loading-button.svelte';
-	import LoadingIndicator from '$lib/components/loading-indicator.svelte';
-	import LoadFailureScreen from '$lib/components/load-failure-screen.svelte';
-	import TermsConsentNote from '$lib/components/terms-consent-note.svelte';
+	} from '#lib/auth.js';
+	import { isInAppBrowser } from '#lib/in-app-browser.js';
+	import AppStoreNotice from '#lib/components/app-store-notice.svelte';
+	import { isIosWebApp } from '#lib/ios-web-app.js';
+	import { isNativeApp } from '#lib/native-app.js';
+	import BetaBadge from '#lib/components/beta-badge.svelte';
+	import AuthCard from '#lib/components/auth-card.svelte';
+	import * as Field from '#lib/components/ui/field/index.js';
+	import * as m from '#lib/paraglide/messages.js';
+	import { Input } from '#lib/components/ui/input/index.js';
+	import CenteredScreen from '#lib/components/centered-screen.svelte';
+	import NoticeDialog from '#lib/components/notice-dialog.svelte';
+	import PasswordInput from '#lib/components/password-input.svelte';
+	import SignInButton from '#lib/components/sign-in-button.svelte';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import LoadingButton from '#lib/components/loading-button.svelte';
+	import LoadingIndicator from '#lib/components/loading-indicator.svelte';
+	import LoadFailureScreen from '#lib/components/load-failure-screen.svelte';
+	import TermsConsentNote from '#lib/components/terms-consent-note.svelte';
 	import DropletIcon from '@lucide/svelte/icons/droplet';
 
 	let username = $state('');
@@ -98,7 +98,7 @@
 
 	async function copyLoginLink() {
 		try {
-			await navigator.clipboard.writeText(`${page.url.origin}${resolve('/login')}`);
+			await navigator.clipboard.writeText(`${page.url.origin}${resolve('login')}`);
 			copyResult = 'copied';
 		} catch {
 			copyResult = 'failed';
@@ -125,13 +125,17 @@
 	// Google・LINE・Apple のコールバックからの失敗リダイレクト (`/login?oauthError=...`) を検出して表示する。
 	// リロード時に再表示されないよう、表示後は URL からクエリを取り除く。
 	// `onMount` ではなく `afterNavigate` なのは、初回表示の `onMount` 時点ではまだ router が
-	// 初期化されておらず、`replaceState` が "before router is initialized" で落ちるため。
-	afterNavigate(() => {
+	// 初期化されておらず、shallow routing が "before router is initialized" で落ちるため。
+	afterNavigate(({ shallow, type }) => {
+		if (shallow && type === 'goto') return;
+
 		const code = page.url.searchParams.get('oauthError');
 		const message = oauthErrorMessage(code);
 		if (message === undefined) return;
 		showError(message, { helpSlug: errorHelpSlug(code), contact: needsContact(code) });
-		replaceState(page.url.pathname, {});
+		// `page.url.pathname` は今のページの URL で、`resolve` 済み。
+		// eslint-disable-next-line svelte/no-navigation-without-resolve
+		goto(page.url.pathname, { shallow: true, replace: true });
 	});
 
 	async function handleSubmit(e: SubmitEvent) {
@@ -188,7 +192,7 @@
 			// クエリ付きのURLは resolve() の戻り値の型にならないため、この規則では追えない。
 			// ログイン画面は履歴に残さない (戻る操作でログイン画面に戻らないように)。
 			// eslint-disable-next-line svelte/no-navigation-without-resolve
-			await goto(target, { replaceState: true });
+			await goto(target, { replace: true });
 		} catch {
 			showError(GENERIC_ERROR_MESSAGE());
 		}
@@ -322,14 +326,14 @@
 							<LoadingButton type="submit" class="w-full text-base" {loading} disabled={signingIn}
 								>{m.login_submit_button()}</LoadingButton
 							>
+
 							<div class="flex flex-col items-center gap-2 text-sm">
-								<a href={resolve('/reset-password')} class={FORM_LINK_CLASS}>
-									{m.login_forgot_password_link()}
-								</a>
+								<a href={resolve('reset-password')} class={FORM_LINK_CLASS}
+									>{m.login_forgot_password_link()}</a
+								>
+
 								<!-- デザインに無いリンク。 -->
-								<a href={resolve('/signup')} class={FORM_LINK_CLASS}>
-									{m.login_signup_link()}
-								</a>
+								<a href={resolve('signup')} class={FORM_LINK_CLASS}>{m.login_signup_link()}</a>
 							</div>
 						</Field.Field>
 					</Field.FieldGroup>
@@ -353,19 +357,19 @@
 					<span aria-hidden="true">·</span>
 				{/if}
 				<a
-					href={resolve('/help')}
+					href={resolve('help')}
 					class="inline-flex min-h-6 items-center whitespace-nowrap hover:text-primary"
 					>{m.login_help_link()}</a
 				>
 				<span aria-hidden="true">·</span>
 				<a
-					href={resolve('/terms')}
+					href={resolve('terms')}
 					class="inline-flex min-h-6 items-center whitespace-nowrap hover:text-primary"
 					>{m.terms_title()}</a
 				>
 				<span aria-hidden="true">·</span>
 				<a
-					href={resolve('/privacy')}
+					href={resolve('privacy')}
 					class="inline-flex min-h-6 items-center whitespace-nowrap hover:text-primary"
 					>{m.privacy_title()}</a
 				>

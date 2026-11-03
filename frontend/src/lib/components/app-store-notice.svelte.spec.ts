@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
-import * as m from '$lib/paraglide/messages.js';
-import { APP_STORE_URL } from '$lib/app-store-link';
+import * as m from '#lib/paraglide/messages.js';
+import { APP_STORE_URL } from '#lib/app-store-link.js';
 
-vi.mock('$lib/ios-web-app', () => ({ isIosWebApp: vi.fn(() => true) }));
-import { isIosWebApp } from '$lib/ios-web-app';
+vi.mock('#lib/ios-web-app.js', () => ({ isIosWebApp: vi.fn(() => true) }));
+import { isIosWebApp } from '#lib/ios-web-app.js';
 import AppStoreNotice from './app-store-notice.svelte';
 
 beforeEach(() => {

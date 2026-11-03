@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import * as m from '$lib/paraglide/messages.js';
+	import * as m from '#lib/paraglide/messages.js';
 	import ExternalLinkIcon from '@lucide/svelte/icons/external-link';
 
 	/** 使い方の本文から、詳しい手順を載せた外のサイトのページへのリンク。 */

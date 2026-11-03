@@ -1,7 +1,7 @@
 <script>
-	import HelpSteps from '$lib/components/help-steps.svelte';
-	import HelpStep from '$lib/components/help-step.svelte';
-	import * as m from '$lib/paraglide/messages.js';
+	import HelpSteps from '#lib/components/help-steps.svelte';
+	import HelpStep from '#lib/components/help-step.svelte';
+	import * as m from '#lib/paraglide/messages.js';
 </script>
 
 このアプリで書き出した形の CSV ファイルから、記録をまとめて取り込みます。取り込む日の記録は、ファイルの内容に置き換わります。

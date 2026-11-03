@@ -1,8 +1,8 @@
 // 画面の <title>。索引させる公開ページ (src/seo.rs の表) はサーバーが素の HTML に差し込むのと同じ文言を
 // ここでも出す。JS を実行する検索エンジンが見る描画後の DOM でも、ページ別の title を効かせるため。
 // 文言の食い違いは Rust 側のテスト (`page_titles_match_the_frontend`) が拾う。
-import { findHelpTopic } from '$lib/help';
-import * as m from '$lib/paraglide/messages.js';
+import { findHelpTopic } from '#lib/help.js';
+import * as m from '#lib/paraglide/messages.js';
 
 export function pageTitle(routeId: string | null, slug?: string): string {
 	const app = m.app_name();

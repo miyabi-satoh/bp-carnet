@@ -1,12 +1,12 @@
 <script lang="ts">
-	import ConsentDialogBody from '$lib/components/consent-dialog-body.svelte';
-	import LoadingButton from '$lib/components/loading-button.svelte';
-	import NoticeDialog from '$lib/components/notice-dialog.svelte';
-	import { Button } from '$lib/components/ui/button';
-	import * as Dialog from '$lib/components/ui/dialog';
-	import { busyCloseGuard } from '$lib/dialog';
-	import { consentToOcr } from '$lib/ocr';
-	import * as m from '$lib/paraglide/messages.js';
+	import ConsentDialogBody from '#lib/components/consent-dialog-body.svelte';
+	import LoadingButton from '#lib/components/loading-button.svelte';
+	import NoticeDialog from '#lib/components/notice-dialog.svelte';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
+	import { busyCloseGuard } from '#lib/dialog.js';
+	import { consentToOcr } from '#lib/ocr.js';
+	import * as m from '#lib/paraglide/messages.js';
 
 	/** 写真を初めて読み取る前に、送り先 (Google の Gemini API) を示して同意を得るダイアログ
 	 * (docs/ocr.md)。`bind:this` + `show()` で開く。

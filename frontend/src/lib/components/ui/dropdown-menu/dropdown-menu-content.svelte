@@ -1,7 +1,7 @@
 <script lang="ts">
 	// ADR: 角丸は shadcn-svelte 既定から一段小さく改変。layout.css の角丸トークンがデザインの実寸 (sm/md/lg = 10/14/20px) で、既定のままだと丸すぎるため。
 	import { DropdownMenu as DropdownMenuPrimitive } from "bits-ui";
-	import { cn, type WithoutChildrenOrChild } from "$lib/utils.js";
+	import { cn, type WithoutChildrenOrChild } from "#lib/utils.js";
 	import DropdownMenuPortal from "./dropdown-menu-portal.svelte";
 	import type { ComponentProps } from "svelte";
 

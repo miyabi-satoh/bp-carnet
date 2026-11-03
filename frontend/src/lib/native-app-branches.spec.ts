@@ -2,25 +2,25 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('$app/state', () => ({ page: { data: {} } }));
-vi.mock('$lib/api/client', () => ({ client: { GET: vi.fn(), POST: vi.fn() } }));
-vi.mock('$lib/native-app', () => ({
+vi.mock('#lib/api/client.js', () => ({ client: { GET: vi.fn(), POST: vi.fn() } }));
+vi.mock('#lib/native-app.js', () => ({
 	isNativeApp: true,
 	saveAppToken: vi.fn(),
 	clearAppToken: vi.fn()
 }));
-vi.mock('$lib/native-login', async (importOriginal) => ({
-	...(await importOriginal<typeof import('$lib/native-login')>()),
+vi.mock('#lib/native-login.js', async (importOriginal) => ({
+	...(await importOriginal<typeof import('#lib/native-login.js')>()),
 	appleAuthorization: vi.fn(),
 	googleServerAuthCode: vi.fn(),
 	lineTokens: vi.fn()
 }));
 
-import { client } from '$lib/api/client';
-import { clearAppToken, saveAppToken } from '$lib/native-app';
-import { appleAuthorization, googleServerAuthCode, lineTokens } from '$lib/native-login';
+import { client } from '#lib/api/client.js';
+import { clearAppToken, saveAppToken } from '#lib/native-app.js';
+import { appleAuthorization, googleServerAuthCode, lineTokens } from '#lib/native-login.js';
 import { login, loginWithApple, loginWithGoogle, loginWithLine, logout } from './auth';
 import { fetchOcrStatus } from './ocr';
-import { respond } from '$lib/api/client.test-helpers';
+import { respond } from '#lib/api/client.test-helpers.js';
 
 beforeEach(() => {
 	vi.clearAllMocks();

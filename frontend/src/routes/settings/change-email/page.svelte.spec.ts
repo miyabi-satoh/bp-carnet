@@ -1,21 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
-import * as m from '$lib/paraglide/messages.js';
-import { requiredLabel } from '$lib/required-label';
+import * as m from '#lib/paraglide/messages.js';
+import { requiredLabel } from '#lib/required-label.js';
 
 vi.mock('$app/navigation', () => ({ goto: vi.fn() }));
-vi.mock('$app/paths', () => ({ resolve: (path: string) => path }));
+vi.mock('$app/paths', () => ({ resolve: (path: string) => `/${path.replace(/^\//, '')}` }));
 vi.mock('$app/state', () => ({
 	page: {
 		url: new URL('http://localhost:3000/settings/change-email'),
 		data: { user: { username: 'kyoko@example.com', passwordUsable: true } }
 	}
 }));
-vi.mock('$lib/auth', async (importOriginal) => ({
-	...(await importOriginal<typeof import('$lib/auth')>()),
+vi.mock('#lib/auth.js', async (importOriginal) => ({
+	...(await importOriginal<typeof import('#lib/auth.js')>()),
 	requestEmailChange: vi.fn()
 }));
-import { requestEmailChange } from '$lib/auth';
+import { requestEmailChange } from '#lib/auth.js';
 import { page } from '$app/state';
 import ChangeEmailPage from './+page.svelte';
 

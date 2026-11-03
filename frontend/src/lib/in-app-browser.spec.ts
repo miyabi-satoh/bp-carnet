@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { isInAppBrowser } from '$lib/in-app-browser';
+import { isInAppBrowser } from '#lib/in-app-browser.js';
 
 afterEach(() => {
 	vi.unstubAllGlobals();

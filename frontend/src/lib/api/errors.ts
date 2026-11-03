@@ -3,8 +3,8 @@
  * 表示文言に変換する。`message` はローカライズされないデバッグ用の文字列なので表示しない。
  * 表示文言は Paraglide メッセージ (`messages/{locale}.json`) の `error_<code>` で持つ。
  */
-import { findHelpTopic } from '$lib/help';
-import * as m from '$lib/paraglide/messages.js';
+import { findHelpTopic } from '#lib/help.js';
+import * as m from '#lib/paraglide/messages.js';
 
 /** backend の `AppError` が画面に返しうる `code`。Stripe の Webhook だけが受ける
  * `stripe_webhook_invalid_signature` は画面に届かないので持たない。 */
@@ -228,7 +228,7 @@ export function contactlessMessage(code: ErrorCode): string {
 export type ApiFailure = { ok: false; message: string; code?: ErrorCode };
 
 /** 呼び出しの結果。成功時に返す値があれば `T` に書く (例: `ApiResult<{ username: string }>`)。
- * `unwrap`/`ensureOk` と、それらを包む `$lib` のラッパーが同じ形を返すようにするための型。 */
+ * `unwrap`/`ensureOk` と、それらを包む `#lib` のラッパーが同じ形を返すようにするための型。 */
 export type ApiResult<T = object> = ({ ok: true } & T) | ApiFailure;
 
 function failure(body: unknown): ApiFailure {
@@ -269,7 +269,7 @@ export function ensureOk(result: { error?: unknown; response: Response }): ApiRe
 /** `unwrap()` を、openapi-fetch の呼び出し (Promise) ごと受け取る版。通信エラー (fetch の例外) も
  * 汎用文言の失敗に畳む。
  *
- * `$lib` のラッパーごとに `try { ... } catch { return 汎用文言 }` を書く定型を集約する。 */
+ * `#lib` のラッパーごとに `try { ... } catch { return 汎用文言 }` を書く定型を集約する。 */
 export async function unwrapRequest<T>(
 	request: Promise<{ data?: T; error?: unknown; response: Response }>
 ): Promise<ApiResult<{ data: T }>> {

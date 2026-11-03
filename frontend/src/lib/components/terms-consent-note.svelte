@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import * as m from '$lib/paraglide/messages.js';
-	import NewTabLink from '$lib/components/new-tab-link.svelte';
+	import * as m from '#lib/paraglide/messages.js';
+	import NewTabLink from '#lib/components/new-tab-link.svelte';
 
 	/** 登録するボタンの直上に置く、利用規約・プライバシーポリシーへの同意の文 (docs/authentication.md)。 */
 	let {
@@ -25,11 +25,11 @@
 		<!-- 「プライバシー｜ポリシー」のように、リンクの語の途中で折り返して読みにくくならないようにする。 -->
 		{#if part === 'terms'}
 			<span class="whitespace-nowrap"
-				><NewTabLink href={resolve('/terms')}>{m.terms_title()}</NewTabLink></span
+				><NewTabLink href={resolve('terms')}>{m.terms_title()}</NewTabLink></span
 			>
 		{:else if part === 'privacy'}
 			<span class="whitespace-nowrap"
-				><NewTabLink href={resolve('/privacy')}>{m.privacy_title()}</NewTabLink></span
+				><NewTabLink href={resolve('privacy')}>{m.privacy_title()}</NewTabLink></span
 			>
 		{:else}
 			{part}

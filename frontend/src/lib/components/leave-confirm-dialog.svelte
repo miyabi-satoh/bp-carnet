@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { LeaveGuard } from '$lib/leave-guard.svelte';
-	import * as AlertDialog from '$lib/components/ui/alert-dialog';
-	import * as m from '$lib/paraglide/messages.js';
+	import type { LeaveGuard } from '#lib/leave-guard.svelte.js';
+	import * as AlertDialog from '#lib/components/ui/alert-dialog/index.js';
+	import * as m from '#lib/paraglide/messages.js';
 
 	/** 入力の途中でページを離れる・入力を捨てる前の確認 (`LeaveGuard`)。文言は、ページを離れるとき用が既定。 */
 	let {

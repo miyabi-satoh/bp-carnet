@@ -8,12 +8,14 @@ import { resolve } from '$app/paths';
 export function backOrLogin(): () => void {
 	let cameFromApp = false;
 	// FIX: 読み込み直して開いたときも `from` が null にならないことがある (e2e で確かめた) ので、移動の種類で見分ける。
-	afterNavigate(({ type }) => {
+	afterNavigate(({ type, shallow }) => {
+		if (shallow && type === 'goto') return;
+
 		cameFromApp = type !== 'enter';
 	});
 
 	return () => {
 		if (cameFromApp) history.back();
-		else goto(resolve('/login'));
+		else goto(resolve('login'));
 	};
 }

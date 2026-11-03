@@ -1,10 +1,10 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import { asset } from '$app/paths';
-	import { getHelpTopicSlug, HELP_STEP_IMAGE_SIZE, helpStepImagePath } from '$lib/help';
-	import * as m from '$lib/paraglide/messages.js';
+	import { getHelpTopicSlug, HELP_STEP_IMAGE_SIZE, helpStepImagePath } from '#lib/help.js';
+	import * as m from '#lib/paraglide/messages.js';
 
-	/** 使い方の本文 (`$lib/help/<言語>/<slug>.md`) の1歩。`n` は 1 始まりの番号で、画像のファイル名にも使う。
+	/** 使い方の本文 (`#lib/help/<言語>/<slug>.md`) の1歩。`n` は 1 始まりの番号で、画像のファイル名にも使う。
 	 * ブラウザのメニューなどアプリの外の操作は画像を撮れないため、`image={false}` にする。 */
 	let { n, image = true, children }: { n: number; image?: boolean; children: Snippet } = $props();
 

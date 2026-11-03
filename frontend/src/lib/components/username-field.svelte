@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { halfWidthInput } from '$lib/half-width';
-	import * as Field from '$lib/components/ui/field';
-	import FieldErrorList from '$lib/components/field-error-list.svelte';
-	import { Input } from '$lib/components/ui/input';
-	import * as m from '$lib/paraglide/messages.js';
-	import { usernameError } from '$lib/username';
+	import { halfWidthInput } from '#lib/half-width.js';
+	import * as Field from '#lib/components/ui/field/index.js';
+	import FieldErrorList from '#lib/components/field-error-list.svelte';
+	import { Input } from '#lib/components/ui/input/index.js';
+	import * as m from '#lib/paraglide/messages.js';
+	import { usernameError } from '#lib/username.js';
 	import type { ComponentProps } from 'svelte';
-	import RequiredMark from '$lib/components/required-mark.svelte';
+	import RequiredMark from '#lib/components/required-mark.svelte';
 
 	/** 欄の id・値・補完・エラーの関連付けはこのコンポーネントが決めるため、呼び出し側からは受け取らない。 */
 	type Props = Omit<

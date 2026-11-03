@@ -1,9 +1,10 @@
 // 使い方のページ (`/help`) の項目の定義。目次の並び・前後の項目は、ここだけから決まる。
 // 項目ページの本文 (前置きと手順) は、言語ごとの `./help/<言語>/<slug>.md` に書く (→ HelpStep)。
 import { createContext, type Component } from 'svelte';
-import { isNativeApp } from '$lib/native-app';
-import * as m from '$lib/paraglide/messages.js';
-import { baseLocale, getLocale } from '$lib/paraglide/runtime.js';
+import type { AssetPath } from '$app/types';
+import { isNativeApp } from '#lib/native-app.js';
+import * as m from '#lib/paraglide/messages.js';
+import { baseLocale, getLocale } from '#lib/paraglide/runtime.js';
 
 export type HelpTopic = {
 	/** URL (`/help/<slug>`)・本文のファイル名・画像のファイル名に使う。 */
@@ -176,14 +177,14 @@ export function adjacentHelpTopics(topic: HelpTopic): {
  * 手順の画像の `static/` からのパス。`n` は手順の番号 (1 始まり)。
  * 画像は E2E で撮る (`just help-shots`、→ e2e/help-shots.ts)。
  */
-export function helpStepImagePath(slug: string, n: number): `/help/${string}` {
-	return `/help/${slug}-${n}.webp`;
+export function helpStepImagePath(slug: string, n: number): AssetPath {
+	return `help/${slug}-${n}.webp` as AssetPath;
 }
 
 /** 手順の画像の大きさ (px)。スマホの幅 (Pixel 7) の画面を縮めて撮る (→ e2e/help-shots.ts)。 */
 export const HELP_STEP_IMAGE_SIZE = { width: 720, height: 1465 } as const;
 
-// 本文は項目ページを開いたときに読み込む (目次やエラーの案内から `$lib/help` を読むだけでは読み込まない)。
+// 本文は項目ページを開いたときに読み込む (目次やエラーの案内から `#lib/help.js` を読むだけでは読み込まない)。
 const contents = import.meta.glob<Component>('./help/*/*.md', { import: 'default' });
 
 /** `topic` の本文 (前置きと手順) を、表示言語 (無ければ日本語) で読み込む。アプリでは `appBody` の項目をアプリの本文にする。 */

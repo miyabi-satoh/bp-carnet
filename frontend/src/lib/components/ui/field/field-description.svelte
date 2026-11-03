@@ -1,6 +1,6 @@
 <script lang="ts">
 	// ADR: shadcn-svelte 既定の、横並びの Field での text-balance を外す改変。日本語の文が右端を空けたまま語の途中で折り返されるため。
-	import { cn, type WithElementRef } from "$lib/utils.js";
+	import { cn, type WithElementRef } from "#lib/utils.js";
 	import type { HTMLAttributes } from "svelte/elements";
 
 	let {

@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { GENERIC_ERROR_MESSAGE } from '$lib/api/errors';
-	import { logout } from '$lib/auth';
-	import LoadingButton from '$lib/components/loading-button.svelte';
-	import NoticeDialog from '$lib/components/notice-dialog.svelte';
-	import * as AlertDialog from '$lib/components/ui/alert-dialog';
-	import { busyCloseGuard } from '$lib/dialog';
-	import * as m from '$lib/paraglide/messages.js';
+	import { GENERIC_ERROR_MESSAGE } from '#lib/api/errors.js';
+	import { logout } from '#lib/auth.js';
+	import LoadingButton from '#lib/components/loading-button.svelte';
+	import NoticeDialog from '#lib/components/notice-dialog.svelte';
+	import * as AlertDialog from '#lib/components/ui/alert-dialog/index.js';
+	import { busyCloseGuard } from '#lib/dialog.js';
+	import * as m from '#lib/paraglide/messages.js';
 
 	/** ログアウトの確認と実行、失敗時のエラーダイアログをまとめたコンポーネント。ヘッダーの
 	 * ユーザーメニューと設定画面の両方から、トリガーボタンだけを変えて使う
@@ -35,7 +35,7 @@
 		}
 		// 自分で閉じる (ヘッダーの分はルートのレイアウトにあり、ログイン画面へ移っても残るため)。
 		open = false;
-		await goto(resolve('/login'));
+		await goto(resolve('login'));
 	}
 </script>
 

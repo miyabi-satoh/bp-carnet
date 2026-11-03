@@ -2,7 +2,7 @@
 	// ADR: 角丸は shadcn-svelte 既定の rounded-lg から rounded-md に改変。layout.css の角丸トークンはデザインの実寸で、ボタンは radius-md (14px)。
 	// ADR: 文字の太さは shadcn-svelte 既定の font-medium から font-bold に改変。デザインのボタンは太字。
 	import { type VariantProps, tv } from "tailwind-variants";
-	import { cn, type WithElementRef } from "$lib/utils.js";
+	import { cn, type WithElementRef } from "#lib/utils.js";
 	import type { HTMLAnchorAttributes, HTMLButtonAttributes } from "svelte/elements";
 
 	export const buttonVariants = tv({

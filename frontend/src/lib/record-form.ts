@@ -1,12 +1,12 @@
-import { browser } from '$app/environment';
+import { browser } from '$app/env';
 import { page } from '$app/state';
-import { bpValueIssues, type BpField } from '$lib/bp-values';
-import * as m from '$lib/paraglide/messages.js';
-import { formatDateOnly, isLocalDateTime, localToday } from '$lib/period';
-import { parseOptionalStrictInt } from '$lib/utils';
+import { bpValueIssues, type BpField } from '#lib/bp-values.js';
+import * as m from '#lib/paraglide/messages.js';
+import { formatDateOnly, isLocalDateTime, localToday } from '#lib/period.js';
+import { parseOptionalStrictInt } from '#lib/utils.js';
 
 /** ホーム画面で記録フォームを開くよう頼まれているか。写真で記録のページの「数字で入力する」から
- * ホーム画面へ戻るときに使う。モジュールの変数で持つ (`$lib/file-handoff` と同じ)。 */
+ * ホーム画面へ戻るときに使う。モジュールの変数で持つ (`#lib/file-handoff.js` と同じ)。 */
 let manualEntryRequested = false;
 
 /** ホーム画面へ移ったら、記録フォームを新規登録で開くよう頼む。 */
@@ -75,7 +75,12 @@ type BpFormInput = Pick<RecordFormInput, BpField>;
 type BpFormErrors = Partial<Record<BpField, string>>;
 
 type BpFormValidation =
-	| { ok: true; systolic: number; diastolic: number; pulse: number | undefined }
+	| {
+			ok: true;
+			systolic: number;
+			diastolic: number;
+			pulse: number | undefined;
+	  }
 	| { ok: false; errors: BpFormErrors };
 
 /** `measuredOnDate` ("YYYY-MM-DD") ・`time` ("HH:MM") が実在する日時を表しているか。

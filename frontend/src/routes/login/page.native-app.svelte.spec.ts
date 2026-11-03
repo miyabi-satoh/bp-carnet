@@ -1,29 +1,29 @@
 // アプリ (Capacitor) の中で開いたログイン画面 (docs/mobile-app.md)。
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
-import * as m from '$lib/paraglide/messages.js';
+import * as m from '#lib/paraglide/messages.js';
 
 vi.mock('$app/navigation', () => ({
 	afterNavigate: vi.fn(),
 	goto: vi.fn(),
-	invalidateAll: vi.fn(),
+	refreshAll: vi.fn(),
 	replaceState: vi.fn()
 }));
-vi.mock('$app/paths', () => ({ resolve: (path: string) => path }));
+vi.mock('$app/paths', () => ({ resolve: (path: string) => `/${path.replace(/^\//, '')}` }));
 vi.mock('$app/state', () => ({ page: { url: new URL('http://localhost/login'), data: {} } }));
-vi.mock('$lib/native-app', async (importOriginal) => ({
-	...(await importOriginal<typeof import('$lib/native-app')>()),
+vi.mock('#lib/native-app.js', async (importOriginal) => ({
+	...(await importOriginal<typeof import('#lib/native-app.js')>()),
 	isNativeApp: true
 }));
-vi.mock('$lib/auth', async (importOriginal) => ({
-	...(await importOriginal<typeof import('$lib/auth')>()),
+vi.mock('#lib/auth.js', async (importOriginal) => ({
+	...(await importOriginal<typeof import('#lib/auth.js')>()),
 	fetchAuthProviders: vi.fn(),
 	isSetupRequired: vi.fn(async () => false),
 	loginWithApple: vi.fn(),
 	loginWithGoogle: vi.fn(),
 	loginWithLine: vi.fn()
 }));
-import { fetchAuthProviders, loginWithApple, loginWithGoogle, loginWithLine } from '$lib/auth';
+import { fetchAuthProviders, loginWithApple, loginWithGoogle, loginWithLine } from '#lib/auth.js';
 import LoginPage from './+page.svelte';
 
 const providers = {

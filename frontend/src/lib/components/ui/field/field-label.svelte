@@ -1,8 +1,8 @@
 <script lang="ts">
 	// ADR: 角丸は shadcn-svelte 既定の rounded-lg から rounded-sm に改変。既定の lg は 10px 前後を想定しているが、layout.css の角丸トークンはデザインの実寸 (lg=20px) のため、10px の sm にする。
 	// ADR: 文字は shadcn-svelte 既定 (text-sm・font-medium・本文色) から、デザインの入力欄ラベルに近い text-sm・太字・muted に改変。
-	import { Label } from "$lib/components/ui/label/index.js";
-	import { cn } from "$lib/utils.js";
+	import { Label } from "#lib/components/ui/label/index.js";
+	import { cn } from "#lib/utils.js";
 	import type { ComponentProps } from "svelte";
 
 	let {

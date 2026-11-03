@@ -1,9 +1,9 @@
 <script lang="ts">
-	import ConsentDialogBody from '$lib/components/consent-dialog-body.svelte';
-	import { Button } from '$lib/components/ui/button';
-	import * as Dialog from '$lib/components/ui/dialog';
-	import { SAMPLE_LINES } from '$lib/import-table';
-	import * as m from '$lib/paraglide/messages.js';
+	import ConsentDialogBody from '#lib/components/consent-dialog-body.svelte';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
+	import { SAMPLE_LINES } from '#lib/import-table.js';
+	import * as m from '#lib/paraglide/messages.js';
 
 	/** 他のアプリのファイルを読み取る前に、何をどこへ送るかを示して同意を得るダイアログ
 	 * (docs/import-export.md「他のアプリのファイル」)。`bind:this` + `show(kind)` で開く。

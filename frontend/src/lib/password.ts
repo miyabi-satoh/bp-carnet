@@ -1,7 +1,7 @@
-import { client } from '$lib/api/client';
-import { type ApiResult, unwrapRequest } from '$lib/api/errors';
-import type { components } from '$lib/api/schema';
-import * as m from '$lib/paraglide/messages.js';
+import { client } from '#lib/api/client.js';
+import { type ApiResult, unwrapRequest } from '#lib/api/errors.js';
+import type { components } from '#lib/api/schema.js';
+import * as m from '#lib/paraglide/messages.js';
 
 /** 設定 (`[password]`) のパスワードポリシー。`GET /api/v1/auth/password-policy` の応答。 */
 export type PasswordPolicy = components['schemas']['PasswordPolicyResponse'];

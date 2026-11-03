@@ -1,4 +1,4 @@
-import * as m from '$lib/paraglide/messages.js';
+import * as m from '#lib/paraglide/messages.js';
 
 /** バックエンドの `src/validation.rs` と同じ上限 (コードポイント数)。 */
 const USERNAME_MAX_CHARS = 254;

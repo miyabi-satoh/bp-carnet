@@ -1,8 +1,8 @@
 // メールのリンクを申し込む画面 (サインアップ・再設定の申し込み) の、送った後の表示。
 import { expect, it } from 'vitest';
 import { render } from 'vitest-browser-svelte';
-import * as m from '$lib/paraglide/messages.js';
-import { requiredLabel } from '$lib/required-label';
+import * as m from '#lib/paraglide/messages.js';
+import { requiredLabel } from '#lib/required-label.js';
 import EmailRequestForm from './email-request-form.svelte';
 
 it('送った後は送り先を見せ、「メールアドレスを直す」で入れた値を残したまま入力に戻る', async () => {

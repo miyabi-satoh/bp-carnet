@@ -2,18 +2,21 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { page } from 'vitest/browser';
 import { render } from 'vitest-browser-svelte';
-import * as m from '$lib/paraglide/messages.js';
+import * as m from '#lib/paraglide/messages.js';
 
-vi.mock('$app/paths', () => ({ resolve: (path: string) => path }));
-vi.mock('$lib/native-app', () => ({ isNativeApp: true }));
-vi.mock('$lib/payments', () => ({ startOcrTopupCheckout: vi.fn() }));
-vi.mock('$lib/app-store-purchase', () => ({ purchaseTopup: vi.fn(), topupDisplayPrice: vi.fn() }));
-vi.mock('$lib/auth', () => ({
+vi.mock('$app/paths', () => ({ resolve: (path: string) => `/${path.replace(/^\//, '')}` }));
+vi.mock('#lib/native-app.js', () => ({ isNativeApp: true }));
+vi.mock('#lib/payments.js', () => ({ startOcrTopupCheckout: vi.fn() }));
+vi.mock('#lib/app-store-purchase.js', () => ({
+	purchaseTopup: vi.fn(),
+	topupDisplayPrice: vi.fn()
+}));
+vi.mock('#lib/auth.js', () => ({
 	fetchContactUrl: vi.fn(async () => 'https://example.com/contact')
 }));
-import { purchaseTopup, topupDisplayPrice } from '$lib/app-store-purchase';
-import { fetchContactUrl } from '$lib/auth';
-import { startOcrTopupCheckout } from '$lib/payments';
+import { purchaseTopup, topupDisplayPrice } from '#lib/app-store-purchase.js';
+import { fetchContactUrl } from '#lib/auth.js';
+import { startOcrTopupCheckout } from '#lib/payments.js';
 import Harness from './topup-confirm-dialog.test-harness.svelte';
 
 beforeEach(() => {

@@ -1,17 +1,17 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import { prefersReducedMotion } from 'svelte/motion';
-	import { buildChartData, type ChartSeriesKey } from '$lib/bp-chart';
-	import { delayedFlag, LOADING_SHOW_DELAY_MS } from '$lib/delayed-flag.svelte';
-	import * as m from '$lib/paraglide/messages.js';
-	import type { BpRecord, BpSummary } from '$lib/records';
-	import BpChart from '$lib/components/bp-chart.svelte';
-	import BpStatsSummary from '$lib/components/bp-stats-summary.svelte';
-	import LoadError from '$lib/components/load-error.svelte';
-	import LoadingIndicator from '$lib/components/loading-indicator.svelte';
-	import RecordCard from '$lib/components/record-card.svelte';
-	import { Button } from '$lib/components/ui/button';
-	import { RECORD_LIST_PAGE_SIZE } from '$lib/records-view.svelte';
+	import { buildChartData, type ChartSeriesKey } from '#lib/bp-chart.js';
+	import { delayedFlag, LOADING_SHOW_DELAY_MS } from '#lib/delayed-flag.svelte.js';
+	import * as m from '#lib/paraglide/messages.js';
+	import type { BpRecord, BpSummary } from '#lib/records.js';
+	import BpChart from '#lib/components/bp-chart.svelte';
+	import BpStatsSummary from '#lib/components/bp-stats-summary.svelte';
+	import LoadError from '#lib/components/load-error.svelte';
+	import LoadingIndicator from '#lib/components/loading-indicator.svelte';
+	import RecordCard from '#lib/components/record-card.svelte';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import { RECORD_LIST_PAGE_SIZE } from '#lib/records-view.svelte.js';
 
 	/** 期間内の記録の表示。並びはデザインどおり、平均 → グラフ → 記録一覧。メイン画面と、
 	 * 管理者による利用者の閲覧ページで共有する。取得と期間の切り替えは呼び出し側で行う。

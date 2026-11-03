@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import RoundButton from '$lib/components/round-button.svelte';
+	import RoundButton from '#lib/components/round-button.svelte';
 	import ChevronLeftIcon from '@lucide/svelte/icons/chevron-left';
-	import * as m from '$lib/paraglide/messages.js';
+	import * as m from '#lib/paraglide/messages.js';
 
 	/** 共通ヘッダーの代わりに置く、丸い戻るボタンと見出し。
 	 * ページの上端に置く前提で、上の余白に画面の上端の帯を含める。

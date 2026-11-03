@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('$app/state', () => ({ page: { data: {} } }));
-vi.mock('$lib/api/client', () => ({ client: { GET: vi.fn() } }));
-import { client } from '$lib/api/client';
+vi.mock('#lib/api/client.js', () => ({ client: { GET: vi.fn() } }));
+import { client } from '#lib/api/client.js';
 import { fetchAuthProviders, fetchContactUrl } from './auth';
-import { respond } from '$lib/api/client.test-helpers';
+import { respond } from '#lib/api/client.test-helpers.js';
 
 const getMock = client.GET as unknown as ReturnType<typeof vi.fn>;
 

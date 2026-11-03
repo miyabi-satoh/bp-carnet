@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isTaxIncluded } from '$lib/tax';
+import { isTaxIncluded } from '#lib/tax.js';
 
 describe('isTaxIncluded', () => {
 	it('日本時間の 2026-12-01 0時から税込みになる', () => {

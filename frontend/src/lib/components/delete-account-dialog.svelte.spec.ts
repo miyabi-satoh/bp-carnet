@@ -1,18 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { page, userEvent } from 'vitest/browser';
 import { render } from 'vitest-browser-svelte';
-import type { ApiResult } from '$lib/api/errors';
-import * as m from '$lib/paraglide/messages.js';
-import { requiredLabel } from '$lib/required-label';
+import type { ApiResult } from '#lib/api/errors.js';
+import * as m from '#lib/paraglide/messages.js';
+import { requiredLabel } from '#lib/required-label.js';
 
 vi.mock('$app/state', () => ({
 	page: { data: { user: { timezone: 'Asia/Tokyo' } } }
 }));
-vi.mock('$lib/auth', async (importOriginal) => ({
-	...(await importOriginal<typeof import('$lib/auth')>()),
+vi.mock('#lib/auth.js', async (importOriginal) => ({
+	...(await importOriginal<typeof import('#lib/auth.js')>()),
 	scheduleAccountDeletion: vi.fn()
 }));
-import { scheduleAccountDeletion } from '$lib/auth';
+import { scheduleAccountDeletion } from '#lib/auth.js';
 import Harness from './delete-account-dialog.test-harness.svelte';
 
 beforeEach(() => {

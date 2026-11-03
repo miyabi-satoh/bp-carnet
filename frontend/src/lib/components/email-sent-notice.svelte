@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
-	import PageResult from '$lib/components/page-result.svelte';
-	import { isNativeApp } from '$lib/native-app';
-	import * as m from '$lib/paraglide/messages.js';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import PageResult from '#lib/components/page-result.svelte';
+	import { isNativeApp } from '#lib/native-app.js';
+	import * as m from '#lib/paraglide/messages.js';
 
 	type Props = {
 		title: string;

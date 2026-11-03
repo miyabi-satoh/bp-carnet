@@ -2,18 +2,18 @@
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { completePasswordReset, isEmailLinkUsable, requestPasswordReset } from '$lib/auth';
-	import AuthCard from '$lib/components/auth-card.svelte';
-	import AuthPageHeader from '$lib/components/auth-page-header.svelte';
-	import BackToLoginLink from '$lib/components/back-to-login-link.svelte';
-	import CenteredScreen from '$lib/components/centered-screen.svelte';
-	import EmailLinkExpired from '$lib/components/email-link-expired.svelte';
-	import EmailRequestForm from '$lib/components/email-request-form.svelte';
-	import LoadingIndicator from '$lib/components/loading-indicator.svelte';
-	import NewPasswordForm from '$lib/components/new-password-form.svelte';
-	import NoticeDialog from '$lib/components/notice-dialog.svelte';
-	import PageResult from '$lib/components/page-result.svelte';
-	import * as m from '$lib/paraglide/messages.js';
+	import { completePasswordReset, isEmailLinkUsable, requestPasswordReset } from '#lib/auth.js';
+	import AuthCard from '#lib/components/auth-card.svelte';
+	import AuthPageHeader from '#lib/components/auth-page-header.svelte';
+	import BackToLoginLink from '#lib/components/back-to-login-link.svelte';
+	import CenteredScreen from '#lib/components/centered-screen.svelte';
+	import EmailLinkExpired from '#lib/components/email-link-expired.svelte';
+	import EmailRequestForm from '#lib/components/email-request-form.svelte';
+	import LoadingIndicator from '#lib/components/loading-indicator.svelte';
+	import NewPasswordForm from '#lib/components/new-password-form.svelte';
+	import NoticeDialog from '#lib/components/notice-dialog.svelte';
+	import PageResult from '#lib/components/page-result.svelte';
+	import * as m from '#lib/paraglide/messages.js';
 	import LockIcon from '@lucide/svelte/icons/lock';
 
 	/** 再設定のメールのリンクに載っているトークン。無ければ再設定の申し込みを受け付ける。 */
@@ -71,7 +71,7 @@
 		{:else if !usable}
 			<EmailLinkExpired
 				description={m.reset_password_expired_description()}
-				retryHref={resolve('/reset-password')}
+				retryHref={resolve('reset-password')}
 				retryLabel={m.reset_password_expired_retry_button()}
 			/>
 		{:else if done}

@@ -1,5 +1,5 @@
 import { error } from '@sveltejs/kit';
-import { findHelpTopic, loadHelpTopicContent } from '$lib/help';
+import { findHelpTopic, loadHelpTopicContent } from '#lib/help.js';
 import type { PageLoad } from './$types';
 
 export const load: PageLoad = async ({ params }) => {

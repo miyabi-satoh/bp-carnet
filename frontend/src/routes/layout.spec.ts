@@ -2,16 +2,16 @@
 import { isRedirect } from '@sveltejs/kit';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('$app/paths', () => ({ resolve: (path: string) => path }));
-vi.mock('$lib/api/client', () => ({ client: { GET: vi.fn() } }));
-vi.mock('$lib/settings', () => ({
+vi.mock('$app/paths', () => ({ resolve: (path: string) => `/${path.replace(/^\//, '')}` }));
+vi.mock('#lib/api/client.js', () => ({ client: { GET: vi.fn() } }));
+vi.mock('#lib/settings.js', () => ({
 	browserTimeZone: () => undefined,
 	saveDetectedTimezone: vi.fn()
 }));
 
-import { client } from '$lib/api/client';
+import { client } from '#lib/api/client.js';
 import { load } from './+layout';
-import { respond } from '$lib/api/client.test-helpers';
+import { respond } from '#lib/api/client.test-helpers.js';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const run = async (routeId: string) => load({ route: { id: routeId } } as any);

@@ -3,17 +3,17 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { completeSignup, isEmailLinkUsable } from '$lib/auth';
-	import AuthCard from '$lib/components/auth-card.svelte';
-	import AuthPageHeader from '$lib/components/auth-page-header.svelte';
-	import CenteredScreen from '$lib/components/centered-screen.svelte';
-	import PageResult from '$lib/components/page-result.svelte';
-	import BackToLoginLink from '$lib/components/back-to-login-link.svelte';
-	import EmailLinkExpired from '$lib/components/email-link-expired.svelte';
-	import LoadingIndicator from '$lib/components/loading-indicator.svelte';
-	import NewPasswordForm from '$lib/components/new-password-form.svelte';
-	import NoticeDialog from '$lib/components/notice-dialog.svelte';
-	import * as m from '$lib/paraglide/messages.js';
+	import { completeSignup, isEmailLinkUsable } from '#lib/auth.js';
+	import AuthCard from '#lib/components/auth-card.svelte';
+	import AuthPageHeader from '#lib/components/auth-page-header.svelte';
+	import CenteredScreen from '#lib/components/centered-screen.svelte';
+	import PageResult from '#lib/components/page-result.svelte';
+	import BackToLoginLink from '#lib/components/back-to-login-link.svelte';
+	import EmailLinkExpired from '#lib/components/email-link-expired.svelte';
+	import LoadingIndicator from '#lib/components/loading-indicator.svelte';
+	import NewPasswordForm from '#lib/components/new-password-form.svelte';
+	import NoticeDialog from '#lib/components/notice-dialog.svelte';
+	import * as m from '#lib/paraglide/messages.js';
 	import LockIcon from '@lucide/svelte/icons/lock';
 
 	/** 確認メールのリンクに載っているトークン。この画面の間は変わらない。 */
@@ -51,7 +51,7 @@
 		}
 		// 設定できた時点でログイン済みになっている。遷移が済むまでボタンは送信中のままにする。
 		// この画面は履歴に残さない (戻る操作で使用済みのトークンのフォームに戻らないように)。
-		await goto(resolve('/'), { replaceState: true });
+		await goto(resolve('/'), { replace: true });
 	}
 </script>
 
@@ -67,7 +67,7 @@
 	{:else if !usable}
 		<EmailLinkExpired
 			description={m.verify_email_expired_description()}
-			retryHref={resolve('/signup')}
+			retryHref={resolve('signup')}
 			retryLabel={m.verify_email_expired_retry_button()}
 		/>
 	{:else if done}

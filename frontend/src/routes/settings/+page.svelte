@@ -1,17 +1,17 @@
 <script lang="ts">
-	import { goto, invalidateAll } from '$app/navigation';
+	import { goto, refreshAll } from '$app/navigation';
 	import { onDestroy, onMount, tick } from 'svelte';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import { GENERIC_ERROR_MESSAGE } from '$lib/api/errors';
+	import { GENERIC_ERROR_MESSAGE } from '#lib/api/errors.js';
 	import {
 		canUnlinkIdentity,
 		fetchContactUrl,
 		userTimeZone,
 		LINKED_PROVIDERS,
 		linkedProviderLabel
-	} from '$lib/auth';
-	import * as m from '$lib/paraglide/messages.js';
+	} from '#lib/auth.js';
+	import * as m from '#lib/paraglide/messages.js';
 	import {
 		autoTimezoneLabel,
 		browserTimeZone,
@@ -23,37 +23,37 @@
 		timezoneChoiceOptions,
 		type PeriodThresholds,
 		type Settings
-	} from '$lib/settings';
-	import { formatDateLabel, formatFutureDateLabel, type DayPeriod } from '$lib/period';
-	import { LIST_ROW_CLASS, SECTION_TITLE_CLASS } from '$lib/styles';
-	import { cn, openFilePicker } from '$lib/utils';
-	import { Button } from '$lib/components/ui/button';
-	import { Separator } from '$lib/components/ui/separator';
-	import { Spinner } from '$lib/components/ui/spinner';
-	import NoticeDialog from '$lib/components/notice-dialog.svelte';
-	import FieldErrorList from '$lib/components/field-error-list.svelte';
-	import LoadingButton from '$lib/components/loading-button.svelte';
-	import LoadingIndicator from '$lib/components/loading-indicator.svelte';
-	import LoadError from '$lib/components/load-error.svelte';
-	import LogoutDialog from '$lib/components/logout-dialog.svelte';
-	import PageHeader from '$lib/components/page-header.svelte';
-	import DeleteAccountDialog from '$lib/components/delete-account-dialog.svelte';
-	import UnlinkIdentityDialog from '$lib/components/unlink-identity-dialog.svelte';
-	import TimePicker from '$lib/components/time-picker.svelte';
-	import OcrQuotaGauge from '$lib/components/ocr-quota-gauge.svelte';
-	import TopupConfirmDialog from '$lib/components/topup-confirm-dialog.svelte';
+	} from '#lib/settings.js';
+	import { formatDateLabel, formatFutureDateLabel, type DayPeriod } from '#lib/period.js';
+	import { LIST_ROW_CLASS, SECTION_TITLE_CLASS } from '#lib/styles.js';
+	import { cn, openFilePicker } from '#lib/utils.js';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import { Separator } from '#lib/components/ui/separator/index.js';
+	import { Spinner } from '#lib/components/ui/spinner/index.js';
+	import NoticeDialog from '#lib/components/notice-dialog.svelte';
+	import FieldErrorList from '#lib/components/field-error-list.svelte';
+	import LoadingButton from '#lib/components/loading-button.svelte';
+	import LoadingIndicator from '#lib/components/loading-indicator.svelte';
+	import LoadError from '#lib/components/load-error.svelte';
+	import LogoutDialog from '#lib/components/logout-dialog.svelte';
+	import PageHeader from '#lib/components/page-header.svelte';
+	import DeleteAccountDialog from '#lib/components/delete-account-dialog.svelte';
+	import UnlinkIdentityDialog from '#lib/components/unlink-identity-dialog.svelte';
+	import TimePicker from '#lib/components/time-picker.svelte';
+	import OcrQuotaGauge from '#lib/components/ocr-quota-gauge.svelte';
+	import TopupConfirmDialog from '#lib/components/topup-confirm-dialog.svelte';
 	import CheckIcon from '@lucide/svelte/icons/check';
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
 	import ExternalLinkIcon from '@lucide/svelte/icons/external-link';
 	import LogOutIcon from '@lucide/svelte/icons/log-out';
-	import { exportRecords } from '$lib/export';
-	import { appVersionLabel, isNativeApp } from '$lib/native-app';
-	import { IMPORT_FILE_ACCEPT, importFileHandoff } from '$lib/import';
-	import { takeImportResult } from '$lib/import-step';
-	import { withdrawOcrConsent } from '$lib/ocr';
-	import { OcrStatusState } from '$lib/ocr-status.svelte';
-	import { debugRefundAvailable, requestDebugRefund } from '$lib/app-store-purchase';
+	import { exportRecords } from '#lib/export.js';
+	import { appVersionLabel, isNativeApp } from '#lib/native-app.js';
+	import { IMPORT_FILE_ACCEPT, importFileHandoff } from '#lib/import.js';
+	import { takeImportResult } from '#lib/import-step.js';
+	import { withdrawOcrConsent } from '#lib/ocr.js';
+	import { OcrStatusState } from '#lib/ocr-status.svelte.js';
+	import { debugRefundAvailable, requestDebugRefund } from '#lib/app-store-purchase.js';
 
 	let loading = $state(true);
 	let loadErrorMessage = $state('');
@@ -211,7 +211,7 @@
 					result.data.timezone !== page.data.user?.timezone ||
 					result.data.timezoneAuto !== page.data.user?.timezoneAuto
 				) {
-					await invalidateAll();
+					await refreshAll();
 				}
 				// 同じ文言でも読み上げ直されるよう、一度空にしてから入れる。
 				savedAnnouncement = '';
@@ -220,7 +220,7 @@
 				showSaved(sending);
 			} while (saveQueued);
 		} catch {
-			// API の失敗は `saveSettings()` が結果で返すので、ここに来るのは読み直し (`invalidateAll`) 等の失敗。
+			// API の失敗は `saveSettings()` が結果で返すので、ここに来るのは読み直し (`refreshAll`) 等の失敗。
 			failSave(GENERIC_ERROR_MESSAGE());
 		} finally {
 			saving = false;
@@ -286,10 +286,10 @@
 	/** 問い合わせ先の URL。問い合わせが返るまで・取れなかったときは `null` で、行を出さない。 */
 	let contactUrl = $state<string | null>(null);
 	const aboutPages = [
-		{ href: resolve('/help'), label: m.help_title() },
-		{ href: resolve('/terms'), label: m.terms_title() },
-		{ href: resolve('/privacy'), label: m.privacy_title() },
-		{ href: resolve('/licenses'), label: m.licenses_title() }
+		{ href: resolve('help'), label: m.help_title() },
+		{ href: resolve('terms'), label: m.terms_title() },
+		{ href: resolve('privacy'), label: m.privacy_title() },
+		{ href: resolve('licenses'), label: m.licenses_title() }
 	];
 
 	/** エクスポート処理中かどうか (同時に1つしか実行しない想定)。 */
@@ -307,7 +307,7 @@
 		const file = (e.currentTarget as HTMLInputElement).files?.[0];
 		if (!file) return;
 		importFileHandoff.set(file);
-		goto(resolve('/settings/import'));
+		goto(resolve('settings/import'));
 	}
 
 	async function handleExport() {
@@ -398,8 +398,10 @@
 {#snippet autoSaveTitle(section: AutoSaveSection, id: string, title: string)}
 	<!-- 保存したことが見えるよう、見出しの右に「保存しました」を出す (デザインには無い)。
 	     読み上げは role="status" の側で伝える。 -->
+
 	<div class="mb-2 flex items-center justify-between gap-2">
 		<h2 {id} class={cn(SECTION_TITLE_CLASS, 'mb-0')}>{title}</h2>
+
 		{#if savedSections.includes(section)}
 			<span class="flex items-center gap-1 text-sm text-muted-foreground" aria-hidden="true">
 				<CheckIcon size={16} strokeWidth={2.2} />{m.settings_saved_badge()}
@@ -591,12 +593,12 @@
 		<!-- 設定の取得可否に関わらず描く (設定APIだけが失敗した状態でもログアウトできる
 		     必要がある)。 -->
 		<section aria-labelledby="account-heading">
-			<h2 id="account-heading" class={SECTION_TITLE_CLASS}>
-				{m.settings_account_section_title()}
-			</h2>
+			<h2 id="account-heading" class={SECTION_TITLE_CLASS}>{m.settings_account_section_title()}</h2>
+
 			<div class="divide-y overflow-hidden rounded-lg raised bg-card">
 				<p class="px-4 py-3.5 text-base text-subtle-foreground">{page.data.user?.username}</p>
-				<a href={resolve('/settings/change-email')} class={LIST_ROW_CLASS}>
+
+				<a href={resolve('settings/change-email')} class={LIST_ROW_CLASS}>
 					{m.settings_change_email_button()}
 					<ChevronRightIcon
 						size={16}
@@ -607,7 +609,7 @@
 				</a>
 				<!-- Google 専用アカウントは変更できるパスワードを持たないため、行自体を出さない。 -->
 				{#if page.data.user?.passwordUsable}
-					<a href={resolve('/settings/change-password')} class={LIST_ROW_CLASS}>
+					<a href={resolve('settings/change-password')} class={LIST_ROW_CLASS}>
 						{m.settings_change_password_button()}
 						<ChevronRightIcon
 							size={16}
@@ -640,6 +642,7 @@
 				>
 					{m.settings_login_methods_section_title()}
 				</h2>
+
 				<div class="divide-y overflow-hidden rounded-lg raised bg-card">
 					{#each linkedProviders as provider (provider)}
 						<div class="flex min-h-13 items-center justify-between gap-2 px-4 py-2">

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { isIosWebApp } from '$lib/ios-web-app';
+import { isIosWebApp } from '#lib/ios-web-app.js';
 
 afterEach(() => {
 	vi.unstubAllGlobals();

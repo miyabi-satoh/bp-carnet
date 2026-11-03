@@ -1,12 +1,14 @@
 import { asset } from '$app/paths';
+import type { AssetPath } from '$app/types';
 import type { LicenseDisplay } from '../../../scripts/license-display';
 import type { PageLoad } from './$types';
 
 // 画面の分はビルドのたびに作り、iPhone アプリの分はリポジトリに入れてある (→ docs/third-party-licenses.md)。
 // どちらも静的ファイルなので、API ではなくそのまま取る。iPhone アプリでは同梱した物を読むので、ネットが無くても出る。
+// 画面の分はビルドで作るので `static/` に無く、`AssetPath` に載らない。
 const FILES = {
-	web: asset('/third-party-licenses/npm.json'),
-	ios: asset('/third-party-licenses/ios.json')
+	web: asset('third-party-licenses/npm.json' as AssetPath),
+	ios: asset('third-party-licenses/ios.json')
 } as const;
 
 export const load: PageLoad = async ({ fetch }) => {

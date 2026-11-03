@@ -3,13 +3,13 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { fetchOcrTopupResult } from '$lib/payments';
-	import { LatestRequest } from '$lib/latest-request';
-	import ButtonRow from '$lib/components/button-row.svelte';
-	import LoadingIndicator from '$lib/components/loading-indicator.svelte';
-	import PageResult from '$lib/components/page-result.svelte';
-	import { Button } from '$lib/components/ui/button';
-	import * as m from '$lib/paraglide/messages.js';
+	import { fetchOcrTopupResult } from '#lib/payments.js';
+	import { LatestRequest } from '#lib/latest-request.js';
+	import ButtonRow from '#lib/components/button-row.svelte';
+	import LoadingIndicator from '#lib/components/loading-indicator.svelte';
+	import PageResult from '#lib/components/page-result.svelte';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import * as m from '#lib/paraglide/messages.js';
 	import CheckIcon from '@lucide/svelte/icons/check';
 	import XIcon from '@lucide/svelte/icons/x';
 
@@ -71,7 +71,7 @@
 	}
 
 	function backToPhoto() {
-		void goto(resolve('/record/photo'));
+		void goto(resolve('record/photo'));
 	}
 </script>
 

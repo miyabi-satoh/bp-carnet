@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { HTMLAnchorAttributes, HTMLButtonAttributes } from 'svelte/elements';
-	import { cn } from '$lib/utils';
+	import { cn } from '#lib/utils.js';
 
 	/** 44px の丸いアイコンボタン (デザインの戻る・閉じる・期間の前後)。`href` を渡すとリンクになる。
 	 * 地の色は置き場所で変わるので `class` で渡す。中身のアイコンと、その読み上げ名は呼び出し側で決める。

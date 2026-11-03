@@ -1,6 +1,6 @@
 <script lang="ts">
-	import DialogRoundClose from '$lib/components/dialog-round-close.svelte';
-	import * as Dialog from '$lib/components/ui/dialog';
+	import DialogRoundClose from '#lib/components/dialog-round-close.svelte';
+	import * as Dialog from '#lib/components/ui/dialog/index.js';
 
 	/** フォームのダイアログの見出し。見出しの右に丸い × を置く。
 	 * × を出すのはフォームのダイアログだけなので、確認のダイアログはこれを使わず `Dialog.Header` を置く。 */

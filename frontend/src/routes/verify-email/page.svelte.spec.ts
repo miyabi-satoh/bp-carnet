@@ -1,27 +1,27 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
-import * as m from '$lib/paraglide/messages.js';
-import { requiredLabel } from '$lib/required-label';
+import * as m from '#lib/paraglide/messages.js';
+import { requiredLabel } from '#lib/required-label.js';
 
 vi.mock('$app/navigation', () => ({ goto: vi.fn() }));
-vi.mock('$app/paths', () => ({ resolve: (path: string) => path }));
+vi.mock('$app/paths', () => ({ resolve: (path: string) => `/${path.replace(/^\//, '')}` }));
 // テストごとに `page.url` を差し替える (モックのモジュールは、テストの import と同じもの)。
 vi.mock('$app/state', () => ({
 	page: { url: new URL('http://localhost:3000/verify-email?token=signup-token'), data: {} }
 }));
-vi.mock('$lib/auth', async (importOriginal) => ({
-	...(await importOriginal<typeof import('$lib/auth')>()),
+vi.mock('#lib/auth.js', async (importOriginal) => ({
+	...(await importOriginal<typeof import('#lib/auth.js')>()),
 	completeSignup: vi.fn(),
 	isEmailLinkUsable: vi.fn()
 }));
-vi.mock('$lib/password', async (importOriginal) => ({
-	...(await importOriginal<typeof import('$lib/password')>()),
+vi.mock('#lib/password.js', async (importOriginal) => ({
+	...(await importOriginal<typeof import('#lib/password.js')>()),
 	fetchPasswordPolicy: vi.fn()
 }));
 import { goto } from '$app/navigation';
-import { completeSignup, isEmailLinkUsable } from '$lib/auth';
+import { completeSignup, isEmailLinkUsable } from '#lib/auth.js';
 import { page } from '$app/state';
-import { fetchPasswordPolicy } from '$lib/password';
+import { fetchPasswordPolicy } from '#lib/password.js';
 import VerifyEmailPage from './+page.svelte';
 
 beforeEach(() => {
@@ -48,7 +48,7 @@ describe('サインアップの仕上げ', () => {
 		await screen.getByRole('button', { name: m.verify_email_submit_button() }).click();
 
 		await vi.waitFor(() => expect(completeSignup).toHaveBeenCalledWith('signup-token', '12345678'));
-		await vi.waitFor(() => expect(goto).toHaveBeenCalledWith('/', { replaceState: true }));
+		await vi.waitFor(() => expect(goto).toHaveBeenCalledWith('/', { replace: true }));
 	});
 
 	it('アプリから申し込んだリンク (app=1) では、ホームへ進まずアプリに戻るよう案内する', async () => {

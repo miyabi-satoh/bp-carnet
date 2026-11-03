@@ -1,17 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { page } from 'vitest/browser';
 import { render } from 'vitest-browser-svelte';
-import * as m from '$lib/paraglide/messages.js';
+import * as m from '#lib/paraglide/messages.js';
 
-vi.mock('$app/paths', () => ({ resolve: (path: string) => path }));
-vi.mock('$lib/external-navigation', () => ({ navigateTo: vi.fn() }));
-vi.mock('$lib/payments', () => ({ startOcrTopupCheckout: vi.fn() }));
-vi.mock('$lib/app-store-purchase', () => ({ purchaseTopup: vi.fn(), topupDisplayPrice: vi.fn() }));
-vi.mock('$lib/auth', () => ({ fetchContactUrl: vi.fn() }));
-vi.mock('$lib/tax', () => ({ isTaxIncluded: vi.fn() }));
-import { navigateTo } from '$lib/external-navigation';
-import { startOcrTopupCheckout } from '$lib/payments';
-import { isTaxIncluded } from '$lib/tax';
+vi.mock('$app/paths', () => ({ resolve: (path: string) => `/${path.replace(/^\//, '')}` }));
+vi.mock('#lib/external-navigation.js', () => ({ navigateTo: vi.fn() }));
+vi.mock('#lib/payments.js', () => ({ startOcrTopupCheckout: vi.fn() }));
+vi.mock('#lib/app-store-purchase.js', () => ({
+	purchaseTopup: vi.fn(),
+	topupDisplayPrice: vi.fn()
+}));
+vi.mock('#lib/auth.js', () => ({ fetchContactUrl: vi.fn() }));
+vi.mock('#lib/tax.js', () => ({ isTaxIncluded: vi.fn() }));
+import { navigateTo } from '#lib/external-navigation.js';
+import { startOcrTopupCheckout } from '#lib/payments.js';
+import { isTaxIncluded } from '#lib/tax.js';
 import Harness from './topup-confirm-dialog.test-harness.svelte';
 
 beforeEach(() => {
@@ -61,6 +64,9 @@ describe('TopupConfirmDialog', () => {
 		await expect
 			.element(page.getByRole('link', { name: new RegExp(m.tokushoho_title()) }))
 			.toHaveAttribute('href', 'https://amiiby.com/tokushoho/');
+		// 区切りの前後に空白を入れず、続けて出す。
+		const terms = page.getByRole('link', { name: new RegExp(m.terms_title()) }).element();
+		expect(terms.parentElement?.textContent).not.toMatch(/\s/);
 	});
 
 	it('同意すると Checkout の URL へ遷移する', async () => {
