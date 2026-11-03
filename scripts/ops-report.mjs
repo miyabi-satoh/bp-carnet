@@ -1,6 +1,7 @@
 // Fly.io 上の本番の稼働・利用状況を、1コマンドで表示する (`just report`)。
 //
-// 1. Fly の状態 (読み取りのみ、Machine を起こさない): 起動・再開・一時停止・停止の回数、最後の終了コード。
+// 1. Fly の状態 (読み取りのみ、Machine を起こさない): 起動・再開・一時停止・停止の回数、最後の終了コード、
+//    直近の OOM とメモリの使用量。見直しの目安に当たれば「要確認:」の行を出す。
 // 2. アプリの状態 (Machine を起こす。`--no-wake` で省く): 起動を待つ時間、ユーザー数、
 //    最終アクセスごとの人数、OCR の使用額、削除予約。管理者でログインして
 //    `GET /api/v1/admin/users` を1回叩くだけで、血圧の記録そのものは読まない。
@@ -18,10 +19,17 @@ const option = (name, fallback) => {
 };
 const baseUrl = option('--url', 'https://bp.amiiby.com').replace(/\/$/, '');
 const app = option('--app', 'bp-carnet');
+const org = option('--org', 'personal');
 const noWake = args.includes('--no-wake');
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const now = Date.now();
+
+/** メトリクスを見る日数。Machine の Event Logs は直近の数件で流れるので、メトリクスで OOM を拾う。
+ * 数日見なくても取りこぼさず、Fly がメトリクスを残す約15日に収まる長さ。 */
+const METRICS_DAYS = 7;
+/** メモリの見直しを考える目安 (MiB)。E2E を流した後の検証用がこの値のまま戻らず、続けると OOM で落ちたため。 */
+const MEMORY_WATCH_MIB = 300;
 
 function heading(text) {
 	console.log(`\n■ ${text}`);
@@ -71,6 +79,48 @@ function flySection() {
 				.join(' ');
 			console.log(`  最後の終了: ${new Date(lastExit.timestamp).toISOString()} ${detail}`);
 		}
+	}
+}
+
+/** Fly のメトリクス (Prometheus 互換) を問い合わせる。Machine を起こさない。 */
+async function queryMetric(token, query) {
+	const url = `https://api.fly.io/prometheus/${org}/api/v1/query?${new URLSearchParams({ query })}`;
+	// FIX: Fly の資料は `fly auth token` の値には Bearer と書くが、Bearer は 401 で、FlyV1 だけが通る。
+	const res = await fetch(url, { headers: { authorization: `FlyV1 ${token}` } });
+	if (!res.ok) throw new Error(`HTTP ${res.status}`);
+	const { data } = await res.json();
+	return data.result.map((series) => Number(series.value[1]));
+}
+
+async function memorySection() {
+	let oom;
+	let median;
+	let peak;
+	try {
+		const token = execFileSync('fly', ['auth', 'token', '-q'], { encoding: 'utf8' }).trim();
+		const used = `(fly_instance_memory_mem_total{app="${app}"} - fly_instance_memory_mem_available{app="${app}"}) / 1048576`;
+		const range = `[${METRICS_DAYS}d:1m]`;
+		[[oom], [median], [peak]] = await Promise.all(
+			[
+				`max(max_over_time(fly_instance_exit_oom{app="${app}"}[${METRICS_DAYS}d]))`,
+				`max(quantile_over_time(0.5, (${used})${range}))`,
+				`max(max_over_time((${used})${range}))`
+			].map((query) => queryMetric(token, query))
+		);
+	} catch (error) {
+		console.log(`  要確認: メトリクスを取得できませんでした (${error.message.split('\n')[0]})`);
+		return;
+	}
+	if (median === undefined) {
+		console.log(`  直近${METRICS_DAYS}日のメモリ: 記録なし (起動していない)`);
+	} else {
+		console.log(
+			`  直近${METRICS_DAYS}日のメモリ: 中央値 ${Math.round(median)} MiB / 最大 ${Math.round(peak)} MiB (動いていた間)`
+		);
+	}
+	if (oom > 0) console.log(`  要確認: 直近${METRICS_DAYS}日に OOM で落ちました`);
+	if (median >= MEMORY_WATCH_MIB) {
+		console.log(`  要確認: メモリの中央値が ${MEMORY_WATCH_MIB} MiB 以上です`);
 	}
 }
 
@@ -144,6 +194,7 @@ async function appSection() {
 
 console.log(`稼働・利用状況 ${new Date(now).toISOString()}`);
 flySection();
+await memorySection();
 if (noWake) {
 	console.log('\n(--no-wake: アプリには問い合わせていません)');
 } else {
