@@ -1,7 +1,7 @@
 // Fly.io 上の本番の稼働・利用状況を、1コマンドで表示する (`just report`)。
 //
 // 1. Fly の状態 (読み取りのみ、Machine を起こさない): 起動・再開・一時停止・停止の回数、最後の終了コード、
-//    直近7日の OOM とメモリの使用量。見直しの目安に当たれば「要確認:」の行を出す (毎朝のジョブが拾う)。
+//    直近の OOM とメモリの使用量。見直しの目安に当たれば「要確認:」の行を出す。
 // 2. アプリの状態 (Machine を起こす。`--no-wake` で省く): 起動を待つ時間、ユーザー数、
 //    最終アクセスごとの人数、OCR の使用額、削除予約。管理者でログインして
 //    `GET /api/v1/admin/users` を1回叩くだけで、血圧の記録そのものは読まない。
@@ -25,8 +25,9 @@ const noWake = args.includes('--no-wake');
 const DAY_MS = 24 * 60 * 60 * 1000;
 const now = Date.now();
 
-/** メトリクスを見る範囲。Machine の Event Logs は直近の数件で流れるので、メトリクスで OOM を拾う。 */
-const METRICS_RANGE = '7d';
+/** メトリクスを見る日数。Machine の Event Logs は直近の数件で流れるので、メトリクスで OOM を拾う。
+ * 数日見なくても取りこぼさず、Fly がメトリクスを残す約15日に収まる長さ。 */
+const METRICS_DAYS = 7;
 /** メモリの見直しを考える目安 (MiB)。E2E を流した後の検証用がこの値のまま戻らず、続けると OOM で落ちたため。 */
 const MEMORY_WATCH_MIB = 300;
 
@@ -96,17 +97,12 @@ async function memorySection() {
 	let median;
 	let peak;
 	try {
-		const token = execFileSync('fly', ['auth', 'token'], {
-			encoding: 'utf8',
-			stdio: ['ignore', 'pipe', 'ignore']
-		})
-			.trim()
-			.replace(/^FlyV1 /, '');
+		const token = execFileSync('fly', ['auth', 'token', '-q'], { encoding: 'utf8' }).trim();
 		const used = `(fly_instance_memory_mem_total{app="${app}"} - fly_instance_memory_mem_available{app="${app}"}) / 1048576`;
-		const range = `[${METRICS_RANGE}:1m]`;
+		const range = `[${METRICS_DAYS}d:1m]`;
 		[[oom], [median], [peak]] = await Promise.all(
 			[
-				`max(max_over_time(fly_instance_exit_oom{app="${app}"}[${METRICS_RANGE}]))`,
+				`max(max_over_time(fly_instance_exit_oom{app="${app}"}[${METRICS_DAYS}d]))`,
 				`max(quantile_over_time(0.5, (${used})${range}))`,
 				`max(max_over_time((${used})${range}))`
 			].map((query) => queryMetric(token, query))
@@ -116,13 +112,13 @@ async function memorySection() {
 		return;
 	}
 	if (median === undefined) {
-		console.log(`  直近7日のメモリ: 記録なし (起動していない)`);
+		console.log(`  直近${METRICS_DAYS}日のメモリ: 記録なし (起動していない)`);
 	} else {
 		console.log(
-			`  直近7日のメモリ: 中央値 ${Math.round(median)} MiB / 最大 ${Math.round(peak)} MiB (動いていた間)`
+			`  直近${METRICS_DAYS}日のメモリ: 中央値 ${Math.round(median)} MiB / 最大 ${Math.round(peak)} MiB (動いていた間)`
 		);
 	}
-	if (oom > 0) console.log(`  要確認: 直近7日に OOM で落ちました`);
+	if (oom > 0) console.log(`  要確認: 直近${METRICS_DAYS}日に OOM で落ちました`);
 	if (median >= MEMORY_WATCH_MIB) {
 		console.log(`  要確認: メモリの中央値が ${MEMORY_WATCH_MIB} MiB 以上です`);
 	}
