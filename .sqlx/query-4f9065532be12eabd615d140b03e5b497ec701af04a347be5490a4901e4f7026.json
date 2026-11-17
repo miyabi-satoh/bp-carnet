@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT admin_verified_at FROM app_tokens WHERE id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "admin_verified_at",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "4f9065532be12eabd615d140b03e5b497ec701af04a347be5490a4901e4f7026"
+}

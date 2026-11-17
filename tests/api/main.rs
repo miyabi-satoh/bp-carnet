@@ -35,6 +35,7 @@ use tower::ServiceExt;
 use tower_sessions::cookie::Key;
 
 mod admin;
+mod admin_verification;
 mod app;
 mod apple;
 mod deletion;
@@ -110,6 +111,7 @@ fn disabled_services() -> Services {
         stripe: StripeClient::disabled(),
         app_store: AppStoreClient::disabled(),
         ocr_costs: test_ocr_costs(),
+        admin_totp: None,
     }
 }
 

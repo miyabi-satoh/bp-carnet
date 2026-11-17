@@ -30,6 +30,7 @@ lettre = { version = "0.11.23", default-features = false, features = [
 ] }
 mime_guess = "2.0.5"
 p256 = { version = "0.14.0", default-features = false, features = ["ecdsa", "pem"] }
+qrcode = { version = "0.14.1", default-features = false }
 rand = "0.10"
 reqwest = { version = "0.12", default-features = false, features = [
     "json",
@@ -51,6 +52,7 @@ tokio = { version = "1.53.1", features = [
     "signal",
 ] }
 toml = "1.1.5"
+totp-rs = { version = "6.0.0", features = ["otpauth", "gen_secret"] }
 tower-http = { version = "0.7.1", features = ["compression-gzip", "cors", "trace"] }
 tower-sessions = { version = "0.15", default-features = false, features = [
     "axum-core",

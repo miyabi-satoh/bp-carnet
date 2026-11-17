@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE admin_totp SET last_step = NULL",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": []
+  },
+  "hash": "8d25ac5fcc82205b4350d80a8101c9fbdc112948a74261eb073d97617b47e1a2"
+}

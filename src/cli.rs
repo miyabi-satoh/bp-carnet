@@ -25,6 +25,9 @@ pub fn handle_args() -> bool {
         Some("--reset-password") => {
             reset_password(&args[2..]);
         }
+        Some("--enroll-admin-code") => {
+            enroll_admin_code(&args[2..]);
+        }
         Some("-h") | Some("--help") => {
             print_usage();
         }
@@ -47,6 +50,7 @@ fn print_usage() {
          --openapi                          OpenAPI 仕様 (JSON) を標準出力に書き出す\n\
          --create-user <username> [--admin] ユーザーを作成する (パスワードは対話入力、--admin で管理者)\n\
          --reset-password <username>        パスワードを再設定する (パスワードは対話入力)\n\
+         --enroll-admin-code <username>     管理画面の確認コードの認証アプリを登録する (要: ADMIN_TOTP_KEY)\n\
          -h, --help                         このヘルプを表示する"
     );
 }
@@ -212,23 +216,7 @@ fn reset_password(args: &[String]) {
     let username = crate::auth::normalize_username(username);
     let (dirs, config) = load_config();
     let db_path = dirs.db_path();
-    // `db::connect` は DB が無ければ作る。データディレクトリの解決先がずれた状態で実行したときに、
-    // 空の DB を残さない (後でそこでサーバーを起動すると、元のデータの無い空の DB で動いてしまう)。
-    if !db_path.exists() {
-        exit_with(format!(
-            "DB が見つかりません ({})。サーバーと同じ環境変数・実行ユーザーで実行してください",
-            db_path.display()
-        ));
-    }
-
-    let rt = tokio::runtime::Runtime::new().expect("failed to build tokio runtime");
-    let pool = rt
-        .block_on(async {
-            let pool = crate::db::connect(&db_path).await?;
-            crate::db::migrate(&pool).await?;
-            Ok::<_, crate::db::Error>(pool)
-        })
-        .unwrap_or_else(|err| exit_with(format!("DB を開けませんでした: {}", error_chain(&err))));
+    let (rt, pool) = open_existing_db(&db_path);
 
     // パスワードを入力させる前に確かめる: 設定できない相手なら、入力を求める前に終わらせる。
     // 再設定 (`auth::reset_password_hash`) が断る条件と同じものを、先に読んで確かめる。
@@ -273,6 +261,99 @@ fn reset_password(args: &[String]) {
             error_chain(&err)
         )),
     }
+}
+
+/// サーバーと同じ DB を開く。`db::connect` は DB が無ければ作るので、無ければ止める。データディレクトリの
+/// 解決先がずれた状態で実行したときに、空の DB を残さないため (後でそこでサーバーを起動すると、元のデータの
+/// 無い空の DB で動いてしまう)。
+fn open_existing_db(db_path: &Path) -> (tokio::runtime::Runtime, sqlx::SqlitePool) {
+    if !db_path.exists() {
+        exit_with(format!(
+            "DB が見つかりません ({})。サーバーと同じ環境変数・実行ユーザーで実行してください",
+            db_path.display()
+        ));
+    }
+    let rt = tokio::runtime::Runtime::new().expect("failed to build tokio runtime");
+    let pool = rt
+        .block_on(async {
+            let pool = crate::db::connect(db_path).await?;
+            crate::db::migrate(&pool).await?;
+            Ok::<_, crate::db::Error>(pool)
+        })
+        .unwrap_or_else(|err| exit_with(format!("DB を開けませんでした: {}", error_chain(&err))));
+    (rt, pool)
+}
+
+/// 管理画面の確認コードの認証アプリを登録する (docs/authentication.md「管理者の確認コード」)。
+/// 画面からは登録させない。パスワードを破った相手が、先に自分の認証アプリを登録できないようにするため。
+fn enroll_admin_code(args: &[String]) {
+    let Some(username) = parse_reset_password_args(args) else {
+        exit_with("使い方: bp-carnet --enroll-admin-code <username>");
+    };
+    let username = crate::auth::normalize_username(username);
+    let Some(totp) = crate::admin_totp::AdminTotp::from_env() else {
+        exit_with(format!(
+            "{} が未設定です。サーバーと同じ環境変数で実行してください",
+            crate::admin_totp::KEY_ENV
+        ));
+    };
+    let (dirs, _config) = load_config();
+    let (rt, pool) = open_existing_db(&dirs.db_path());
+
+    let user_id = rt
+        .block_on(async {
+            let Some(user_id) = crate::auth::find_verified_user_id(&pool, &username).await? else {
+                return Ok(None);
+            };
+            let role = sqlx::query_scalar!(
+                r#"SELECT role AS "role: Role" FROM users WHERE id = ?"#,
+                user_id
+            )
+            .fetch_one(&pool)
+            .await?;
+            Ok::<_, sqlx::Error>((role == Role::Admin).then_some(user_id))
+        })
+        .unwrap_or_else(|err| {
+            exit_with(format!(
+                "ユーザーの検索に失敗しました: {}",
+                error_chain(&err)
+            ))
+        })
+        .unwrap_or_else(|| exit_with(format!("管理者 '{username}' が見つかりません")));
+
+    let enrollment = crate::admin_totp::AdminTotp::new_enrollment(&username);
+    let qr = qrcode::QrCode::new(enrollment.url())
+        .expect("otpauth の URL は QR コードに収まる")
+        .render::<qrcode::render::unicode::Dense1x2>()
+        .quiet_zone(true)
+        .build();
+    println!(
+        "{qr}\n\
+         認証アプリ (iPhone の「パスワード」アプリなど) で、この QR コードを読んでください。\n\
+         読めないときは、次の設定用の文字列を手で入れてください: {}\n",
+        enrollment.secret_base32()
+    );
+
+    let step = loop {
+        let mut code = String::new();
+        print!("認証アプリに出た6桁: ");
+        std::io::Write::flush(&mut std::io::stdout()).ok();
+        if std::io::stdin().read_line(&mut code).unwrap_or(0) == 0 {
+            exit_with("登録をやめました");
+        }
+        match enrollment.check(&code) {
+            Some(step) => break step,
+            None => {
+                eprintln!("確認コードが合いません。もう一度入れてください (やめるときは Ctrl+C)")
+            }
+        }
+    };
+
+    rt.block_on(totp.save(&pool, user_id, &enrollment, step))
+        .unwrap_or_else(|err| exit_with(format!("登録に失敗しました: {}", error_chain(&err))));
+    println!(
+        "管理者 '{username}' の確認コードを登録しました。前に登録した認証アプリのコードは使えなくなります"
+    );
 }
 
 /// サーバーと同じメールの設定で、パスワードが変わったことを本人に知らせる。再設定は済んでいるので、

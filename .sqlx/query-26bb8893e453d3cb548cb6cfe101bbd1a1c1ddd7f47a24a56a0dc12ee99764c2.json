@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO admin_totp (user_id, secret, last_step) VALUES (?, ?, ?)\n             ON CONFLICT (user_id) DO UPDATE SET\n                 secret = excluded.secret,\n                 last_step = excluded.last_step,\n                 created_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "26bb8893e453d3cb548cb6cfe101bbd1a1c1ddd7f47a24a56a0dc12ee99764c2"
+}

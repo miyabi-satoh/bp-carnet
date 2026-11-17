@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT secret FROM admin_totp WHERE user_id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "secret",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "b9f354ddd46ca4d704d300830a6b6fb2d6374a8b369781e4a22c6883edd2815f"
+}

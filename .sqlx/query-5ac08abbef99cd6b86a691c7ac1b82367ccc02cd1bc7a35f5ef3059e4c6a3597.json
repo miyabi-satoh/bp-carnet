@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE app_tokens SET admin_verified_at = ? WHERE id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "5ac08abbef99cd6b86a691c7ac1b82367ccc02cd1bc7a35f5ef3059e4c6a3597"
+}

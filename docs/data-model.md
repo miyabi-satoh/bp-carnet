@@ -26,6 +26,7 @@ DB は SQLite 1ファイル。スキーマの正は `migrations/` (sqlx のマ�
 | `app_tokens`            | モバイルアプリのログイン            | 一緒に消える (CASCADE)          |
 | `email_tokens`          | メールのリンク (確認・再設定・変更) | 一緒に消える (CASCADE)          |
 | `auth_events`           | ログインの成功と失敗の記録          | 一緒に消える (CASCADE)          |
+| `admin_totp`            | 管理者の確認コードの秘密            | 一緒に消える (CASCADE)          |
 | `ocr_quota_grants`      | 読み取りの枠の購入1件ごとの記録     | 残る (`user_id` が NULL になる) |
 | `ocr_usage_records`     | 読み取りに使った額の記録            | 残る (ユーザーの列を持たない)   |
 | `stripe_webhook_events` | Stripe の Webhook の受領記録        | 関係しない                      |
@@ -74,6 +75,11 @@ DB は SQLite 1ファイル。スキーマの正は `migrations/` (sqlx のマ�
 - ログインの成功 (`login`) と失敗 (`login_failed`) を1回1行で残す (→ docs/authentication.md「ログインの記録と知らせ」)。90日を過ぎた行は定期処理で消す。
 - `user_id` は、実在しないユーザーIDへの失敗では NULL。
 - `device_hash` は、ウェブの成功だけ。端末の印の Cookie の値の SHA-256。
+
+### `admin_totp`
+
+- 管理者ごとに1行 (→ docs/authentication.md「管理者の確認コード」)。`secret` は暗号化した秘密、`last_step` は最後に通したコードの時間の区切りで、同じコードを二度通さないために持つ。
+- 確認コードを通した時刻は、ウェブはセッションに、アプリは `app_tokens.admin_verified_at` (Unix 秒) に持つ。
 
 ### `app_tokens` と `email_tokens`
 

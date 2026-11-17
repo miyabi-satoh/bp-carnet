@@ -355,6 +355,19 @@ fly ssh console --app <app> --pty -C "setpriv --reuid=10001 --regid=10001 --clea
 - `setpriv` でアプリと同じ UID にするのは、root のまま DB に書くと、アプリが DB の一時ファイルを読めなくなるため。
 - 本番では、ユーザー ID を Google アカウントのメールアドレスにしておくと、Google でログインしたときに同じアカウントとして統合される。
 
+##### 管理画面の確認コードを登録する
+
+管理画面に確認コードを求めるには、秘密の鍵 `ADMIN_TOTP_KEY` を置き、管理者ごとに認証アプリを登録する (docs/authentication.md「管理者の確認コード」)。鍵を置くと、登録するまで管理画面は使えない。
+
+```sh
+fly secrets set --app <app> ADMIN_TOTP_KEY="$(openssl rand -base64 32)"
+fly ssh console --app <app> --pty -C "setpriv --reuid=10001 --regid=10001 --clear-groups env BP_CARNET_HOME=/data bp-carnet --enroll-admin-code <ユーザー ID>"
+```
+
+- 端末に出た QR コードを、認証アプリ (iPhone の「パスワード」アプリなど) で読み、出た6桁を端末に打つ。
+- 鍵はどこにも控えなくてよい。失くしたり変えたりしたら、鍵を置き直して登録し直す。
+- 端末を失くしたときも、2行目で登録し直す。
+
 ##### E2E を当てる
 
 Mac から、検証用の管理者で流す。検証用は 512MB なので、Playwright の既定の同時数だと OOM で強制終了される。`--workers=2` を付ける。
@@ -648,6 +661,7 @@ DB は `bp-carnet.db`。これが無く改名前の `bp-tracker.db` があれば
 bp-carnet                                サーバーを起動する
 bp-carnet --create-user <name> [--admin] ユーザーを作成する (パスワードは対話入力、--admin で管理者)
 bp-carnet --reset-password <name>        パスワードを再設定する (パスワードは対話入力)
+bp-carnet --enroll-admin-code <name>     管理画面の確認コードの認証アプリを登録する (要: ADMIN_TOTP_KEY)
 bp-carnet --openapi                      OpenAPI 仕様 (JSON) を標準出力に書き出す
 bp-carnet -v | --version                 バージョンを表示する
 ```

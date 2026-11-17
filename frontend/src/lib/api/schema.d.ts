@@ -265,6 +265,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/verification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 確認コードの状態。管理画面を開いたときに、入力を出すかを決めるのに使う。 */
+        get: operations["status"];
+        put?: never;
+        /**
+         * 確認コードを通す。通ったら、このログインで1時間、管理 API を使える。
+         * @description 照合は管理者ごとに1分5回まで (6桁は総当たりできるため)。誤りは運営者に知らせる。
+         */
+        post: operations["verify"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/app/auth/apple": {
         parameters: {
             query?: never;
@@ -1207,6 +1228,21 @@ export interface components {
              */
             ocrDefaultBudgetYen: number;
             users: components["schemas"]["AdminUserResponse"][];
+        };
+        AdminVerificationRequest: {
+            /**
+             * @description 認証アプリに出た6桁。
+             * @example 123456
+             */
+            code: string;
+        };
+        AdminVerificationStatus: {
+            /** @description 認証アプリが端末で登録済みか。`false` なら、画面は端末での登録を案内する。 */
+            enrolled: boolean;
+            /** @description 管理 API に確認コードを求める構成か。`false` なら、画面は入力を出さずに管理画面を開く。 */
+            required: boolean;
+            /** @description このログインで確認コードを通してから1時間の内か。 */
+            verified: boolean;
         };
         AppAppleLoginRequest: {
             /** @description Sign in with Apple が返す認可コード (`authorizationCode`)。 */
@@ -2798,6 +2834,129 @@ export interface operations {
             };
             /** @description 保存されているタイムゾーンが tzdb に存在しない */
             500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 確認コードの状態 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminVerificationStatus"];
+                };
+            };
+            /** @description 未ログイン */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 管理者ではない */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    verify: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminVerificationRequest"];
+            };
+        };
+        responses: {
+            /** @description 通した (確認コードを求めない構成では、何もせずに 204) */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 確認コードが違う・使用済み、またはリクエストボディが不正 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 未ログイン */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 管理者ではない */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 認証アプリが端末で登録されていない */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Content-Type が application/json でない */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 必須フィールドが無い */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 照合の回数の上限を超えた */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };

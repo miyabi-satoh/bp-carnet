@@ -41,6 +41,10 @@ pub struct AppState {
     pub app_nonce_rate_limiter: Arc<AttemptRateLimiter>,
     /// 新しい端末からのログインの知らせ (`crate::login_notice`)。アカウントごとに数える。
     pub login_notice_rate_limiter: Arc<AttemptRateLimiter>,
+    /// 管理画面に入るときの確認コード (`crate::admin_totp`)。`None` なら求めない。
+    pub admin_totp: Option<Arc<crate::admin_totp::AdminTotp>>,
+    /// 確認コードの照合の回数 (管理者ごと)。6桁は総当たりできるため。
+    pub admin_code_rate_limiter: Arc<AttemptRateLimiter>,
     /// ログインの失敗を残し、運営者に知らせる作業役 (`crate::login_events::FailureRecorder`)。
     pub login_failures: crate::login_events::FailureRecorder,
     pub mailer: Arc<Mailer>,

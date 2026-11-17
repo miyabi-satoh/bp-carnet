@@ -4,6 +4,7 @@
 
 // crate の外 (`main.rs`・`tests/`) から使うモジュールだけ `pub` にする (AGENTS.md「コードの規約」)。
 pub mod account;
+pub mod admin_totp;
 pub(crate) mod api;
 pub(crate) mod app_login_nonce;
 pub(crate) mod app_token;
@@ -139,6 +140,8 @@ pub struct Services {
     pub stripe: StripeClient,
     /// アプリ内課金 (→ docs/payments.md) の App Store Server API クライアント。
     pub app_store: AppStoreClient,
+    /// 管理画面に入るときの確認コード (`crate::admin_totp`)。`None` なら求めない。
+    pub admin_totp: Option<admin_totp::AdminTotp>,
     /// OCR の無料枠・単価と買い足しの量。有効な部品に要る値がそろっていることを、作る側
     /// (`OcrConfig::costs`) で確かめておく。
     pub ocr_costs: config::OcrCosts,
@@ -165,6 +168,7 @@ pub async fn build_app(
         stripe,
         app_store,
         ocr_costs,
+        admin_totp,
     } = services;
     let session_store = SqliteStore::new(pool.clone());
     session_store.migrate().await?;
@@ -186,6 +190,8 @@ pub async fn build_app(
         app_login_nonces: Arc::new(NonceStore::default()),
         app_nonce_rate_limiter: Arc::new(AttemptRateLimiter::for_app_login_nonces()),
         login_notice_rate_limiter: Arc::new(AttemptRateLimiter::for_mail_requests()),
+        admin_totp: admin_totp.map(Arc::new),
+        admin_code_rate_limiter: Arc::new(AttemptRateLimiter::with_defaults()),
         login_failures,
         mailer,
         ocr: Arc::new(ocr),

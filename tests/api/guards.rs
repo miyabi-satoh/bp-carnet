@@ -44,6 +44,8 @@ const LOGIN_REQUIRED_APIS: &[(Method, &str)] = &[
     (Method::PUT, "/api/v1/admin/users/1/password"),
     (Method::POST, "/api/v1/admin/users/1/deletion"),
     (Method::DELETE, "/api/v1/admin/users/1/deletion"),
+    (Method::GET, "/api/v1/admin/verification"),
+    (Method::POST, "/api/v1/admin/verification"),
 ];
 
 /// 本文を付けずに送る。本文の検証より先にログインを確かめていなければ、401 でなく 415・422 などになる。
