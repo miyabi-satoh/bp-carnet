@@ -39,6 +39,38 @@ test.describe('確認コードを求める構成', () => {
 		await expect(adminUsers.codeGate.code).toBeHidden();
 	});
 
+	test('開いている間に1時間が過ぎて断られたら、確認コードの入力に戻す', async ({ page }) => {
+		await mockAdminVerification(page, { enrolled: true, verified: true }, '123456');
+		const adminUsers = new AdminUsersPage(page);
+		await adminUsers.open();
+		// 一覧の読み込みは通し、開いた後の操作 (ユーザーの追加) だけを断る。
+		await page.route('**/api/v1/admin/users', (route) =>
+			route.request().method() === 'POST'
+				? route.fulfill({
+						status: 403,
+						json: {
+							error: {
+								code: 'admin_verification_required',
+								message: 'admin verification required'
+							}
+						}
+					})
+				: route.fallback()
+		);
+
+		const dialog = await adminUsers.openAddUser();
+		const password = uniquePassword();
+		await dialog.username.fill(uniqueId('e2e-expired'));
+		await dialog.password.fill(password);
+		await dialog.passwordConfirmation.fill(password);
+		await dialog.submitButton.click();
+
+		await expect(adminUsers.codeGate.code).toBeVisible();
+		await page.unroute('**/api/v1/admin/users');
+		await adminUsers.codeGate.submit('123456');
+		await expect(adminUsers.addButton).toBeVisible();
+	});
+
 	test('認証アプリが登録されていなければ、端末での登録を案内する', async ({ page }) => {
 		await mockAdminVerification(page, { enrolled: false, verified: false }, '123456');
 		const adminUsers = new AdminUsersPage(page);

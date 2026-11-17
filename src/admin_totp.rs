@@ -189,6 +189,27 @@ pub(crate) enum Credential<'a> {
     AppToken(i64),
 }
 
+impl<'a> Credential<'a> {
+    /// アプリのトークンでのログインならトークン、ウェブならセッション。
+    pub(crate) fn of(user: &crate::auth::AuthUser, session: &'a tower_sessions::Session) -> Self {
+        match user.app_token_id {
+            Some(id) => Credential::AppToken(id),
+            None => Credential::Session(session),
+        }
+    }
+}
+
+/// ウェブのセッションから、確認コードを通した印を消す。
+pub(crate) async fn forget_session_verification(
+    session: &tower_sessions::Session,
+) -> Result<(), crate::auth::Error> {
+    session
+        .remove::<i64>(SESSION_VERIFIED_AT_KEY)
+        .await
+        .map_err(crate::auth::Error::Session)?;
+    Ok(())
+}
+
 /// このログインが、確認コードを通してから [`VERIFIED_FOR_SECONDS`] の内か。
 pub(crate) async fn is_verified(
     pool: &SqlitePool,

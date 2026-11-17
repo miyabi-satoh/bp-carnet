@@ -205,14 +205,14 @@ bp.amiiby.com を Fly.io の東京リージョン (`nrt`) で動かす手順。
   - Resend で送れる差出人は、登録したドメインそのもののアドレスだけ (`amiiby.com` を登録しても `@bp.amiiby.com` からは送れない)。
 - `amiiby.com` の DNS は Cloudflare。Resend の Domains の **Records** に出る値を、そのまま Cloudflare に足す。
 
-  | TYPE  | ホスト名            | 役割                                                               |
-  | ----- | ------------------- | ------------------------------------------------------------------ |
-  | TXT   | `resend._domainkey` | DKIM の公開鍵 (値は Resend の画面から。大文字小文字まで一致させる) |
-  | CNAME | `send`              | 送信 (`send.forge.rmta.net`)                                       |
-  | CNAME | `rsend`             | 送信 (`rsend-apne1.forge.rmta.net`)                                |
+  | TYPE | ホスト名 | 役割 |
+  | --- | --- | --- |
+  | TXT | `resend._domainkey` | DKIM の公開鍵 (値は Resend の画面から。大文字小文字まで一致させる) |
+  | CNAME | `send` | 送信 (`send.forge.rmta.net`) |
+  | CNAME | `rsend` | 送信 (`rsend-apne1.forge.rmta.net`) |
+
   - DMARC は `amiiby.com` の `v=DMARC1; p=none;`。`p=none` は検査に落ちたメールも弾かない。
   - 認証は Resend の Domains で **Verify** を押す。通らなければ DNS の値を見直して **Restart verification**。
-
 - Sign in with Apple でメールを隠した人 (Apple の転送用アドレス) に届けるには、Apple Developer の「Sign in with Apple for Email Communication」の Email Sources に `amiiby.com` (DKIM の d= と From のドメイン) と `send.amiiby.com` (エンベロープの送信元) を登録する。
 - API キー: Resend の **API Keys** で **Sending access**、ドメインを `amiiby.com` に絞って発行する。表示は1回だけなので、パスワード管理ソフトに保存する (リポジトリ・チャットには貼らない)。
   - 5. の本番・検証用それぞれの `SMTP_PASSWORD` (Fly のシークレット) に入れる。
@@ -348,7 +348,6 @@ curl -sS -H "Fly-Client-IP: 192.0.2.1" -H "Fly-Forwarded-Proto: http" -H "Origin
 ##### 管理者を作る
 
 最初の管理者は、Machine の中から `--create-user` で作る。パスワードは対話で入力する。
-
 ```sh
 fly ssh console --app <app> --pty -C "setpriv --reuid=10001 --regid=10001 --clear-groups env BP_CARNET_HOME=/data bp-carnet --create-user <ユーザー ID> --admin"
 ```
@@ -594,38 +593,38 @@ fly ssh console --app <app> -C "sqlite3 -readonly /data/bp-tracker.db 'select ve
 fly secrets set --app <app> OCR_INPUT_USD_PER_MILLION_TOKENS=<値> OCR_OUTPUT_USD_PER_MILLION_TOKENS=<値>
 ```
 
-| 環境変数                            | 意味                                                                                               |
-| ----------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `OCR_FREE_BUDGET_YEN`               | 1人ごとの累計の無料枠 (円、整数)。負値は無制限。ユーザーごとの上限 (管理画面) があればそちらを使う |
-| `OCR_TOPUP_GRANT_YEN`               | 買い足し1回で付ける量 (円、1以上の整数)                                                            |
-| `OCR_INPUT_USD_PER_MILLION_TOKENS`  | 入力 100 万トークンあたりのドル                                                                    |
-| `OCR_OUTPUT_USD_PER_MILLION_TOKENS` | 出力 (思考を含む) 100 万トークンあたりのドル                                                       |
-| `OCR_JPY_PER_USD`                   | 1ドルの円換算                                                                                      |
+| 環境変数 | 意味 |
+|---|---|
+| `OCR_FREE_BUDGET_YEN` | 1人ごとの累計の無料枠 (円、整数)。負値は無制限。ユーザーごとの上限 (管理画面) があればそちらを使う |
+| `OCR_TOPUP_GRANT_YEN` | 買い足し1回で付ける量 (円、1以上の整数) |
+| `OCR_INPUT_USD_PER_MILLION_TOKENS` | 入力 100 万トークンあたりのドル |
+| `OCR_OUTPUT_USD_PER_MILLION_TOKENS` | 出力 (思考を含む) 100 万トークンあたりのドル |
+| `OCR_JPY_PER_USD` | 1ドルの円換算 |
 
 - 単価は Google の価格に合わせる。合わせないと、1人ごとの累計の金額が実際とずれて数えられる。
 - 手元の開発では、`config.toml` の `[ocr] free_budget_yen`・`topup_grant_yen`・`[ocr.pricing]` でも与えられる (→ config.example.toml)。環境変数があればそちらを使う。
 
 #### 困ったときに見るところ
 
-| 症状                                                                                     | 見るところ                                                                                                                                                            |
-| ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 記録の登録・削除だけが 403 になる                                                        | プロキシが `Host` を書き換えているか、`trusted_proxies` の設定漏れ。ログに `CSRF: 同一オリジンチェック不一致` の warn が出る (突き合わせた host・scheme も一緒に出る) |
-| ログインしても弾かれる・すぐログアウトされる                                             | `secure_cookie = true` のまま http でアクセスしている                                                                                                                 |
-| ログイン画面に Google のボタンが出ない                                                   | `GOOGLE_OAUTH_CLIENT_ID` / `_SECRET` が未設定 (起動ログに理由が出る)                                                                                                  |
-| ログイン画面に LINE のボタンが出ない                                                     | `LINE_LOGIN_CHANNEL_ID` / `_SECRET` が未設定 (起動ログに理由が出る)                                                                                                   |
-| 写真から読み取れない                                                                     | `GEMINI_API_KEY` が未設定 (起動ログに理由が出る)                                                                                                                      |
-| 起動直後に「写真の読み取り (GEMINI_API_KEY) が有効ですが、… がありません」などで終了する | シークレットに `OCR_*` が無い (→「写真の読み取りの無料枠・単価を変える」)                                                                                             |
-| 「既に起動しています」で終了する                                                         | 同じデータディレクトリで二重に起動している                                                                                                                            |
-| 起動直後に「設定ファイルに … がありません」で終了する                                    | 必須の設定 (`[server] public_url`・`contact_url`、`[mail] host`・`from`) が `config.*.toml` に無い                                                                    |
-| 起動直後に「設定ファイルの解析に失敗しました」で終了する                                 | `config.*.toml` の書き間違い。`fly logs` に行番号が出る                                                                                                               |
-| 起動直後に「CLOUD_ENV」のエラーで終了する                                                | `fly.toml` の `[env]` に `CLOUD_ENV` が無い                                                                                                                           |
-| 起動直後に「環境変数 SMTP_PASSWORD も設定してください」で終了する                        | そのアプリ (本番・検証用とも) のシークレットに `SMTP_PASSWORD` (Resend の API キー) が無い                                                                            |
-| 起動を繰り返して落ち続け、ログに Litestream の復元のエラーが出る                         | Volume を失った後の起動で、複製から戻せていない。シークレットの `LITESTREAM_*`・`R2_ACCOUNT_ID`、R2 の障害                                                            |
-| ログに Litestream の R2 への送信のエラーが出る                                           | シークレットの `LITESTREAM_*`・`R2_ACCOUNT_ID`、`fly.toml` の `R2_BUCKET`、トークンがそのバケットに絞られているか                                                     |
-| ログインの試行がすぐ上限に達する                                                         | 接続元を取り違えている (→ 初回セットアップ 6.「接続元を確かめる」)                                                                                                    |
-| 記録の登録などが 403 になる                                                              | `config.*.toml` の `proxy_headers = "fly"`。Cloudflare のプロキシを挟んでいないか                                                                                     |
-| サインアップの確認メールが届かない                                                       | Resend でドメインの確認が済んでいるか (DKIM の TXT・`send`・`rsend` の CNAME。→ 初回セットアップ 4.)、`fly logs` に送信のエラーが出ていないか                         |
-| `fly deploy` が Machine を2台作ろうとする                                                | `--ha=false` を付けたか (`deploy.yml` は付けている)                                                                                                                   |
+| 症状 | 見るところ |
+|---|---|
+| 記録の登録・削除だけが 403 になる | プロキシが `Host` を書き換えているか、`trusted_proxies` の設定漏れ。ログに `CSRF: 同一オリジンチェック不一致` の warn が出る (突き合わせた host・scheme も一緒に出る) |
+| ログインしても弾かれる・すぐログアウトされる | `secure_cookie = true` のまま http でアクセスしている |
+| ログイン画面に Google のボタンが出ない | `GOOGLE_OAUTH_CLIENT_ID` / `_SECRET` が未設定 (起動ログに理由が出る) |
+| ログイン画面に LINE のボタンが出ない | `LINE_LOGIN_CHANNEL_ID` / `_SECRET` が未設定 (起動ログに理由が出る) |
+| 写真から読み取れない | `GEMINI_API_KEY` が未設定 (起動ログに理由が出る) |
+| 起動直後に「写真の読み取り (GEMINI_API_KEY) が有効ですが、… がありません」などで終了する | シークレットに `OCR_*` が無い (→「写真の読み取りの無料枠・単価を変える」) |
+| 「既に起動しています」で終了する | 同じデータディレクトリで二重に起動している |
+| 起動直後に「設定ファイルに … がありません」で終了する | 必須の設定 (`[server] public_url`・`contact_url`、`[mail] host`・`from`) が `config.*.toml` に無い |
+| 起動直後に「設定ファイルの解析に失敗しました」で終了する | `config.*.toml` の書き間違い。`fly logs` に行番号が出る |
+| 起動直後に「CLOUD_ENV」のエラーで終了する | `fly.toml` の `[env]` に `CLOUD_ENV` が無い |
+| 起動直後に「環境変数 SMTP_PASSWORD も設定してください」で終了する | そのアプリ (本番・検証用とも) のシークレットに `SMTP_PASSWORD` (Resend の API キー) が無い |
+| 起動を繰り返して落ち続け、ログに Litestream の復元のエラーが出る | Volume を失った後の起動で、複製から戻せていない。シークレットの `LITESTREAM_*`・`R2_ACCOUNT_ID`、R2 の障害 |
+| ログに Litestream の R2 への送信のエラーが出る | シークレットの `LITESTREAM_*`・`R2_ACCOUNT_ID`、`fly.toml` の `R2_BUCKET`、トークンがそのバケットに絞られているか |
+| ログインの試行がすぐ上限に達する | 接続元を取り違えている (→ 初回セットアップ 6.「接続元を確かめる」) |
+| 記録の登録などが 403 になる | `config.*.toml` の `proxy_headers = "fly"`。Cloudflare のプロキシを挟んでいないか |
+| サインアップの確認メールが届かない | Resend でドメインの確認が済んでいるか (DKIM の TXT・`send`・`rsend` の CNAME。→ 初回セットアップ 4.)、`fly logs` に送信のエラーが出ていないか |
+| `fly deploy` が Machine を2台作ろうとする | `--ha=false` を付けたか (`deploy.yml` は付けている) |
 
 ## 設定とデータの置き場所
 
@@ -662,7 +661,6 @@ DB は `bp-carnet.db`。これが無く改名前の `bp-tracker.db` があれば
 bp-carnet                                サーバーを起動する
 bp-carnet --create-user <name> [--admin] ユーザーを作成する (パスワードは対話入力、--admin で管理者)
 bp-carnet --reset-password <name>        パスワードを再設定する (パスワードは対話入力)
-bp-carnet --enroll-admin-code <name>     管理画面の確認コードの認証アプリを登録する (要: ADMIN_TOTP_KEY)
 bp-carnet --openapi                      OpenAPI 仕様 (JSON) を標準出力に書き出す
 bp-carnet -v | --version                 バージョンを表示する
 ```

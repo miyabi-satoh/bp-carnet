@@ -2,6 +2,7 @@
 	import { onMount, type Snippet } from 'svelte';
 	import { resolve } from '$app/paths';
 	import { fetchAdminVerification, verifyAdminCode } from '#lib/admin.js';
+	import { adminVerification } from '#lib/admin-verification.svelte.js';
 	import { halfWidthInput } from '#lib/half-width.js';
 	import FieldErrorList from '#lib/components/field-error-list.svelte';
 	import * as Field from '#lib/components/ui/field/index.js';
@@ -19,6 +20,8 @@
 
 	type View = 'loading' | 'open' | 'code' | 'not-enrolled';
 	let view = $state<View>('loading');
+	// 開いている間に1時間が過ぎて管理 API に断られたら、入力に戻す。
+	let shown = $derived<View>(adminVerification.expired ? 'code' : view);
 	let loadErrorMessage = $state('');
 	let code = $state('');
 	let codeError = $state<string | undefined>();
@@ -43,7 +46,13 @@
 		try {
 			const result = await verifyAdminCode(code);
 			if (result.ok) {
+				code = '';
 				view = 'open';
+				adminVerification.expired = false;
+			} else if (result.code === 'admin_code_not_enrolled') {
+				// 鍵を替えて登録が読めなくなったときも、ここに来る。
+				view = 'not-enrolled';
+				adminVerification.expired = false;
 			} else {
 				codeError = result.message;
 			}
@@ -55,17 +64,17 @@
 	onMount(load);
 </script>
 
-{#if view === 'open'}
+{#if shown === 'open'}
 	{@render children()}
 {:else}
 	<div class="mx-auto flex max-w-2xl flex-col px-5 pb-safe-5">
 		<PageHeader backHref={resolve('/')} title={m.admin_code_title()} />
 		{#if loadErrorMessage}
 			<LoadError message={loadErrorMessage} onretry={load} />
-		{:else if view === 'loading'}
+		{:else if shown === 'loading'}
 			<LoadingIndicator />
-		{:else if view === 'not-enrolled'}
-			<p class="py-8 text-sm">{m.admin_code_not_enrolled()}</p>
+		{:else if shown === 'not-enrolled'}
+			<p class="py-8 text-sm">{m.error_admin_code_not_enrolled()}</p>
 		{:else}
 			<form onsubmit={handleSubmit}>
 				<Field.FieldGroup class="gap-5">

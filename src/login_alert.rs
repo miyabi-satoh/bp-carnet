@@ -33,6 +33,7 @@ pub struct Alerter {
     retry_at: Option<Instant>,
     /// 確認コードの誤りの知らせを最後に送った時刻。ログインの失敗の知らせとは別に数える。
     admin_code_last_sent: Option<Instant>,
+    admin_code_retry_at: Option<Instant>,
 }
 
 impl Alerter {
@@ -42,6 +43,7 @@ impl Alerter {
             last_sent: None,
             retry_at: None,
             admin_code_last_sent: None,
+            admin_code_retry_at: None,
         }
     }
 
@@ -59,9 +61,33 @@ impl Alerter {
             || self
                 .admin_code_last_sent
                 .is_some_and(|sent| now.duration_since(sent) < INTERVAL)
+            || self
+                .admin_code_retry_at
+                .is_some_and(|retry_at| now < retry_at)
         {
             return Ok(false);
         }
+        let sent = self.send_admin_code_failed(pool, mailer, user_id, ip).await;
+        match sent {
+            Ok(()) => {
+                self.admin_code_last_sent = Some(now);
+                self.admin_code_retry_at = None;
+                Ok(true)
+            }
+            Err(err) => {
+                self.admin_code_retry_at = Some(now + RETRY_AFTER);
+                Err(err)
+            }
+        }
+    }
+
+    async fn send_admin_code_failed(
+        &self,
+        pool: &SqlitePool,
+        mailer: &Mailer,
+        user_id: i64,
+        ip: Option<std::net::IpAddr>,
+    ) -> Result<(), Error> {
         let username = crate::auth::load_username(pool, user_id)
             .await?
             .unwrap_or_default();
@@ -82,8 +108,7 @@ impl Alerter {
                 ),
             )
             .await?;
-        self.admin_code_last_sent = Some(now);
-        Ok(true)
+        Ok(())
     }
 
     /// 直近1時間の失敗が閾値以上で、前の知らせから1時間空いていれば送る。送ったら `true`。

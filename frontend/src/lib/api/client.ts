@@ -1,6 +1,7 @@
 import createClient from 'openapi-fetch';
 import { goto } from '$app/navigation';
 import { resolve } from '$app/paths';
+import { adminVerification } from '#lib/admin-verification.svelte.js';
 import { appUpdate } from '#lib/app-update.svelte.js';
 import { errorCode } from '#lib/api/errors.js';
 import type { paths } from '#lib/api/schema.js';
@@ -60,6 +61,7 @@ if (isNativeApp) {
 client.use({
 	async onResponse({ request, response }) {
 		await leaveIfSessionEnded(new URL(request.url).pathname, response);
+		await noticeAdminVerificationExpired(response);
 		return response;
 	}
 });
@@ -78,6 +80,15 @@ async function leaveIfSessionEnded(path: string, response: Response): Promise<vo
 	// 同じ画面の問い合わせが揃って切れていたときに、ログイン画面への移動を重ねない。
 	leaving ??= goto(resolve('login'), { replace: true }).finally(() => (leaving = undefined));
 	await leaving;
+}
+
+async function noticeAdminVerificationExpired(response: Response): Promise<void> {
+	if (response.status !== 403) return;
+	const body: unknown = await response
+		.clone()
+		.json()
+		.catch(() => null);
+	if (errorCode(body) === 'admin_verification_required') adminVerification.expired = true;
 }
 
 /** 進んでいるログイン画面への移動。 */

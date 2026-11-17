@@ -43,13 +43,6 @@ fn require_admin(user: &AuthUser) -> Result<(), AppError> {
     }
 }
 
-fn credential<'a>(user: &AuthUser, session: &'a Session) -> Credential<'a> {
-    match user.app_token_id {
-        Some(id) => Credential::AppToken(id),
-        None => Credential::Session(session),
-    }
-}
-
 /// 確認コードの状態。管理画面を開いたときに、入力を出すかを決めるのに使う。
 #[utoipa::path(
     get,
@@ -76,7 +69,7 @@ async fn status(
     Ok(Json(AdminVerificationStatus {
         required: true,
         enrolled: AdminTotp::is_enrolled(&state.pool, user.id).await?,
-        verified: admin_totp::is_verified(&state.pool, credential(&user, &session)).await?,
+        verified: admin_totp::is_verified(&state.pool, Credential::of(&user, &session)).await?,
     }))
 }
 
@@ -128,7 +121,7 @@ async fn verify(
     match verification {
         Verification::Passed => {
             state.admin_code_rate_limiter.release(&key, reservation);
-            admin_totp::mark_verified(&state.pool, credential(&user, &session)).await?;
+            admin_totp::mark_verified(&state.pool, Credential::of(&user, &session)).await?;
             Ok(StatusCode::NO_CONTENT)
         }
         Verification::WrongCode => {

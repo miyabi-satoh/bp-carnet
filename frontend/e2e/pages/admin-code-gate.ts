@@ -15,7 +15,7 @@ export class AdminCodeGate {
 
 	/** 認証アプリが端末で登録されていないときの案内。 */
 	get notEnrolledNotice(): Locator {
-		return this.page.getByText(ja.admin_code_not_enrolled);
+		return this.page.getByText(ja.error_admin_code_not_enrolled);
 	}
 
 	async submit(code: string): Promise<void> {

@@ -117,7 +117,8 @@ async fn admin_apis_require_the_code_on_the_web(pool: SqlitePool) {
     assert_eq!(json_body(status).await["verified"], true);
 }
 
-/// 通した印はログインごと。別のブラウザーのログインでは、もう一度求める。アプリのトークンでも同じ。
+/// 通した印はログインごと。別のブラウザーのログインでも、同じブラウザーでログインし直しても、もう一度求める。
+/// アプリのトークンでも同じ。
 #[sqlx::test]
 async fn the_code_is_required_per_login_including_the_app(pool: SqlitePool) {
     insert_admin(&pool, "admin@example.com", "password").await;
@@ -130,6 +131,20 @@ async fn the_code_is_required_per_login_including_the_app(pool: SqlitePool) {
     )
     .await;
     assert_eq!(passed.status(), StatusCode::NO_CONTENT);
+
+    let mut relogin = login_request("admin@example.com", "password");
+    relogin.headers_mut().insert(
+        axum::http::header::COOKIE,
+        first.parse().expect("Cookie の値"),
+    );
+    let relogin = send(&app, relogin).await;
+    assert_eq!(relogin.status(), StatusCode::OK);
+    let same_browser = send(
+        &app,
+        get("/api/v1/admin/users", Some(&session_cookie(&relogin))),
+    )
+    .await;
+    assert_eq!(same_browser.status(), StatusCode::FORBIDDEN);
 
     let second = login_and_get_cookie(&app, "admin@example.com", "password").await;
     let other_login = send(&app, get("/api/v1/admin/users", Some(&second))).await;
