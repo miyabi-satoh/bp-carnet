@@ -196,7 +196,8 @@ async fn run(
     mailer: Arc<Mailer>,
     mut alerter: Alerter,
 ) {
-    // 失敗が届き続けても確かめに届くよう、一度に残すのはキューの上限ぶんまでにする。
+    // 運営者に知らせるかの確かめは、まとめて残すたびに1回。失敗が届き続けても確かめが遅れすぎないよう、
+    // 一度にまとめるのはキューの上限ぶんまでにする。
     let mut batch = Vec::with_capacity(FAILURE_QUEUE);
     while receiver.recv_many(&mut batch, FAILURE_QUEUE).await > 0 {
         for Failure { user_id, attempt } in batch.drain(..) {

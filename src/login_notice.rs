@@ -70,15 +70,16 @@ async fn send(
     Ok(())
 }
 
+/// 結びは、パスワード変更のお知らせ (`crate::password_notice`) と揃える。
 fn body(logged_in_at: &str, method: Method, client: Client, reset_link: &str) -> String {
     // 外部のログインなら、乗っ取られたのはその提供元のアカウントかもしれない。
     let what_to_do = match method {
         Method::Google | Method::Line | Method::Apple => format!(
-            "心当たりが無い場合は、{} のアカウントのパスワードを変え、次のリンクから BP Carnet のパスワードも再設定してください。",
+            "心当たりが無い場合は、{} のアカウントのパスワードを変え、次のリンクから BP Carnet のパスワードも再設定してください",
             method.label()
         ),
         Method::Password | Method::Signup => {
-            "心当たりが無い場合は、次のリンクからパスワードを再設定してください。".to_string()
+            "心当たりが無い場合は、次のリンクからパスワードを再設定してください".to_string()
         }
     };
     format!(
@@ -87,11 +88,11 @@ fn body(logged_in_at: &str, method: Method, client: Client, reset_link: &str) ->
          日時: {logged_in_at}\n\
          方法: {}（{}）\n\
          \n\
-         {what_to_do}再設定すると、ほかの端末のログインもすべて解除されます。\n\
+         {what_to_do}（ほかの端末のログインもすべて解除されます）。\n\
          \n\
          {reset_link}\n\
          \n\
-         ご自身の操作であれば、このメールは破棄してください。\n",
+         心当たりがある場合は、このメールは破棄してください。\n",
         method.label(),
         client.label()
     )
