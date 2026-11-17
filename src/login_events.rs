@@ -196,16 +196,10 @@ async fn run(
     mailer: Arc<Mailer>,
     mut alerter: Alerter,
 ) {
-    while let Some(first) = receiver.recv().await {
-        // 失敗が届き続けても確かめに届くよう、一度に残すのはキューの上限ぶんまでにする。
-        let mut batch = vec![first];
-        while batch.len() < FAILURE_QUEUE {
-            let Ok(failure) = receiver.try_recv() else {
-                break;
-            };
-            batch.push(failure);
-        }
-        for Failure { user_id, attempt } in batch {
+    // 失敗が届き続けても確かめに届くよう、一度に残すのはキューの上限ぶんまでにする。
+    let mut batch = Vec::with_capacity(FAILURE_QUEUE);
+    while receiver.recv_many(&mut batch, FAILURE_QUEUE).await > 0 {
+        for Failure { user_id, attempt } in batch.drain(..) {
             if let Err(err) = insert(&pool, "login_failed", user_id, attempt, None).await {
                 tracing::error!(error = %crate::error_chain_line(&err), "ログインの失敗を記録できませんでした");
             }
