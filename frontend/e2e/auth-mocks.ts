@@ -2,7 +2,7 @@
 // 使わない構成なので、使う構成の画面はこれで確かめる。
 import type { BrowserContext, Page } from '@playwright/test';
 import type { components } from '../src/lib/api/schema';
-import { errorResponse } from './helpers';
+import { errorResponse } from './helpers.ts';
 
 type AuthProvidersResponse = components['schemas']['AuthProvidersResponse'];
 
