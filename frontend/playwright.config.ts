@@ -19,8 +19,14 @@ function ignoreHTTPSErrors(): boolean {
 }
 
 export default defineConfig({
+	// 落ちたテストを2回まで流し直す (`npm init playwright` のひな形が CI で使う回数)。手元の検査もエージェントが流すので CI と分けない。
+	// 流し直して通ったテストは、list の最後の集計に `N flaky` と出る。GitHub Actions では github の reporter が注記にする
+	retries: 2,
+	reporter: process.env.GITHUB_ACTIONS === 'true' ? [['list'], ['github']] : 'list',
 	use: {
 		baseURL,
+		// 流し直して通ったテストも、落ちた回の trace を残す (CI では test-results/ を成果物に上げる)
+		trace: 'retain-on-failure',
 		ignoreHTTPSErrors: ignoreHTTPSErrors(),
 		// PWA の service worker (vite.config.ts、skipWaiting + clientsClaim) は、新しいコンテキストで初めて
 		// 入った直後にページを読み込み直させ、送信中の操作を途中で打ち切ることがある。PWA 自体を

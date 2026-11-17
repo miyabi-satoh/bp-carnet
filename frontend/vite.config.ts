@@ -2,13 +2,14 @@ import { paraglideVitePlugin } from '@inlang/paraglide-js';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import tailwindcss from '@tailwindcss/vite';
-import { defineConfig } from 'vitest/config';
+import { configDefaults, defineConfig } from 'vitest/config';
 import { playwright } from '@vitest/browser-playwright';
 import adapter from '@sveltejs/adapter-static';
 import { mdsvex } from 'mdsvex';
 import { withPwa } from '@vite-pwa/sveltekit';
 import { thirdPartyLicenses } from './scripts/third-party-licenses.ts';
 import { dataDir } from './scripts/repo-paths.ts';
+import { flakyAnnotations } from './scripts/vitest-flaky-annotations.ts';
 
 /**
  * just dev-backend の BP_CARNET_HOME (`data/dev-runtime`) にある config.toml から
@@ -158,6 +159,13 @@ export default defineConfig({
 	},
 	test: {
 		expect: { requireAssertions: true },
+		// 落ちたテストを2回まで流し直す (Playwright のひな形が CI で使う回数)。機械が詰まって時々落ちるテストで、CI や手元の検査が止まらないようにする。
+		// 流し直して通ったテストは flakyAnnotations が最後に警告で出し、埋もれずに直す相手として見える
+		retry: 2,
+		// 場所を出せば、警告から行へ飛べる
+		includeTaskLocation: true,
+		// reporters を書くと既定が置き換わるので、既定 (エージェントでは minimal、GitHub Actions では github-actions も) に足す
+		reporters: [...configDefaults.reporters, flakyAnnotations()],
 		projects: [
 			{
 				extends: './vite.config.ts',
