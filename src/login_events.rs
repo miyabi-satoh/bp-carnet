@@ -74,7 +74,7 @@ impl Client {
 
     pub fn label(self) -> &'static str {
         match self {
-            Self::Web => "ウェブ",
+            Self::Web => "ブラウザー",
             Self::App => "アプリ",
         }
     }
@@ -150,13 +150,17 @@ impl WebLogin {
 
 /// 失敗を残し、運営者に知らせるかを確かめる。`user_id` は、実在するアカウントへの失敗のときだけ。
 ///
-/// 残せなくても応答は変えない (失敗の応答を、記録の都合で変える理由が無いため)。ログにだけ残す。
-pub async fn record_failure(state: &AppState, user_id: Option<i64>, attempt: Attempt) {
-    if let Err(err) = insert(&state.pool, "login_failed", user_id, attempt, None).await {
-        tracing::error!(error = %crate::error_chain_line(&err), "ログインの失敗を記録できませんでした");
-        return;
-    }
-    crate::login_alert::spawn_check(state);
+/// 応答を待たずに別のタスクで行う。失敗の応答を、記録の都合 (DB の書き込みの待ち・失敗) で変えないため。
+/// 残せなければログにだけ残す。
+pub fn record_failure(state: &AppState, user_id: Option<i64>, attempt: Attempt) {
+    let state = state.clone();
+    tokio::spawn(async move {
+        if let Err(err) = insert(&state.pool, "login_failed", user_id, attempt, None).await {
+            tracing::error!(error = %crate::error_chain_line(&err), "ログインの失敗を記録できませんでした");
+            return;
+        }
+        crate::login_alert::check_after_failure(&state).await;
+    });
 }
 
 async fn insert(

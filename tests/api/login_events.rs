@@ -71,11 +71,25 @@ async fn login_failures_record_the_account_only_when_it_exists(pool: SqlitePool)
     let user_id = user_id_of(&pool, "admin").await;
     let app = test_app(pool.clone()).await;
 
+    // 失敗は応答を待たずに残すので、届くまで待つ。
+    async fn wait_for_events(pool: &SqlitePool, count: usize) {
+        let deadline = tokio::time::Instant::now() + std::time::Duration::from_secs(10);
+        while auth_events(pool).await.len() < count {
+            assert!(
+                tokio::time::Instant::now() < deadline,
+                "{count} 件の記録が残るはず"
+            );
+            tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+        }
+        tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+    }
+
     let wrong_password = send(&app, login_request("admin", "wrong")).await;
     assert_eq!(wrong_password.status(), StatusCode::UNAUTHORIZED);
     let unknown_user = send(&app, login_request("someone@example.com", "password")).await;
     assert_eq!(unknown_user.status(), StatusCode::UNAUTHORIZED);
 
+    wait_for_events(&pool, 2).await;
     let failed = |user_id| {
         (
             user_id,
@@ -93,6 +107,7 @@ async fn login_failures_record_the_account_only_when_it_exists(pool: SqlitePool)
         send(&app, login_request("admin", "wrong")).await;
     }
     // 1つのユーザー名へは1分に5回まで (docs/authentication.md「レートリミット」)。
+    wait_for_events(&pool, 6).await;
     assert_eq!(auth_events(&pool).await.len(), 6);
 }
 

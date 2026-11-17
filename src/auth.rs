@@ -448,6 +448,7 @@ pub enum Authentication {
     UnknownUser,
 }
 
+#[cfg(test)]
 impl Authentication {
     /// 成功したときの利用者。
     pub fn user(self) -> Option<User> {

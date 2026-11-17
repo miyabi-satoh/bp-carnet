@@ -182,7 +182,7 @@ pub async fn build_app(
         app_nonce_rate_limiter: Arc::new(AttemptRateLimiter::for_app_login_nonces()),
         login_notice_rate_limiter: Arc::new(AttemptRateLimiter::for_mail_requests()),
         alerts: Arc::new(config.alerts.clone()),
-        login_alert_sent: Arc::default(),
+        login_alert: Arc::default(),
         mailer,
         ocr: Arc::new(ocr),
         ocr_free_budget_yen: ocr_costs.free_budget_yen,

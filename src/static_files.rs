@@ -91,7 +91,8 @@ fn serve_index(
         ],
         [(
             header::CONTENT_SECURITY_POLICY,
-            security_headers::page_csp(Some(&body), analytics),
+            // 差し込む前の index.html から求める。差し込むタグに紛れ込んだスクリプトまで許さないため。
+            security_headers::page_csp(Some(html), analytics),
         )],
         body,
     )

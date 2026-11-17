@@ -1,4 +1,4 @@
-//! 新しい端末からのログインを、本人にメールで知らせる (docs/authentication.md「ログインの記録と知らせ」)。
+//! 新しい端末からのログイン (アプリは毎回) を、本人にメールで知らせる (docs/authentication.md「ログインの記録と知らせ」)。
 //!
 //! 第三者に入られたときに本人が気づき、パスワードの再設定で取り戻せるようにするため。
 
@@ -9,7 +9,7 @@ use crate::login_events::{Client, Method};
 use crate::mail::Mailer;
 use crate::state::AppState;
 
-const SUBJECT: &str = "【BP Carnet】新しい端末からログインがありました";
+const SUBJECT: &str = "【BP Carnet】新しいログインがありました";
 
 /// 応答を待たずに [`send`] する。SMTP の往復でログインを待たせないため。ログインが成立した直後に呼ぶ
 /// (呼んだ時刻をログインの日時として書く)。
@@ -71,16 +71,23 @@ async fn send(
 }
 
 fn body(logged_in_at: &str, method: Method, client: Client, reset_link: &str) -> String {
+    // 外部のログインなら、乗っ取られたのはその提供元のアカウントかもしれない。
+    let external_advice = match method {
+        Method::Google | Method::Line | Method::Apple => format!(
+            "{} のアカウントのパスワードも変えてください。\n",
+            method.label()
+        ),
+        Method::Password | Method::Signup => String::new(),
+    };
     format!(
-        "BP Carnet のアカウントに、これまでと違う端末からログインがありました。\n\
+        "BP Carnet のアカウントにログインがありました。\n\
          \n\
          日時: {logged_in_at}\n\
          方法: {}\n\
-         場所: {}\n\
+         ログイン先: {}\n\
          \n\
-         ログインした覚えが無い場合は、第三者にパスワードを知られたおそれがあります。\n\
-         次のリンクからパスワードを再設定してください。再設定すると、ほかの端末のログインもすべて解除されます。\n\
-         Google・LINE・Apple でログインしている場合は、そちらのアカウントのパスワードも変えてください。\n\
+         心当たりが無い場合は、次のリンクからパスワードを再設定してください。ほかの端末のログインもすべて解除されます。\n\
+         {external_advice}\
          \n\
          {reset_link}\n\
          \n\
@@ -116,7 +123,18 @@ mod tests {
         assert_eq!(sent[0].to, "alice@example.com");
         assert_eq!(sent[0].subject, SUBJECT);
         assert!(sent[0].body.contains("方法: Google"), "{}", sent[0].body);
-        assert!(sent[0].body.contains("場所: アプリ"), "{}", sent[0].body);
+        assert!(
+            sent[0].body.contains("ログイン先: アプリ"),
+            "{}",
+            sent[0].body
+        );
+        assert!(
+            sent[0]
+                .body
+                .contains("Google のアカウントのパスワードも変えてください"),
+            "{}",
+            sent[0].body
+        );
         // 既定のタイムゾーン (Asia/Tokyo) で書く。
         assert!(
             sent[0].body.contains("日時: 1970年1月1日 09:00"),

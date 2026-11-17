@@ -43,7 +43,7 @@ pub struct AppState {
     pub login_notice_rate_limiter: Arc<AttemptRateLimiter>,
     /// 運営者への知らせ (`crate::login_alert`) の送り先と閾値。
     pub alerts: Arc<crate::config::AlertsConfig>,
-    pub login_alert_sent: Arc<crate::login_alert::LastSent>,
+    pub login_alert: Arc<crate::login_alert::AlertState>,
     pub mailer: Arc<Mailer>,
     pub ocr: Arc<OcrService>,
     /// OCR の累計金額の既定の上限 (円。`crate::config::OcrCosts`)。ユーザーごとの上限

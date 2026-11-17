@@ -274,7 +274,7 @@ async fn complete_app_login(
         client: Client::App,
         ip: client_ip,
     };
-    let user = resolve_external_login(state, account, revocation_tokens, attempt)
+    let user = resolve_external_login(state, account, revocation_tokens)
         .await
         .map_err(ExternalLoginRejection::app_error)?;
     let username = crate::auth::load_username(&state.pool, user.id)

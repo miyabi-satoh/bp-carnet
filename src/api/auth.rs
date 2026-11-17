@@ -110,7 +110,7 @@ async fn login(
 /// ID/パスワードを照合し、ログインしてよい利用者を返す。ウェブ (セッション) とアプリ (トークン、
 /// docs/mobile-app.md) のログインで共通。ログインの証しを渡すのは呼び出し側。
 ///
-/// 失敗 (ID・パスワードの誤りと凍結) はここで残す (`crate::login_events`)。成功を残すのは、ログインの証しを渡す呼び出し側。
+/// 失敗 (ID・パスワードの誤り) はここで残す (`crate::login_events`)。成功を残すのは、ログインの証しを渡す呼び出し側。
 /// 制限に達した試行 (429) は残さない。際限なく送れるので、残すと DB が膨らむ。
 pub(super) async fn authenticate_password(
     state: &AppState,
@@ -147,12 +147,12 @@ pub(super) async fn authenticate_password(
     let user = match auth::authenticate(&state.pool, &payload.username, &payload.password).await? {
         Authentication::Succeeded(user) => user,
         Authentication::WrongPassword { user_id } => {
-            login_events::record_failure(state, Some(user_id), attempt).await;
+            login_events::record_failure(state, Some(user_id), attempt);
             return Err(AppError::InvalidCredentials);
         }
         // 打たれたユーザーIDは残さない (他人のメールアドレスや、ユーザーIDの欄に打ったパスワードのことがあるため)。
         Authentication::UnknownUser => {
-            login_events::record_failure(state, None, attempt).await;
+            login_events::record_failure(state, None, attempt);
             return Err(AppError::InvalidCredentials);
         }
     };
@@ -175,8 +175,9 @@ pub(super) async fn authenticate_password(
 
     // 凍結の判定はパスワードの照合の後に置く。先に見ると、凍結中かどうかがユーザー名だけで
     // 分かってしまう。
+    // 凍結は失敗として残さない。パスワードは正しく試行の枠を返しているので、残すと際限なく行を足せ、
+    // 運営者への知らせの件数も膨らむため。
     if user.frozen {
-        login_events::record_failure(state, Some(user.id), attempt).await;
         return Err(AppError::AccountFrozen);
     }
 
@@ -912,7 +913,7 @@ async fn complete_web_login(
         client: Client::Web,
         ip: client_ip,
     };
-    let user = resolve_external_login(state, account, revocation_tokens, attempt)
+    let user = resolve_external_login(state, account, revocation_tokens)
         .await
         .map_err(|rejection| rejection.web_code(account.provider))?;
 
@@ -944,13 +945,10 @@ async fn complete_web_login(
 /// プロバイダーでの本人確認が済んだ後の、ウェブとアプリ・各提供元に共通の処理。凍結の判定・
 /// ユーザーの特定か作成・プロフィールの保存・削除予約の取り消し。ログインの証しを渡すのは呼び出し側。
 /// `revocation_tokens` は、連携の取り消しに使うトークン (LINE・Apple)。
-///
-/// 凍結で断ったときは、ログインの失敗として残す (`crate::login_events`)。成功を残すのは呼び出し側。
 pub(super) async fn resolve_external_login(
     state: &AppState,
     account: &ExternalAccount,
     revocation_tokens: &RevocationTokens,
-    attempt: Attempt,
 ) -> Result<ExternalLoginUser, ExternalLoginRejection> {
     use ExternalLoginRejection::Failed;
 
@@ -982,7 +980,6 @@ pub(super) async fn resolve_external_login(
                     Failed
                 })?;
         }
-        login_events::record_failure(state, Some(frozen_user_id), attempt).await;
         return Err(ExternalLoginRejection::Frozen);
     }
 

@@ -94,7 +94,10 @@ fn inline_scripts(html: &str) -> Vec<&str> {
         let Some(close) = body.find("</script>") else {
             break;
         };
-        if !attributes.contains("src=") {
+        if !attributes
+            .split_ascii_whitespace()
+            .any(|attribute| attribute.starts_with("src="))
+        {
             scripts.push(&body[..close]);
         }
         rest = &body[close..];
@@ -123,7 +126,8 @@ mod tests {
     /// ハッシュはブラウザと同じく、タグの間の文字列そのもの (空白を含む) の SHA-256 を base64 にしたもの。
     #[test]
     fn page_csp_allows_only_the_inline_scripts_without_src() {
-        let html = r#"<head><script>alert(1)</script><script type="module" src="/a.js"></script></head>
+        let html = r#"<head><script>alert(1)</script><script type="module" src="/a.js"></script>
+<script data-src="x">lazy()</script></head>
 <body><script>
   start();
 </script></body>"#;
@@ -136,7 +140,12 @@ mod tests {
             policy.contains(&format!("'sha256-{}'", sha256_base64("\n  start();\n"))),
             "{policy}"
         );
-        assert_eq!(policy.matches("'sha256-").count(), 2, "{policy}");
+        // `data-src` は外のスクリプトの指定ではないので、中身を許す。
+        assert!(
+            policy.contains(&format!("'sha256-{}'", sha256_base64("lazy()"))),
+            "{policy}"
+        );
+        assert_eq!(policy.matches("'sha256-").count(), 3, "{policy}");
     }
 
     /// 既知の値: `alert(1)` の SHA-256 の base64 (`echo -n 'alert(1)' | openssl dgst -sha256 -binary | base64`)。

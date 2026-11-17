@@ -475,7 +475,7 @@ async fn login_and_drain_notice(
     cookie
 }
 
-const LOGIN_NOTICE_SUBJECT: &str = "新しい端末からログインがありました";
+const LOGIN_NOTICE_SUBJECT: &str = "新しいログインがありました";
 
 /// 一般ユーザー `admin` / `password` を作ってログインした状態の、既定の構成のアプリとセッション Cookie。
 async fn logged_in_app(pool: SqlitePool) -> (Router, String) {
