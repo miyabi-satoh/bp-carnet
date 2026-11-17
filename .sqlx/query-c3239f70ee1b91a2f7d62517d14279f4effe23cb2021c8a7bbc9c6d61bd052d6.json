@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT EXISTS (\n               SELECT 1 FROM auth_events\n               WHERE user_id = ? AND kind = 'login' AND device_hash = ?\n           ) AS \"known!: bool\"",
+  "describe": {
+    "columns": [
+      {
+        "name": "known!: bool",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "c3239f70ee1b91a2f7d62517d14279f4effe23cb2021c8a7bbc9c6d61bd052d6"
+}

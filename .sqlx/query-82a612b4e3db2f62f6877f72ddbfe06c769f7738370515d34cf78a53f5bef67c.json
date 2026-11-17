@@ -1,0 +1,38 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT COUNT(*) AS \"failures!: i64\",\n                  COUNT(user_id) AS \"known_account_failures!: i64\",\n                  COUNT(DISTINCT user_id) AS \"accounts!: i64\",\n                  COUNT(DISTINCT ip) AS \"sources!: i64\"\n           FROM auth_events\n           WHERE kind = 'login_failed'\n             AND created_at >= strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '-1 hour')",
+  "describe": {
+    "columns": [
+      {
+        "name": "failures!: i64",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "known_account_failures!: i64",
+        "ordinal": 1,
+        "type_info": "Integer"
+      },
+      {
+        "name": "accounts!: i64",
+        "ordinal": 2,
+        "type_info": "Integer"
+      },
+      {
+        "name": "sources!: i64",
+        "ordinal": 3,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "82a612b4e3db2f62f6877f72ddbfe06c769f7738370515d34cf78a53f5bef67c"
+}

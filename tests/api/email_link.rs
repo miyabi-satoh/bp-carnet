@@ -401,7 +401,7 @@ async fn check_password_reset_link_reports_usability_without_consuming(pool: Sql
 async fn password_reset_link_sets_a_new_password_and_cuts_sessions(pool: SqlitePool) {
     insert_user(&pool, "kyoko@example.com", "password").await;
     let (app, sent) = test_app_with_mail(pool).await;
-    let old_cookie = login_and_get_cookie(&app, "kyoko@example.com", "password").await;
+    let old_cookie = login_and_drain_notice(&app, &sent, "kyoko@example.com", "password").await;
 
     let response = send(&app, password_reset_request("Kyoko@Example.com")).await;
     assert_eq!(response.status(), StatusCode::NO_CONTENT);

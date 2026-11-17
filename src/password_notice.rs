@@ -63,7 +63,7 @@ pub async fn send(
     if !mailer.can_send_to(&username) {
         return Ok(());
     }
-    let changed_at = changed_at_label(pool, user_id, changed_at).await;
+    let changed_at = local_time_label(pool, user_id, changed_at).await;
     let reset_link = mailer.link("/reset-password");
     mailer
         .send(&username, SUBJECT, body(&changed_at, origin, &reset_link))
@@ -71,21 +71,21 @@ pub async fn send(
     Ok(())
 }
 
-const CHANGED_AT_FORMAT: &str = "%Y年%-m月%-d日 %H:%M";
+const NOTICE_TIME_FORMAT: &str = "%Y年%-m月%-d日 %H:%M";
 
-/// 本文に書く、変わった日時。
+/// お知らせの本文に書く日時 (本人のタイムゾーン)。ログインのお知らせ (`crate::login_notice`) と共通。
 ///
-/// ADR: 本人のタイムゾーンを読めなくても、UTC と断って書いて送る。勝手に変えられたことに
+/// ADR: 本人のタイムゾーンを読めなくても、UTC と断って書いて送る。勝手に変えられた・入られたことに
 /// 気づいてもらうのが目的なので、日時の書き方のためにお知らせを諦めない。
-async fn changed_at_label(pool: &SqlitePool, user_id: i64, changed_at: Timestamp) -> String {
+pub(crate) async fn local_time_label(pool: &SqlitePool, user_id: i64, at: Timestamp) -> String {
     match settings::load_timezone(pool, user_id).await {
         Ok(timezone) => timezone
-            .to_local(changed_at)
-            .strftime(CHANGED_AT_FORMAT)
+            .to_local(at)
+            .strftime(NOTICE_TIME_FORMAT)
             .to_string(),
         Err(err) => {
-            tracing::warn!(error = %crate::error_chain_line(&err), user_id, "タイムゾーンを読めないため、パスワード変更のお知らせの日時を UTC で書きます");
-            format!("{} (UTC)", changed_at.strftime(CHANGED_AT_FORMAT))
+            tracing::warn!(error = %crate::error_chain_line(&err), user_id, "タイムゾーンを読めないため、お知らせの日時を UTC で書きます");
+            format!("{} (UTC)", at.strftime(NOTICE_TIME_FORMAT))
         }
     }
 }

@@ -141,7 +141,25 @@ pub enum FindOrCreateError {
     Hash(#[from] auth::Error),
 }
 
-/// 外部のアカウントでログインするユーザーを次の順に探し、その `user_id` を返す。
+/// [`find_or_create_user`] が決めた利用者。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct FoundUser {
+    pub user_id: i64,
+    /// このログインでアカウントを作ったか。新しい端末からのログインの知らせを省くのに使う
+    /// (本人が今作ったばかりのため。docs/authentication.md)。
+    pub created: bool,
+}
+
+impl FoundUser {
+    fn existing(user_id: i64) -> Self {
+        Self {
+            user_id,
+            created: false,
+        }
+    }
+}
+
+/// 外部のアカウントでログインするユーザーを次の順に探す。
 ///
 /// 1. `oauth_identities` を `(provider, subject)` で検索する
 /// 2. 同じメールアドレスの既存ユーザーに紐付ける (自動統合)
@@ -150,7 +168,7 @@ pub async fn find_or_create_user(
     pool: &SqlitePool,
     account: &ExternalAccount,
     terms_version: &str,
-) -> Result<i64, FindOrCreateError> {
+) -> Result<FoundUser, FindOrCreateError> {
     let provider = account.provider.as_str();
     let subject = account.subject.as_str();
     let email = account
@@ -163,7 +181,7 @@ pub async fn find_or_create_user(
     let username = auth::normalize_username(email);
 
     if let Some(user_id) = find_identity(pool, account.provider, subject).await? {
-        return Ok(user_id);
+        return Ok(FoundUser::existing(user_id));
     }
 
     if let Some(user_id) = link_identity_to_existing_user(
@@ -176,7 +194,7 @@ pub async fn find_or_create_user(
     )
     .await?
     {
-        return Ok(user_id);
+        return Ok(FoundUser::existing(user_id));
     }
 
     // argon2 のハッシュ化 (CPU バウンド、spawn_blocking) はトランザクション開始前に済ませ、
@@ -207,7 +225,7 @@ pub async fn find_or_create_user(
             //      oauth_identities を引き直せば見つかるはず。
             tx.rollback().await.ok();
             return match find_identity(pool, account.provider, subject).await? {
-                Some(user_id) => Ok(user_id),
+                Some(user_id) => Ok(FoundUser::existing(user_id)),
                 None => Err(FindOrCreateError::UsernameConflict),
             };
         }
@@ -231,7 +249,10 @@ pub async fn find_or_create_user(
     match insert_identity {
         Ok(_) => {
             tx.commit().await?;
-            Ok(user_id)
+            Ok(FoundUser {
+                user_id,
+                created: true,
+            })
         }
         Err(sqlx::Error::Database(db_err)) if db_err.is_unique_violation() => {
             // `oauth_identities` 側の UNIQUE(provider, subject) 違反。username(=email) が
@@ -241,7 +262,7 @@ pub async fn find_or_create_user(
             // 含む) をロールバックし、先に commit されたはずの識別を引き直す。
             tx.rollback().await.ok();
             match find_identity(pool, account.provider, subject).await? {
-                Some(user_id) => Ok(user_id),
+                Some(user_id) => Ok(FoundUser::existing(user_id)),
                 // SQLite は書き込みを直列化するため、UNIQUE 違反が起きた時点で競合相手の
                 // トランザクションは commit 済みのはずで、通常はここに到達しない。
                 None => Err(FindOrCreateError::UsernameConflict),
@@ -528,7 +549,9 @@ mod tests {
         pool: &SqlitePool,
         account: &ExternalAccount,
     ) -> Result<i64, FindOrCreateError> {
-        find_or_create_user(pool, account, TERMS_VERSION).await
+        find_or_create_user(pool, account, TERMS_VERSION)
+            .await
+            .map(|found| found.user_id)
     }
 
     async fn count_users(pool: &SqlitePool) -> i64 {
@@ -637,6 +660,30 @@ mod tests {
             assert_eq!(count_identities(&pool, provider).await, 1, "{provider:?}");
         }
         assert_eq!(count_users(&pool).await, 3);
+    }
+
+    /// アカウントを作ったと返すのは、作った初回だけ。紐付けたときも作っていない。
+    #[sqlx::test]
+    async fn found_user_reports_created_only_when_the_account_is_new(pool: SqlitePool) {
+        let login = account(Provider::Google, "sub-1", "new@example.com");
+        let first = find_or_create_user(&pool, &login, TERMS_VERSION)
+            .await
+            .expect("first login");
+        let second = find_or_create_user(&pool, &login, TERMS_VERSION)
+            .await
+            .expect("second login");
+        assert!(first.created);
+        assert!(!second.created);
+
+        insert_user(&pool, "existing@example.com").await;
+        let linked = find_or_create_user(
+            &pool,
+            &account(Provider::Line, "l-1", "existing@example.com"),
+            TERMS_VERSION,
+        )
+        .await
+        .expect("link");
+        assert!(!linked.created);
     }
 
     /// 管理者が作ったアカウントに、大文字小文字の違うメールでも紐付ける。パスワードと同意は変えない。

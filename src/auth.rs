@@ -439,8 +439,28 @@ static DUMMY_HASH: LazyLock<String> = LazyLock::new(|| {
     hash_password("dummy-password-for-timing-safety").expect("failed to hash dummy password")
 });
 
-/// ユーザー名・パスワードを検証する。ユーザーが存在しない場合はダミーハッシュと照合してから
-/// `None` を返す (タイミング攻撃対策)。
+/// [`authenticate`] の結果。失敗を、実在するアカウントへのものかで分ける。ログインの失敗の記録
+/// (`crate::login_events`) に、実在するアカウントのときだけ相手を残すため。
+#[derive(Debug)]
+pub enum Authentication {
+    Succeeded(User),
+    WrongPassword { user_id: i64 },
+    UnknownUser,
+}
+
+#[cfg(test)]
+impl Authentication {
+    /// 成功したときの利用者。
+    pub fn user(self) -> Option<User> {
+        match self {
+            Self::Succeeded(user) => Some(user),
+            Self::WrongPassword { .. } | Self::UnknownUser => None,
+        }
+    }
+}
+
+/// ユーザー名・パスワードを検証する。ユーザーが存在しない場合もダミーハッシュと照合してから
+/// 返す (タイミング攻撃対策)。
 ///
 /// Argon2 の検証は CPU バウンドな処理のため `spawn_blocking` で非同期ランタイムをブロック
 /// しないようにする。
@@ -448,7 +468,7 @@ pub async fn authenticate(
     pool: &SqlitePool,
     username: &str,
     password: &str,
-) -> Result<Option<User>, AppError> {
+) -> Result<Authentication, AppError> {
     let username = normalize_username(username);
     let row = sqlx::query_as!(
         UserRow,
@@ -461,11 +481,13 @@ pub async fn authenticate(
     .await?;
 
     let password = password.to_string();
-    let user = tokio::task::spawn_blocking(move || -> Result<Option<User>, Error> {
+    let user = tokio::task::spawn_blocking(move || -> Result<Authentication, Error> {
         match row {
             Some(row) => {
-                let ok = verify_password(&password, &row.password_hash)?;
-                Ok(ok.then_some(User {
+                if !verify_password(&password, &row.password_hash)? {
+                    return Ok(Authentication::WrongPassword { user_id: row.id });
+                }
+                Ok(Authentication::Succeeded(User {
                     id: row.id,
                     username: row.username,
                     frozen: row.frozen != 0,
@@ -474,7 +496,7 @@ pub async fn authenticate(
             None => {
                 // 必ず false になる (対応する平文を知らない) が、時間だけは揃える。
                 verify_password(&password, &DUMMY_HASH)?;
-                Ok(None)
+                Ok(Authentication::UnknownUser)
             }
         }
     })
@@ -995,26 +1017,27 @@ mod tests {
         let user = authenticate(&pool, "admin", "password")
             .await
             .expect("authenticate should not error")
+            .user()
             .expect("correct credentials should authenticate");
         assert_eq!(user.username, "admin");
     }
 
     #[sqlx::test]
     async fn authenticate_fails_with_wrong_password(pool: SqlitePool) {
-        insert_user_with_password(&pool, "admin", "password").await;
+        let user_id = insert_user_with_password(&pool, "admin", "password").await;
 
-        let user = authenticate(&pool, "admin", "wrong-password")
+        let result = authenticate(&pool, "admin", "wrong-password")
             .await
             .expect("authenticate should not error");
-        assert!(user.is_none());
+        assert!(matches!(result, Authentication::WrongPassword { user_id: id } if id == user_id));
     }
 
     #[sqlx::test]
     async fn authenticate_fails_for_unknown_user(pool: SqlitePool) {
-        let user = authenticate(&pool, "no-such-user", "password")
+        let result = authenticate(&pool, "no-such-user", "password")
             .await
             .expect("authenticate should not error");
-        assert!(user.is_none());
+        assert!(matches!(result, Authentication::UnknownUser));
     }
 
     #[sqlx::test]
@@ -1079,6 +1102,7 @@ mod tests {
             let user = authenticate(&pool, attempt, "password")
                 .await
                 .expect("authenticate should not error")
+                .user()
                 .unwrap_or_else(|| panic!("'{attempt}' でログインできるべき"));
             assert_eq!(user.username, "foo");
         }

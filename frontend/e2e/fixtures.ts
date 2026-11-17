@@ -5,7 +5,7 @@
 // 後始末は、テストの `page` とは別に作った API のコンテキストから呼ぶ。
 // `E2E_KEEP_DATA=1` のときは片付けず、残したものを控えに書く (→ kept-data.ts)。
 import { setTimeout } from 'node:timers/promises';
-import { test as base, type APIRequestContext, type TestInfo } from '@playwright/test';
+import { test as base, expect, type APIRequestContext, type TestInfo } from '@playwright/test';
 import {
 	findRecordMemosByApi,
 	findUsernamesByApi,
@@ -16,7 +16,7 @@ import { ADMIN_STORAGE_STATE, ADMIN_USERNAME } from './auth';
 import { KEEP_DATA, keptTestName, recordKept } from './kept-data';
 import { createThrowawayUser, removeThrowawayUser, type ThrowawayUser } from './user-helpers';
 
-export { expect } from '@playwright/test';
+export { expect };
 
 /** 未ログインの storageState。使い捨てユーザーで流すファイルで `test.use({ storageState: NO_LOGIN })` する。 */
 export const NO_LOGIN = { cookies: [], origins: [] };
@@ -30,6 +30,11 @@ async function settleIfFailed(testInfo: TestInfo): Promise<void> {
 }
 
 export const test = base.extend<{
+	/**
+	 * Content-Security-Policy の違反があれば、テストを失敗にする (docs/architecture.md「セキュリティヘッダー」)。
+	 * CSP は backend が付けるので、開発サーバー (Vite) では違反に気づけないため。
+	 */
+	failOnCspViolation: void;
 	/** 管理者のログイン状態の API。`page` のログイン状態とは別に持つ。 */
 	adminRequest: APIRequestContext;
 	/**
@@ -60,6 +65,20 @@ export const test = base.extend<{
 	 */
 	throwawayUser: ThrowawayUser;
 }>({
+	failOnCspViolation: [
+		async ({ context }, use) => {
+			const violations: string[] = [];
+			// Chromium は違反をコンソールのエラーに出す。
+			context.on('console', (message) => {
+				if (message.type() === 'error' && message.text().includes('Content Security Policy')) {
+					violations.push(message.text());
+				}
+			});
+			await use();
+			expect(violations, 'Content-Security-Policy の違反').toEqual([]);
+		},
+		{ auto: true }
+	],
 	adminRequest: async ({ playwright, baseURL, ignoreHTTPSErrors }, use) => {
 		const request = await playwright.request.newContext({
 			baseURL,

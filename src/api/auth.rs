@@ -3,7 +3,7 @@
 use axum::Json;
 use axum::extract::rejection::{FormRejection, QueryRejection};
 use axum::extract::{Form, Query, State};
-use axum::http::{HeaderMap, StatusCode, header};
+use axum::http::{HeaderMap, HeaderValue, StatusCode, header};
 use axum::response::{IntoResponse, Redirect, Response};
 use serde::{Deserialize, Serialize};
 use tower_sessions::Session;
@@ -13,11 +13,12 @@ use utoipa_axum::routes;
 
 use crate::account::{self, DeletionOrigin};
 use crate::apple_login::Client as AppleClient;
-use crate::auth::{self, AuthUser, Role};
+use crate::auth::{self, AuthUser, Authentication, Role};
 use crate::config::CharClass;
 use crate::error::{AppError, AppJson, ErrorResponse};
 use crate::external_login;
 use crate::forwarded::{self, ClientIp};
+use crate::login_events::{self, Attempt, Client, Method};
 use crate::oauth_cookie;
 use crate::oauth_identity::{self, ExternalAccount, FindOrCreateError, Provider, RevocationTokens};
 use crate::settings;
@@ -91,20 +92,32 @@ async fn login(
     session: Session,
     State(state): State<AppState>,
     ClientIp(client_ip): ClientIp,
+    headers: HeaderMap,
     AppJson(payload): AppJson<LoginRequest>,
-) -> Result<Json<UserResponse>, AppError> {
-    let user = authenticate_password(&state, client_ip, &payload).await?;
+) -> Result<Response, AppError> {
+    let attempt = Attempt {
+        method: Method::Password,
+        client: Client::Web,
+        ip: client_ip,
+    };
+    let user = authenticate_password(&state, attempt, &payload).await?;
+    let web_login = login_events::record_web_success(&state, user.id, attempt, &headers).await?;
     auth::establish_session(&session, &state.pool, user.id).await?;
-    Ok(Json(user))
+    web_login.notify_if_new_device(&state);
+    Ok(([(header::SET_COOKIE, web_login.device_cookie)], Json(user)).into_response())
 }
 
 /// ID/パスワードを照合し、ログインしてよい利用者を返す。ウェブ (セッション) とアプリ (トークン、
 /// docs/mobile-app.md) のログインで共通。ログインの証しを渡すのは呼び出し側。
+///
+/// 失敗 (ID・パスワードの誤り) はここで残す (`crate::login_events`)。成功を残すのは、ログインの証しを渡す呼び出し側。
+/// 制限に達した試行 (429) は残さない。際限なく送れるので、残すと DB が膨らむ。
 pub(super) async fn authenticate_password(
     state: &AppState,
-    client_ip: Option<std::net::IpAddr>,
+    attempt: Attempt,
     payload: &LoginRequest,
 ) -> Result<UserResponse, AppError> {
+    let client_ip = attempt.ip;
     // 接続元ごとに数える (docs/authentication.md)。ユーザー名だけで数えると、第三者が本人の名前で
     // 試し続けるだけで別の端末の本人を締め出せる。接続元が分からない構成ではユーザー名単位に戻る。
     // 接続元は `rate_limit_key` で数える (IPv6 は /64 ごと)。接続元を前に置くのは、キーの長さの
@@ -131,9 +144,18 @@ pub(super) async fn authenticate_password(
         None => None,
     };
 
-    let user = auth::authenticate(&state.pool, &payload.username, &payload.password)
-        .await?
-        .ok_or(AppError::InvalidCredentials)?;
+    let user = match auth::authenticate(&state.pool, &payload.username, &payload.password).await? {
+        Authentication::Succeeded(user) => user,
+        Authentication::WrongPassword { user_id } => {
+            login_events::record_failure(state, Some(user_id), attempt);
+            return Err(AppError::InvalidCredentials);
+        }
+        // 打たれたユーザーIDは残さない (他人のメールアドレスや、ユーザーIDの欄に打ったパスワードのことがあるため)。
+        Authentication::UnknownUser => {
+            login_events::record_failure(state, None, attempt);
+            return Err(AppError::InvalidCredentials);
+        }
+    };
 
     // パスワードが正しければ、凍結の有無に関わらず try_acquire で消費した分を解放する。
     // 凍結中の利用者が再試行するたびに上限へ近づくと、凍結中であることを伝える前に
@@ -153,6 +175,8 @@ pub(super) async fn authenticate_password(
 
     // 凍結の判定はパスワードの照合の後に置く。先に見ると、凍結中かどうかがユーザー名だけで
     // 分かってしまう。
+    // 凍結は失敗として残さない。パスワードは正しく試行の枠を返しているので、残すと際限なく行を足せ、
+    // 運営者への知らせの件数も膨らむため。
     if user.frozen {
         return Err(AppError::AccountFrozen);
     }
@@ -495,15 +519,24 @@ fn verify_state<const N: usize>(
 
 /// コールバックの結果をリダイレクトにする。state/PKCE 専用 Cookie は成否に関わらず必ず破棄する (使い捨て)。
 fn callback_response(
-    outcome: Result<bool, &'static str>,
+    outcome: Result<WebLoginOutcome, &'static str>,
     provider: Provider,
     secure_cookie: bool,
 ) -> Response {
     let mut response = match outcome {
-        // ID/PW ログインの `deletionCancelled` に相当する通知。リダイレクトで返すため
-        // レスポンスボディを持てず、クエリパラメータで渡す (`oauthError` と同じ方式)。
-        Ok(true) => Redirect::to("/?deletionCancelled=1").into_response(),
-        Ok(false) => Redirect::to("/").into_response(),
+        Ok(outcome) => {
+            // ID/PW ログインの `deletionCancelled` に相当する通知。リダイレクトで返すため
+            // レスポンスボディを持てず、クエリパラメータで渡す (`oauthError` と同じ方式)。
+            let mut response = if outcome.deletion_cancelled {
+                Redirect::to("/?deletionCancelled=1").into_response()
+            } else {
+                Redirect::to("/").into_response()
+            };
+            response
+                .headers_mut()
+                .append(header::SET_COOKIE, outcome.device_cookie);
+            response
+        }
         Err(code) => Redirect::to(&login_error_url(code)).into_response(),
     };
     response.headers_mut().append(
@@ -523,10 +556,11 @@ fn callback_response(
 async fn google_callback(
     State(state): State<AppState>,
     session: Session,
+    ClientIp(client_ip): ClientIp,
     headers: HeaderMap,
     params: Result<Query<CallbackParams>, QueryRejection>,
 ) -> Response {
-    let outcome = handle_google_callback(&state, &session, &headers, params).await;
+    let outcome = handle_google_callback(&state, &session, &headers, client_ip, params).await;
     callback_response(outcome, Provider::Google, state.secure_cookie)
 }
 
@@ -536,8 +570,9 @@ async fn handle_google_callback(
     state: &AppState,
     session: &Session,
     headers: &HeaderMap,
+    client_ip: Option<std::net::IpAddr>,
     params: Result<Query<CallbackParams>, QueryRejection>,
-) -> Result<bool, &'static str> {
+) -> Result<WebLoginOutcome, &'static str> {
     let errors = CallbackErrors::of(Provider::Google);
     if !state.google_login.enabled() {
         return Err(errors.disabled);
@@ -549,7 +584,15 @@ async fn handle_google_callback(
     let account = google_account(state, &code, Some(&code_verifier))
         .await
         .map_err(GoogleAccountError::web_code)?;
-    complete_web_login(state, session, &account, &RevocationTokens::default()).await
+    complete_web_login(
+        state,
+        session,
+        headers,
+        client_ip,
+        &account,
+        &RevocationTokens::default(),
+    )
+    .await
 }
 
 /// `google_account` が断った理由。ウェブはログイン画面へ戻すときのコードに、アプリは `AppError` に換える。
@@ -609,10 +652,11 @@ pub(super) async fn google_account(
 async fn line_callback(
     State(state): State<AppState>,
     session: Session,
+    ClientIp(client_ip): ClientIp,
     headers: HeaderMap,
     params: Result<Query<CallbackParams>, QueryRejection>,
 ) -> Response {
-    let outcome = handle_line_callback(&state, &session, &headers, params).await;
+    let outcome = handle_line_callback(&state, &session, &headers, client_ip, params).await;
     callback_response(outcome, Provider::Line, state.secure_cookie)
 }
 
@@ -621,8 +665,9 @@ async fn handle_line_callback(
     state: &AppState,
     session: &Session,
     headers: &HeaderMap,
+    client_ip: Option<std::net::IpAddr>,
     params: Result<Query<CallbackParams>, QueryRejection>,
-) -> Result<bool, &'static str> {
+) -> Result<WebLoginOutcome, &'static str> {
     let errors = CallbackErrors::of(Provider::Line);
     if !state.line_login.enabled() {
         return Err(errors.disabled);
@@ -653,7 +698,15 @@ async fn handle_line_callback(
         refresh_token: state.line_login.seal_token(&tokens.refresh_token),
         access_token: None,
     };
-    complete_web_login(state, session, &account, &revocation_tokens).await
+    complete_web_login(
+        state,
+        session,
+        headers,
+        client_ip,
+        &account,
+        &revocation_tokens,
+    )
+    .await
 }
 
 /// LINE の ID トークンを確かめ、ログインする人のアカウントを得る。ウェブとアプリ (docs/mobile-app.md)
@@ -687,10 +740,11 @@ pub(super) async fn line_account(
 async fn apple_callback(
     State(state): State<AppState>,
     session: Session,
+    ClientIp(client_ip): ClientIp,
     headers: HeaderMap,
     form: Result<Form<AppleCallbackForm>, FormRejection>,
 ) -> Response {
-    let outcome = handle_apple_callback(&state, &session, &headers, form).await;
+    let outcome = handle_apple_callback(&state, &session, &headers, client_ip, form).await;
     callback_response(outcome, Provider::Apple, state.secure_cookie)
 }
 
@@ -723,8 +777,9 @@ async fn handle_apple_callback(
     state: &AppState,
     session: &Session,
     headers: &HeaderMap,
+    client_ip: Option<std::net::IpAddr>,
     form: Result<Form<AppleCallbackForm>, FormRejection>,
-) -> Result<bool, &'static str> {
+) -> Result<WebLoginOutcome, &'static str> {
     let errors = CallbackErrors::of(Provider::Apple);
     if !state.apple_login.enabled() {
         return Err(errors.disabled);
@@ -750,7 +805,15 @@ async fn handle_apple_callback(
     )
     .await
     .ok_or(errors.failed)?;
-    complete_web_login(state, session, &account, &revocation_tokens).await
+    complete_web_login(
+        state,
+        session,
+        headers,
+        client_ip,
+        &account,
+        &revocation_tokens,
+    )
+    .await
 }
 
 /// Apple の認可コードを引き換え、ログインする人のアカウントと、連携の取り消しに使うトークンを得る。
@@ -819,20 +882,47 @@ impl ExternalLoginRejection {
 /// 外部のアカウントでログインしてよいと決まった利用者。
 pub(super) struct ExternalLoginUser {
     pub(super) id: i64,
+    /// このログインでアカウントを作ったか。作ったときは、新しい端末からのログインを知らせない
+    /// (本人が今作ったばかりのため)。
+    pub(super) created: bool,
     /// このログインで、猶予期間中だった削除の予約を取り消したか。
     pub(super) deletion_cancelled: bool,
 }
 
-/// Google・LINE・Apple のコールバックの最後の処理。ログインしてよい利用者を決め、セッションを確立する。
+/// ウェブの外部のログインが済んだときの、リダイレクトの応答に載せるもの。
+struct WebLoginOutcome {
+    /// このログインで、猶予期間中だった削除の予約を取り消したか。
+    deletion_cancelled: bool,
+    /// 端末の印 (`crate::device_cookie`) を置く `Set-Cookie` の値。
+    device_cookie: HeaderValue,
+}
+
+/// Google・LINE・Apple のコールバックの最後の処理。ログインしてよい利用者を決め、ログインを残して、
+/// セッションを確立する。
 async fn complete_web_login(
     state: &AppState,
     session: &Session,
+    headers: &HeaderMap,
+    client_ip: Option<std::net::IpAddr>,
     account: &ExternalAccount,
     revocation_tokens: &RevocationTokens,
-) -> Result<bool, &'static str> {
+) -> Result<WebLoginOutcome, &'static str> {
+    let failed = CallbackErrors::of(account.provider).failed;
+    let attempt = Attempt {
+        method: account.provider.into(),
+        client: Client::Web,
+        ip: client_ip,
+    };
     let user = resolve_external_login(state, account, revocation_tokens)
         .await
         .map_err(|rejection| rejection.web_code(account.provider))?;
+
+    let web_login = login_events::record_web_success(state, user.id, attempt, headers)
+        .await
+        .map_err(|err| {
+            tracing::error!(error = %crate::error_chain_line(&err), "ログインを記録できませんでした");
+            failed
+        })?;
 
     // `AppError` の Display は表に出さない固定文言なので、原因まで辿って記録する
     // (`src/error.rs` の `IntoResponse` と同じ扱い)。
@@ -840,10 +930,16 @@ async fn complete_web_login(
         .await
         .map_err(|err| {
             tracing::error!(error = %crate::error_chain_line(&err), "セッションの確立に失敗しました");
-            CallbackErrors::of(account.provider).failed
+            failed
         })?;
 
-    Ok(user.deletion_cancelled)
+    if !user.created {
+        web_login.notify_if_new_device(state);
+    }
+    Ok(WebLoginOutcome {
+        deletion_cancelled: user.deletion_cancelled,
+        device_cookie: web_login.device_cookie,
+    })
 }
 
 /// プロバイダーでの本人確認が済んだ後の、ウェブとアプリ・各提供元に共通の処理。凍結の判定・
@@ -887,7 +983,7 @@ pub(super) async fn resolve_external_login(
         return Err(ExternalLoginRejection::Frozen);
     }
 
-    let user_id = oauth_identity::find_or_create_user(
+    let found = oauth_identity::find_or_create_user(
         &state.pool,
         account,
         terms::VERSION,
@@ -900,6 +996,7 @@ pub(super) async fn resolve_external_login(
             Failed
         }
     })?;
+    let user_id = found.user_id;
 
     if !revocation_tokens.is_empty() {
         oauth_identity::save_revocation_tokens(
@@ -934,6 +1031,7 @@ pub(super) async fn resolve_external_login(
 
     Ok(ExternalLoginUser {
         id: user_id,
+        created: found.created,
         deletion_cancelled,
     })
 }

@@ -40,6 +40,11 @@ filter = "bp_carnet=info,tower_http=info"
 # (docs/authentication.md)。
 delete_after_days = 365
 
+[alerts]
+# ログインの失敗が増えたときの運営者への知らせ (docs/authentication.md「ログインの記録と知らせ」)。
+# SECURITY.md の窓口と同じアドレス。Cloudflare の Email Routing で運営者の受信箱へ転送される。
+to = "support@amiiby.com"
+
 # 写真の読み取りの無料枠・買い足し1回の量・Gemini の単価は、Fly のシークレット (`fly secrets set --app bp-carnet`) の
 # OCR_FREE_BUDGET_YEN・OCR_TOPUP_GRANT_YEN・OCR_INPUT_USD_PER_MILLION_TOKENS・
 # OCR_OUTPUT_USD_PER_MILLION_TOKENS・OCR_JPY_PER_USD で与える (DEVELOPMENT.md「写真の読み取りの無料枠・単価を変える」)。

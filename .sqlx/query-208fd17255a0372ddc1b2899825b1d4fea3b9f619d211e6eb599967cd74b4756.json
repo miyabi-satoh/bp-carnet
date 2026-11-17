@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT COUNT(*) AS \"failures!: i64\" FROM auth_events\n           WHERE kind = 'login_failed'\n             AND created_at >= strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '-1 hour')",
+  "describe": {
+    "columns": [
+      {
+        "name": "failures!: i64",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "208fd17255a0372ddc1b2899825b1d4fea3b9f619d211e6eb599967cd74b4756"
+}

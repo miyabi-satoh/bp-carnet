@@ -15,6 +15,7 @@ pub mod cli;
 pub mod config;
 pub(crate) mod csrf;
 pub mod db;
+pub(crate) mod device_cookie;
 pub(crate) mod email_change;
 pub mod email_token;
 pub(crate) mod error;
@@ -26,6 +27,9 @@ pub(crate) mod jwt;
 pub mod line_login;
 pub(crate) mod local_time;
 pub mod logging;
+pub(crate) mod login_alert;
+pub(crate) mod login_events;
+pub(crate) mod login_notice;
 pub mod mail;
 pub(crate) mod oauth_cookie;
 pub(crate) mod oauth_identity;
@@ -37,6 +41,7 @@ pub(crate) mod ocr_usage;
 pub(crate) mod password_notice;
 pub(crate) mod password_reset;
 pub mod payments;
+pub(crate) mod security_headers;
 pub(crate) mod seo;
 pub mod session;
 pub(crate) mod settings;
@@ -166,6 +171,11 @@ pub async fn build_app(
     let secure_cookie = config.session.secure_cookie;
     let session_layer = session::layer(session_store, session_key, &config.session);
 
+    let login_failures = login_events::FailureRecorder::start(
+        pool.clone(),
+        Arc::clone(&mailer),
+        config.alerts.clone(),
+    );
     let state = AppState {
         pool,
         login_rate_limiter: Arc::new(AttemptRateLimiter::for_logins()),
@@ -175,6 +185,8 @@ pub async fn build_app(
         link_password_rate_limiter: Arc::new(AttemptRateLimiter::with_defaults()),
         app_login_nonces: Arc::new(NonceStore::default()),
         app_nonce_rate_limiter: Arc::new(AttemptRateLimiter::for_app_login_nonces()),
+        login_notice_rate_limiter: Arc::new(AttemptRateLimiter::for_mail_requests()),
+        login_failures,
         mailer,
         ocr: Arc::new(ocr),
         ocr_free_budget_yen: ocr_costs.free_budget_yen,
@@ -255,6 +267,13 @@ pub async fn build_app(
                 proxy_headers: config.server.proxy_headers,
             },
             forwarded::extract,
+        ))
+        // 外側の層が返す断り (CSRF の 403 など) にも付けるため、いちばん外に置く。
+        .layer(middleware::from_fn_with_state(
+            security_headers::Settings {
+                secure: secure_cookie,
+            },
+            security_headers::add,
         ))
         .with_state(state);
 

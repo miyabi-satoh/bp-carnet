@@ -1,7 +1,8 @@
 //! オープンサインアップとメール確認 (docs/authentication.md)。
 
 use axum::extract::State;
-use axum::http::{HeaderMap, StatusCode};
+use axum::http::{HeaderMap, StatusCode, header};
+use axum::response::{IntoResponse, Response};
 use serde::Deserialize;
 use tower_sessions::Session;
 use utoipa::ToSchema;
@@ -14,6 +15,7 @@ use crate::auth;
 use crate::email_token::Purpose;
 use crate::error::{AppError, AppJson, ErrorResponse};
 use crate::forwarded::ClientIp;
+use crate::login_events::{self, Attempt, Client, Method};
 use crate::mail::{self, LINK_HELP};
 use crate::signup::{self, Registration};
 use crate::state::AppState;
@@ -174,8 +176,9 @@ async fn complete_signup(
     session: Session,
     State(state): State<AppState>,
     ClientIp(client_ip): ClientIp,
+    headers: HeaderMap,
     AppJson(payload): AppJson<CompleteSignupRequest>,
-) -> Result<StatusCode, AppError> {
+) -> Result<Response, AppError> {
     let (user_id, password_hash) = email_link::consume_for_new_password(
         &state,
         client_ip,
@@ -189,8 +192,19 @@ async fn complete_signup(
     }
     tracing::info!(user_id, "サインアップのメール確認が済みました");
 
+    // 新しい端末の知らせは送らない (本人が今作ったばかり)。印は置き、次からこのブラウザを知っている端末にする。
+    let attempt = Attempt {
+        method: Method::Signup,
+        client: Client::Web,
+        ip: client_ip,
+    };
+    let web_login = login_events::record_web_success(&state, user_id, attempt, &headers).await?;
     auth::establish_session(&session, &state.pool, user_id).await?;
-    Ok(StatusCode::NO_CONTENT)
+    Ok((
+        StatusCode::NO_CONTENT,
+        [(header::SET_COOKIE, web_login.device_cookie)],
+    )
+        .into_response())
 }
 
 /// 確認リンクがまだ使えるかを、使用済みにせずに確かめる (リンクを開いたときに使う)。

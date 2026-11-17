@@ -46,10 +46,12 @@ mod guards;
 mod in_app_purchase;
 mod line;
 mod login;
+mod login_events;
 mod ocr;
 mod password;
 mod proxy;
 mod records;
+mod security_headers;
 mod settings;
 mod site;
 mod stripe;
@@ -449,6 +451,31 @@ async fn login_and_get_cookie(app: &Router, username: &str, password: &str) -> S
     assert_eq!(response.status(), StatusCode::OK);
     session_cookie(&response)
 }
+
+/// メールを記録するアプリでログインし、新しい端末からのログインのお知らせを取り除いてから Cookie を返す。
+/// ログインの後に送るメールを数えるテストに、お知らせが混ざらないようにするため。
+async fn login_and_drain_notice(
+    app: &Router,
+    sent: &Arc<Mutex<Vec<SentMail>>>,
+    username: &str,
+    password: &str,
+) -> String {
+    let cookie = login_and_get_cookie(app, username, password).await;
+    wait_for_sent(sent, |mails| {
+        mails
+            .iter()
+            .any(|mail| mail.subject.contains(LOGIN_NOTICE_SUBJECT))
+            .then_some(())
+    })
+    .await
+    .expect("新しい端末からのログインのお知らせが届くはず");
+    sent.lock()
+        .expect("mutex lock should not be poisoned")
+        .retain(|mail| !mail.subject.contains(LOGIN_NOTICE_SUBJECT));
+    cookie
+}
+
+const LOGIN_NOTICE_SUBJECT: &str = "新しいログインがありました";
 
 /// 一般ユーザー `admin` / `password` を作ってログインした状態の、既定の構成のアプリとセッション Cookie。
 async fn logged_in_app(pool: SqlitePool) -> (Router, String) {

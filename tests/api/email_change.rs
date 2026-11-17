@@ -19,7 +19,7 @@ fn request_email_change(
 async fn email_change_moves_the_account_to_the_new_address(pool: SqlitePool) {
     insert_user(&pool, "kyoko@example.com", "password").await;
     let (app, sent) = test_app_with_mail(pool).await;
-    let cookie = login_and_get_cookie(&app, "kyoko@example.com", "password").await;
+    let cookie = login_and_drain_notice(&app, &sent, "kyoko@example.com", "password").await;
 
     let response = send(
         &app,
@@ -85,7 +85,7 @@ async fn email_change_to_a_used_address_sends_a_notice_instead_of_a_link(pool: S
     insert_user(&pool, "kyoko@example.com", "password").await;
     insert_user(&pool, "taken@example.com", "password").await;
     let (app, sent) = test_app_with_mail(pool).await;
-    let cookie = login_and_get_cookie(&app, "kyoko@example.com", "password").await;
+    let cookie = login_and_drain_notice(&app, &sent, "kyoko@example.com", "password").await;
 
     let response = send(
         &app,
@@ -104,7 +104,7 @@ async fn email_change_to_a_used_address_sends_a_notice_instead_of_a_link(pool: S
 async fn email_change_requires_the_current_password_and_a_new_address(pool: SqlitePool) {
     insert_user(&pool, "kyoko@example.com", "password").await;
     let (app, sent) = test_app_with_mail(pool).await;
-    let cookie = login_and_get_cookie(&app, "kyoko@example.com", "password").await;
+    let cookie = login_and_drain_notice(&app, &sent, "kyoko@example.com", "password").await;
 
     for (name, email, password, code) in [
         (
