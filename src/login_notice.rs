@@ -72,14 +72,14 @@ async fn send(
 
 fn body(logged_in_at: &str, method: Method, client: Client, reset_link: &str) -> String {
     // 外部のログインなら、乗っ取られたのはその提供元のアカウントかもしれない。
-    let provider_advice = match method {
-        Method::Google | Method::Line | Method::Apple => {
-            format!(
-                "{} のアカウントのパスワードも変えてください。\n\n",
-                method.label()
-            )
+    let what_to_do = match method {
+        Method::Google | Method::Line | Method::Apple => format!(
+            "心当たりが無い場合は、{} のアカウントのパスワードを変え、次のリンクから BP Carnet のパスワードも再設定してください。",
+            method.label()
+        ),
+        Method::Password | Method::Signup => {
+            "心当たりが無い場合は、次のリンクからパスワードを再設定してください。".to_string()
         }
-        Method::Password | Method::Signup => String::new(),
     };
     format!(
         "BP Carnet のアカウントにログインがありました。\n\
@@ -87,11 +87,10 @@ fn body(logged_in_at: &str, method: Method, client: Client, reset_link: &str) ->
          日時: {logged_in_at}\n\
          方法: {}（{}）\n\
          \n\
-         心当たりが無い場合は、次のリンクからパスワードを再設定してください。ほかの端末のログインもすべて解除されます。\n\
+         {what_to_do}再設定すると、ほかの端末のログインもすべて解除されます。\n\
          \n\
          {reset_link}\n\
          \n\
-         {provider_advice}\
          心当たりがある場合は、このメールは破棄してください。\n",
         method.label(),
         client.label()
@@ -131,7 +130,7 @@ mod tests {
         assert!(
             sent[0]
                 .body
-                .contains("Google のアカウントのパスワードも変えてください"),
+                .contains("Google のアカウントのパスワードを変え、次のリンクから BP Carnet のパスワードも再設定してください"),
             "{}",
             sent[0].body
         );
