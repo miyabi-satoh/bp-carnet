@@ -308,7 +308,7 @@ async fn revoke_links(
 /// 起動時に1回、以降は [`PURGE_INTERVAL`] ごとに物理削除を回す。確認リンクの期限が切れた
 /// 未確認のアカウント (`crate::signup`) も同じ周期で消し、放置アカウントの予告と削除予約
 /// (`crate::inactivity`) も同じ周期で判定する。失効したアプリのトークン (`crate::app_token`) と、保存期間を
-/// 過ぎた購入の記録 (`crate::payments::ocr_quota`) も掃除する。
+/// 過ぎた購入の記録 (`crate::payments::ocr_quota`)・ログインの記録 (`crate::login_events`) も掃除する。
 /// DB エラーでループを止めない (次の周期で回復しうるため)。
 pub async fn purge_expired_periodically(
     pool: SqlitePool,
@@ -354,6 +354,13 @@ pub async fn purge_expired_periodically(
             Ok(count) => tracing::info!(count, "保存期間を過ぎた読み取りの記録を削除しました"),
             Err(err) => {
                 tracing::error!(error = %crate::error_chain_line(&err), "読み取りの記録の削除に失敗しました")
+            }
+        }
+        match crate::login_events::purge_expired(&pool).await {
+            Ok(0) => {}
+            Ok(count) => tracing::info!(count, "保存期間を過ぎたログインの記録を削除しました"),
+            Err(err) => {
+                tracing::error!(error = %crate::error_chain_line(&err), "ログインの記録の削除に失敗しました")
             }
         }
         if let Err(err) = crate::app_token::purge_expired(&pool, session_expiry_days).await {

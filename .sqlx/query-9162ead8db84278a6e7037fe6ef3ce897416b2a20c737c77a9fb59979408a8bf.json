@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE auth_events SET created_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '-89 days')\n             WHERE device_hash = 'recent'",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": []
+  },
+  "hash": "9162ead8db84278a6e7037fe6ef3ce897416b2a20c737c77a9fb59979408a8bf"
+}

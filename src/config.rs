@@ -782,6 +782,27 @@ pub struct InactivityConfig {
     pub delete_after_days: u32,
 }
 
+/// 運営者への知らせ (docs/authentication.md「ログインの記録と知らせ」)。
+#[derive(Debug, Clone, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct AlertsConfig {
+    /// 知らせを送るメールアドレス。空なら送らない。
+    pub to: String,
+    /// 直近1時間のログインの失敗がこの件数以上になったら知らせる。
+    pub login_failures_per_hour: u32,
+}
+
+impl Default for AlertsConfig {
+    fn default() -> Self {
+        Self {
+            to: String::new(),
+            // 利用者の打ち間違いでは届かず、1つのアカウントへの総当たり (1分5回まで、docs/authentication.md
+            // 「レートリミット」) なら4分で届く値。
+            login_failures_per_hour: 20,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Default, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct MobileAppConfig {
@@ -799,6 +820,7 @@ pub struct Config {
     pub mail: MailConfig,
     pub ocr: OcrConfig,
     pub inactivity: InactivityConfig,
+    pub alerts: AlertsConfig,
     pub password: PasswordConfig,
     pub payments: PaymentsConfig,
     pub mobile_app: MobileAppConfig,

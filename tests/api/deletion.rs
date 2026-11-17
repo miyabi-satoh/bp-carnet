@@ -102,7 +102,7 @@ async fn schedule_deletion_mails_the_user_only_once(pool: SqlitePool) {
     .await
     .expect("タイムゾーンを変えられるはず");
     let (app, sent) = test_app_with_mail(pool).await;
-    let cookie = login_and_get_cookie(&app, "kyoko@example.com", "password").await;
+    let cookie = login_and_drain_notice(&app, &sent, "kyoko@example.com", "password").await;
 
     let mut scheduled_at = None;
     for _ in 0..2 {
@@ -152,7 +152,7 @@ async fn admin_delete_does_not_mail_the_user(pool: SqlitePool) {
     insert_user(&pool, "kyoko@example.com", "password").await;
     let target_id = user_id_of(&pool, "kyoko@example.com").await;
     let (app, sent) = test_app_with_mail(pool).await;
-    let cookie = login_and_get_cookie(&app, "admin@example.com", "password").await;
+    let cookie = login_and_drain_notice(&app, &sent, "admin@example.com", "password").await;
 
     let response = send(&app, admin_delete_request(&cookie, target_id)).await;
 

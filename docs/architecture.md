@@ -20,12 +20,13 @@
 
 `src/lib.rs` の `build_app` で積む。外側 (先に受ける) から順に:
 
-1. `forwarded::extract`: 信頼済みプロキシの伝えた scheme・host・接続元を解釈する (下の「リバースプロキシ配下」)。
-2. CORS: モバイルアプリの出どころ (`capacitor://localhost`) だけを許す。preflight にはここで答える。
-3. `app_version::require_supported`: 古い版のアプリの API 呼び出しを 426 で断る。
-4. `csrf::same_origin_check`: GET 以外の別オリジンからのリクエストを 403 で断る。
-5. セッション (`tower-sessions`、SQLite に保存) と、`__Host-` Cookie の削除を直す層。
-6. gzip 圧縮、リクエストのログ (`TraceLayer`)。
+1. `security_headers::add`: すべての応答にセキュリティヘッダーを付ける (下の「セキュリティヘッダー」)。外側の層の断りにも付けるため、いちばん外に置く。
+2. `forwarded::extract`: 信頼済みプロキシの伝えた scheme・host・接続元を解釈する (下の「リバースプロキシ配下」)。
+3. CORS: モバイルアプリの出どころ (`capacitor://localhost`) だけを許す。preflight にはここで答える。
+4. `app_version::require_supported`: 古い版のアプリの API 呼び出しを 426 で断る。
+5. `csrf::same_origin_check`: GET 以外の別オリジンからのリクエストを 403 で断る。
+6. セッション (`tower-sessions`、SQLite に保存) と、`__Host-` Cookie の削除を直す層。
+7. gzip 圧縮、リクエストのログ (`TraceLayer`)。
 
 ## 機能の有効化条件
 
@@ -33,20 +34,21 @@
   - 未設定のときの画面を作らないため。開発とテストでは見本の値と手元のメールの受け口 (`just dev-mail`) を使う。
 - 外部サービスの鍵は、ダミーの値では呼んだ時点で失敗するので、有無で機能ごと切る。起動時のログに有効・無効が出る (`src/main.rs`)。
 
-| 機能                         | 有効になる条件                                                                                                                                |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| Google ログイン              | `GOOGLE_OAUTH_CLIENT_ID`・`GOOGLE_OAUTH_CLIENT_SECRET`                                                                                        |
-| LINE ログイン                | `LINE_LOGIN_CHANNEL_ID`・`LINE_LOGIN_CHANNEL_SECRET`                                                                                          |
-| Sign in with Apple (ウェブ)  | `APPLE_TEAM_ID`・`APPLE_KEY_ID`・`APPLE_PRIVATE_KEY`・`APPLE_SERVICE_ID` と、https の `[server] public_url`・`[session] secure_cookie = true` |
-| Sign in with Apple (アプリ)  | `APPLE_TEAM_ID`・`APPLE_KEY_ID`・`APPLE_PRIVATE_KEY`・`APPLE_APP_BUNDLE_ID`                                                                   |
-| 写真の読み取り (Gemini)      | `GEMINI_API_KEY` (→ docs/ocr.md)                                                                                                              |
-| OCR 枠の買い足し (Stripe)    | `[payments.stripe] enabled`・戻り先の URL と `STRIPE_*` (→ docs/payments.md)                                                                  |
-| アプリ内課金 (App Store)     | `APP_STORE_ISSUER_ID`・`APP_STORE_KEY_ID`・`APP_STORE_PRIVATE_KEY`・`APPLE_APP_BUNDLE_ID` (→ docs/payments.md)                                |
-| 放置アカウントの自動退会     | `[inactivity] delete_after_days` が 0 より大きい                                                                                              |
-| 古い版のアプリに更新を促す   | `[mobile_app] min_version` (→ docs/mobile-app.md)                                                                                             |
-| 「オープンβテスト中」の表示  | `[server] beta_notice = true`                                                                                                                 |
-| ログイン画面の紹介へのリンク | `[server] intro_url` (ウェブだけ。アプリには出さない)                                                                                         |
-| アクセス解析                 | `[server] cloudflare_analytics_token` (ウェブのログインしていない画面だけ。下の「アクセス解析」)                                             |
+| 機能                             | 有効になる条件                                                                                                                                |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Google ログイン                  | `GOOGLE_OAUTH_CLIENT_ID`・`GOOGLE_OAUTH_CLIENT_SECRET`                                                                                        |
+| LINE ログイン                    | `LINE_LOGIN_CHANNEL_ID`・`LINE_LOGIN_CHANNEL_SECRET`                                                                                          |
+| Sign in with Apple (ウェブ)      | `APPLE_TEAM_ID`・`APPLE_KEY_ID`・`APPLE_PRIVATE_KEY`・`APPLE_SERVICE_ID` と、https の `[server] public_url`・`[session] secure_cookie = true` |
+| Sign in with Apple (アプリ)      | `APPLE_TEAM_ID`・`APPLE_KEY_ID`・`APPLE_PRIVATE_KEY`・`APPLE_APP_BUNDLE_ID`                                                                   |
+| 写真の読み取り (Gemini)          | `GEMINI_API_KEY` (→ docs/ocr.md)                                                                                                              |
+| OCR 枠の買い足し (Stripe)        | `[payments.stripe] enabled`・戻り先の URL と `STRIPE_*` (→ docs/payments.md)                                                                  |
+| アプリ内課金 (App Store)         | `APP_STORE_ISSUER_ID`・`APP_STORE_KEY_ID`・`APP_STORE_PRIVATE_KEY`・`APPLE_APP_BUNDLE_ID` (→ docs/payments.md)                                |
+| 放置アカウントの自動退会         | `[inactivity] delete_after_days` が 0 より大きい                                                                                              |
+| 古い版のアプリに更新を促す       | `[mobile_app] min_version` (→ docs/mobile-app.md)                                                                                             |
+| 「オープンβテスト中」の表示      | `[server] beta_notice = true`                                                                                                                 |
+| ログイン画面の紹介へのリンク     | `[server] intro_url` (ウェブだけ。アプリには出さない)                                                                                         |
+| アクセス解析                     | `[server] cloudflare_analytics_token` (ウェブのログインしていない画面だけ。下の「アクセス解析」)                                              |
+| ログインの失敗の運営者への知らせ | `[alerts] to` (→ docs/authentication.md「ログインの記録と知らせ」)                                                                            |
 
 - 画面は、未ログインで叩ける `GET /api/v1/auth/providers` (ログイン方式・β表示) と `GET /api/v1/ocr/status` (読み取り・買い足し) で、どれが使えるかを知る。
 - ログインには常にパスワードか外部の提供元の確認が要る。パスワード無しで入れるモードは無い。
@@ -95,13 +97,26 @@ SPA の素の `index.html` はどのパスも同じ枠なので、`src/seo.rs` �
 - 例外は2つ。モバイルアプリの出どころ (Cookie を使わずトークンで認証するため。→ docs/mobile-app.md) と、Apple のログインの戻り (Apple のサイトからの POST で、`state` の照合で守る)。
 - セッション Cookie の `SameSite=Strict` だけでは同じサイトの別のホストを防げないので、このチェックで補う。
 
+## セキュリティヘッダー
+
+すべての応答に付ける (`src/security_headers.rs`)。
+
+- `X-Content-Type-Options: nosniff`・`Referrer-Policy: strict-origin-when-cross-origin`。`[session] secure_cookie` のときは `Strict-Transport-Security` (2年) も。
+- Content-Security-Policy は、画面 (静的ファイル) と API で分ける。
+  - 画面は `default-src 'self'` を基に、ほかのサイトの枠に入れさせず (`frame-ancestors 'none'`)、プラグイン・`<base>`・ほかのサイトへのフォームの送信を断る。外へ許すのは、アクセス解析を有効にしたときの Cloudflare のスクリプトと送信先、プロフィール画像 (`img-src` の `https:`) だけ。スタイルは `'unsafe-inline'` を許す (Svelte が要素に直接書くため)。
+  - index.html のインラインスクリプト (テーマの先読み・SvelteKit の起動) は、返すたびに中身のハッシュを求めて `script-src` に入れる。起動のスクリプトがビルドのたびに変わるため。
+  - Service Worker のスクリプトにも同じ CSP を付ける。Worker の中の通信は、スクリプトの応答の CSP に従うため。
+  - API は `default-src 'none'; frame-ancestors 'none'`。
+- `X-Frame-Options` は付けない (今のブラウザは `frame-ancestors` を読む)。
+- E2E は、CSP の違反が出たら失敗にする (`frontend/e2e/fixtures.ts`)。開発サーバー (Vite) は backend を通らず、違反に気づけないため。
+
 ## リバースプロキシ配下
 
 - `X-Forwarded-*` はクライアントが自由に名乗れるので、`[server] trusted_proxies` に挙げた接続元 (アドレスか CIDR) から来たときだけ採用する (`src/forwarded.rs`)。既定は空で、一切信頼しない。
 - 読むヘッダーは `[server] proxy_headers` で選ぶ。
   - `"x-forwarded"` (既定): `X-Forwarded-Proto`・`-Host`・`-For`。受け取った値を消して付け直すプロキシ向け。`-Proto`・`-Host` は値がちょうど1つのときだけ使う。`-For` は末尾から信頼済みのアドレスを読み飛ばし、最初の信頼していないアドレスをクライアントとする。
   - `"fly"`: Fly.io の `Fly-Forwarded-Proto`・`Fly-Client-IP` だけを読む。fly-proxy はクライアントが送った `X-Forwarded-Proto`・`-Host` を書き換えずに渡すため。`Host` はそのまま届くので、転送先の host は読まない。
-- ここで求めたクライアントのアドレスは、CSRF のログとレートリミットに使う。
+- ここで求めたクライアントのアドレスは、CSRF のログ・レートリミット・ログインの記録に使う。
 
 ## レートリミット
 

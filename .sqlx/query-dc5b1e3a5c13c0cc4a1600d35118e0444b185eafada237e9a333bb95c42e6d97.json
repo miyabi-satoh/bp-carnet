@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "DELETE FROM auth_events\n         WHERE created_at < strftime('%Y-%m-%dT%H:%M:%fZ', 'now', ?)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "dc5b1e3a5c13c0cc4a1600d35118e0444b185eafada237e9a333bb95c42e6d97"
+}

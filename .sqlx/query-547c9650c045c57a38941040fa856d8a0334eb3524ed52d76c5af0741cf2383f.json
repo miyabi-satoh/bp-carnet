@@ -11,7 +11,7 @@
       {
         "name": "hours!: i64",
         "ordinal": 1,
-        "type_info": "Null"
+        "type_info": "Integer"
       }
     ],
     "parameters": {

@@ -19,6 +19,8 @@ use crate::app_token;
 use crate::apple_login::Client as AppleClient;
 use crate::error::{AppError, AppJson, ErrorResponse};
 use crate::forwarded::{self, ClientIp};
+use crate::login_events::{self, Attempt, Client, Method};
+use crate::login_notice;
 use crate::oauth_identity::{ExternalAccount, RevocationTokens};
 use crate::state::AppState;
 
@@ -49,8 +51,16 @@ async fn app_login(
     ClientIp(client_ip): ClientIp,
     AppJson(payload): AppJson<LoginRequest>,
 ) -> Result<Json<AppLoginResponse>, AppError> {
-    let user = authenticate_password(&state, client_ip, &payload).await?;
+    let attempt = Attempt {
+        method: Method::Password,
+        client: Client::App,
+        ip: client_ip,
+    };
+    let user = authenticate_password(&state, attempt, &payload).await?;
+    login_events::record_success(&state.pool, user.id, attempt, None).await?;
     let token = app_token::establish(&state.pool, user.id).await?;
+    // アプリは端末の印の Cookie を使えないので、ログインのたびに知らせる (docs/authentication.md)。
+    login_notice::spawn(&state, user.id, Method::Password, Client::App);
     Ok(Json(AppLoginResponse { token, user }))
 }
 
@@ -112,6 +122,7 @@ pub struct AppGoogleLoginRequest {
 )]
 async fn app_google_login(
     State(state): State<AppState>,
+    ClientIp(client_ip): ClientIp,
     AppJson(payload): AppJson<AppGoogleLoginRequest>,
 ) -> Result<Json<AppLoginResponse>, AppError> {
     if !state.google_login.enabled() {
@@ -120,7 +131,7 @@ async fn app_google_login(
     let account = google_account(&state, &payload.server_auth_code, None)
         .await
         .map_err(GoogleAccountError::app_error)?;
-    complete_app_login(&state, &account, &RevocationTokens::default())
+    complete_app_login(&state, client_ip, &account, &RevocationTokens::default())
         .await
         .map(Json)
 }
@@ -155,6 +166,7 @@ pub struct AppLineLoginRequest {
 )]
 async fn app_line_login(
     State(state): State<AppState>,
+    ClientIp(client_ip): ClientIp,
     AppJson(payload): AppJson<AppLineLoginRequest>,
 ) -> Result<Json<AppLoginResponse>, AppError> {
     let line = &state.line_login;
@@ -188,7 +200,7 @@ async fn app_line_login(
         refresh_token: None,
         access_token: line.seal_token(&payload.access_token),
     };
-    complete_app_login(&state, &account, &revocation_tokens)
+    complete_app_login(&state, client_ip, &account, &revocation_tokens)
         .await
         .map(Json)
 }
@@ -226,6 +238,7 @@ pub struct AppAppleLoginRequest {
 )]
 async fn app_apple_login(
     State(state): State<AppState>,
+    ClientIp(client_ip): ClientIp,
     AppJson(payload): AppJson<AppAppleLoginRequest>,
 ) -> Result<Json<AppLoginResponse>, AppError> {
     if !state.apple_login.app_enabled() {
@@ -244,7 +257,7 @@ async fn app_apple_login(
     )
     .await
     .ok_or(AppError::ExternalLoginFailed)?;
-    complete_app_login(&state, &account, &revocation_tokens)
+    complete_app_login(&state, client_ip, &account, &revocation_tokens)
         .await
         .map(Json)
 }
@@ -252,16 +265,26 @@ async fn app_apple_login(
 /// 提供元での本人確認が済んだ後、ログインしてよい利用者を決めてトークンを渡す。
 async fn complete_app_login(
     state: &AppState,
+    client_ip: Option<std::net::IpAddr>,
     account: &ExternalAccount,
     revocation_tokens: &RevocationTokens,
 ) -> Result<AppLoginResponse, AppError> {
-    let user = resolve_external_login(state, account, revocation_tokens)
+    let attempt = Attempt {
+        method: account.provider.into(),
+        client: Client::App,
+        ip: client_ip,
+    };
+    let user = resolve_external_login(state, account, revocation_tokens, attempt)
         .await
         .map_err(ExternalLoginRejection::app_error)?;
     let username = crate::auth::load_username(&state.pool, user.id)
         .await?
         .ok_or(AppError::ExternalLoginFailed)?;
+    login_events::record_success(&state.pool, user.id, attempt, None).await?;
     let token = app_token::establish(&state.pool, user.id).await?;
+    if !user.created {
+        login_notice::spawn(state, user.id, attempt.method, Client::App);
+    }
     Ok(AppLoginResponse {
         token,
         user: UserResponse {

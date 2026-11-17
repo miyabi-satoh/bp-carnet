@@ -1,0 +1,50 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT user_id, kind, method, client, ip, device_hash FROM auth_events",
+  "describe": {
+    "columns": [
+      {
+        "name": "user_id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "kind",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "method",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "client",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "ip",
+        "ordinal": 4,
+        "type_info": "Text"
+      },
+      {
+        "name": "device_hash",
+        "ordinal": 5,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      true,
+      false,
+      false,
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "c0525737bd15f695c78f87df50a2be735415b8e84b831374e7f7845a724cae35"
+}

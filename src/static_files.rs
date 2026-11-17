@@ -7,6 +7,7 @@ use axum::{
 };
 use rust_embed::RustEmbed;
 
+use crate::security_headers;
 use crate::seo;
 use crate::state::AppState;
 
@@ -38,11 +39,12 @@ pub async fn handler(State(state): State<AppState>, uri: Uri) -> Response {
     let path = request_path.trim_start_matches('/');
     let path = if path.is_empty() { INDEX_HTML } else { path };
 
+    let analytics = !state.cloudflare_analytics_token.is_empty();
     // `/index.html` の直接の要求は、SPA の枠としてほかのパスと同じに扱う (索引の対象は `/`)。
     match Assets::get(path).filter(|_| path != INDEX_HTML) {
-        Some(file) => serve(path, file),
+        Some(file) => serve(path, file, analytics),
         None => match Assets::get(INDEX_HTML) {
-            Some(file) => serve_index(&state.public_url, request_path, file),
+            Some(file) => serve_index(&state.public_url, request_path, file, analytics),
             None => StatusCode::NOT_FOUND.into_response(),
         },
     }
@@ -72,9 +74,14 @@ pub async fn robots(State(state): State<AppState>) -> Response {
 
 /// index.html を、`request_path` 向けのタグを `</head>` の前に差し込んで返す。
 /// 毎回の文字列の組み立ては 20KB 足らずで、キャッシュするほどの費用ではない。
-fn serve_index(public_url: &str, request_path: &str, file: rust_embed::EmbeddedFile) -> Response {
+fn serve_index(
+    public_url: &str,
+    request_path: &str,
+    file: rust_embed::EmbeddedFile,
+    analytics: bool,
+) -> Response {
     let Ok(html) = std::str::from_utf8(&file.data) else {
-        return serve(INDEX_HTML, file);
+        return serve(INDEX_HTML, file, analytics);
     };
     let body = seo::inject(html, &seo::head_tags(public_url, request_path));
     let mut response = (
@@ -82,6 +89,10 @@ fn serve_index(public_url: &str, request_path: &str, file: rust_embed::EmbeddedF
             (header::CONTENT_TYPE, "text/html".to_string()),
             (header::CACHE_CONTROL, "no-cache".to_string()),
         ],
+        [(
+            header::CONTENT_SECURITY_POLICY,
+            security_headers::page_csp(Some(&body), analytics),
+        )],
         body,
     )
         .into_response();
@@ -93,7 +104,9 @@ fn serve_index(public_url: &str, request_path: &str, file: rust_embed::EmbeddedF
     response
 }
 
-fn serve(path: &str, file: rust_embed::EmbeddedFile) -> Response {
+/// 画面の CSP は、index.html 以外のファイルにも付ける。Service Worker の中の通信は、そのスクリプトの応答の
+/// CSP に従うため (docs/architecture.md「セキュリティヘッダー」)。
+fn serve(path: &str, file: rust_embed::EmbeddedFile, analytics: bool) -> Response {
     let mime = mime_guess::from_path(path).first_or_octet_stream();
     let cache_control = if path.starts_with("_app/immutable/") {
         // content-hash 付きファイルは恒久キャッシュ可能
@@ -108,6 +121,10 @@ fn serve(path: &str, file: rust_embed::EmbeddedFile) -> Response {
             (header::CONTENT_TYPE, mime.as_ref().to_string()),
             (header::CACHE_CONTROL, cache_control.to_string()),
         ],
+        [(
+            header::CONTENT_SECURITY_POLICY,
+            security_headers::page_csp(None, analytics),
+        )],
         file.data,
     )
         .into_response()

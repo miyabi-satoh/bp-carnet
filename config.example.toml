@@ -119,6 +119,12 @@ from = "BP Carnet <noreply@example.com>"
 # 0 なら無効。ユーザーIDがメールアドレスでない (管理者が作った) アカウントには、予告が届かないまま退会させる (docs/authentication.md)。
 delete_after_days = 0
 
+[alerts]
+# ログインの失敗が増えたときに知らせる運営者のメールアドレス。空なら送らない (docs/authentication.md「ログインの記録と知らせ」)。
+to = ""
+# 直近1時間のログインの失敗がこの件数以上になったら知らせる (1時間に1通まで)。
+login_failures_per_hour = 20
+
 [ocr]
 # 無料枠・買い足し1回の量・単価は、環境変数 OCR_FREE_BUDGET_YEN・OCR_TOPUP_GRANT_YEN・
 # OCR_INPUT_USD_PER_MILLION_TOKENS・OCR_OUTPUT_USD_PER_MILLION_TOKENS・OCR_JPY_PER_USD でも与えられ、
