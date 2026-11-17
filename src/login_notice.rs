@@ -7,6 +7,7 @@ use sqlx::SqlitePool;
 
 use crate::login_events::{Client, Method};
 use crate::mail::Mailer;
+use crate::notice;
 use crate::state::AppState;
 
 const SUBJECT: &str = "【BP Carnet】新しいログインがありました";
@@ -43,7 +44,7 @@ pub fn spawn(state: &AppState, user_id: i64, method: Method, client: Client) {
     });
 }
 
-/// ユーザー ID がメールアドレスでないときは何もしない (`crate::password_notice::send` と同じ)。
+/// ユーザー ID がメールアドレスでないときは何もしない。
 async fn send(
     pool: &SqlitePool,
     mailer: &Mailer,
@@ -51,17 +52,14 @@ async fn send(
     method: Method,
     client: Client,
     logged_in_at: Timestamp,
-) -> Result<(), crate::password_notice::Error> {
-    let Some(username) = crate::auth::load_username(pool, user_id).await? else {
+) -> Result<(), notice::Error> {
+    let Some(username) = notice::recipient(pool, mailer, user_id).await? else {
         return Ok(());
     };
-    if !mailer.can_send_to(&username) {
-        return Ok(());
-    }
     let password_usable = crate::auth::load_profile(pool, user_id)
         .await?
         .password_usable;
-    let logged_in_at = crate::password_notice::local_time_label(pool, user_id, logged_in_at).await;
+    let logged_in_at = notice::local_time_label(pool, user_id, logged_in_at).await;
     let reset_link = mailer.link("/reset-password");
     mailer
         .send(

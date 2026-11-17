@@ -73,14 +73,14 @@ fn build(provider: Provider, value: String, max_age: Duration, secure: bool) -> 
 /// state Cookie を発行するための `Set-Cookie` ヘッダー値を作る。
 pub fn set_header(provider: Provider, value: &str, secure: bool) -> HeaderValue {
     let cookie = build(provider, value.to_string(), COOKIE_TTL, secure);
-    HeaderValue::from_str(&cookie.to_string()).expect("cookie header value should be valid")
+    crate::session::set_cookie_header(&cookie)
 }
 
 /// state Cookie を破棄するための `Set-Cookie` ヘッダー値を作る。コールバック処理の成否に
 /// 関わらず、使い捨てとして必ずこれで上書きする。
 pub fn clear_header(provider: Provider, secure: bool) -> HeaderValue {
     let cookie = build(provider, String::new(), Duration::ZERO, secure);
-    HeaderValue::from_str(&cookie.to_string()).expect("cookie header value should be valid")
+    crate::session::set_cookie_header(&cookie)
 }
 
 /// リクエストの `Cookie` ヘッダーから state Cookie の値を取り出す。

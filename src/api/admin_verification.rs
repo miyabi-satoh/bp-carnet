@@ -9,8 +9,8 @@ use utoipa::ToSchema;
 use utoipa_axum::router::OpenApiRouter;
 use utoipa_axum::routes;
 
-use crate::admin_totp::{self, AdminTotp, Credential, Verification};
-use crate::auth::{AuthUser, Role};
+use crate::admin_totp::{self, AdminTotp, Verification, VerificationTarget};
+use crate::auth::AuthUser;
 use crate::error::{AppError, AppJson, ErrorResponse};
 use crate::forwarded::ClientIp;
 use crate::state::AppState;
@@ -34,15 +34,6 @@ pub struct AdminVerificationRequest {
     code: String,
 }
 
-/// 管理者で、確認コードを通す前でも使える。それ以外は 403。
-fn require_admin(user: &AuthUser) -> Result<(), AppError> {
-    if user.role == Role::Admin {
-        Ok(())
-    } else {
-        Err(AppError::Forbidden)
-    }
-}
-
 /// 確認コードの状態。管理画面を開いたときに、入力を出すかを決めるのに使う。
 #[utoipa::path(
     get,
@@ -58,7 +49,7 @@ async fn status(
     session: Session,
     State(state): State<AppState>,
 ) -> Result<Json<AdminVerificationStatus>, AppError> {
-    require_admin(&user)?;
+    user.require_admin()?;
     if state.admin_totp.is_none() {
         return Ok(Json(AdminVerificationStatus {
             required: false,
@@ -69,7 +60,8 @@ async fn status(
     Ok(Json(AdminVerificationStatus {
         required: true,
         enrolled: AdminTotp::is_enrolled(&state.pool, user.id).await?,
-        verified: admin_totp::is_verified(&state.pool, Credential::of(&user, &session)).await?,
+        verified: admin_totp::is_verified(&state.pool, VerificationTarget::of(&user, &session))
+            .await?,
     }))
 }
 
@@ -98,7 +90,7 @@ async fn verify(
     ClientIp(client_ip): ClientIp,
     AppJson(payload): AppJson<AdminVerificationRequest>,
 ) -> Result<StatusCode, AppError> {
-    require_admin(&user)?;
+    user.require_admin()?;
     let Some(totp) = &state.admin_totp else {
         return Ok(StatusCode::NO_CONTENT);
     };
@@ -121,7 +113,7 @@ async fn verify(
     match verification {
         Verification::Passed => {
             state.admin_code_rate_limiter.release(&key, reservation);
-            admin_totp::mark_verified(&state.pool, Credential::of(&user, &session)).await?;
+            admin_totp::mark_verified(&state.pool, VerificationTarget::of(&user, &session)).await?;
             Ok(StatusCode::NO_CONTENT)
         }
         Verification::WrongCode => {

@@ -725,6 +725,17 @@ pub struct AuthUser {
     pub app_token_id: Option<i64>,
 }
 
+impl AuthUser {
+    /// 管理者でなければ 403。確認コードを問わない ([`AdminUser`] と違い、確認コードを通す前の画面で使う)。
+    pub(crate) fn require_admin(&self) -> Result<(), AppError> {
+        if self.role == Role::Admin {
+            Ok(())
+        } else {
+            Err(AppError::Forbidden)
+        }
+    }
+}
+
 /// ログインの証しの出どころ。無効と分かったときに、その証しを破棄するために持つ。
 enum Credential {
     Session(Session),
@@ -783,9 +794,7 @@ impl FromRequestParts<AppState> for AuthUser {
                 )
             }
             None => {
-                let session = Session::from_request_parts(parts, state)
-                    .await
-                    .map_err(|(_, msg)| AppError::Internal(Error::MissingSessionLayer(msg)))?;
+                let session = session_of(parts, state).await?;
                 let user_id: i64 = session
                     .get(SESSION_USER_ID_KEY)
                     .await
@@ -852,6 +861,13 @@ impl FromRequestParts<AppState> for AuthUser {
     }
 }
 
+/// リクエストのセッション。セッションの層 (`crate::session`) を通っていなければ、組み立ての誤り。
+async fn session_of(parts: &mut Parts, state: &AppState) -> Result<Session, AppError> {
+    Session::from_request_parts(parts, state)
+        .await
+        .map_err(|(_, msg)| AppError::Internal(Error::MissingSessionLayer(msg)))
+}
+
 /// セッションが持つ世代が、DB 側の現在の世代 (`users.session_generation`) と一致するか。
 ///
 /// 世代を持たないセッションは 0 として扱う。この仕組みより前に作られたセッションを、まだ
@@ -878,17 +894,13 @@ impl FromRequestParts<AppState> for AdminUser {
         state: &AppState,
     ) -> Result<Self, Self::Rejection> {
         let user = AuthUser::from_request_parts(parts, state).await?;
-        if user.role != Role::Admin {
-            return Err(AppError::Forbidden);
-        }
+        user.require_admin()?;
         // 確認コードを求める構成なら、このログインで通してから1時間の内に限る (`crate::admin_totp`)。
         if state.admin_totp.is_some() {
-            let session = Session::from_request_parts(parts, state)
-                .await
-                .map_err(|(_, msg)| AppError::Internal(Error::MissingSessionLayer(msg)))?;
+            let session = session_of(parts, state).await?;
             let verified = crate::admin_totp::is_verified(
                 &state.pool,
-                crate::admin_totp::Credential::of(&user, &session),
+                crate::admin_totp::VerificationTarget::of(&user, &session),
             )
             .await?;
             if !verified {

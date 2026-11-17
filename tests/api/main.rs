@@ -495,6 +495,15 @@ fn login_request(username: &str, password: &str) -> Request<Body> {
     )
 }
 
+/// 前のログインの Cookie (セッション・端末の印) を付けて、同じブラウザーからログインし直すリクエスト。
+fn login_request_with_cookie(cookie: &str, username: &str, password: &str) -> Request<Body> {
+    post_json(
+        "/api/v1/auth/login",
+        Some(cookie),
+        json!({"username": username, "password": password}),
+    )
+}
+
 /// `admin` / `password` でログインするリクエストにヘッダーを足す。CSRF チェックやプロキシのヘッダーの扱いを確かめるテストで使う。
 fn login_request_with_headers(headers: &[(header::HeaderName, &str)]) -> Request<Body> {
     request(
@@ -812,15 +821,12 @@ fn complete_password_reset_request(token: &str, password: &str) -> Request<Body>
     )
 }
 
-/// 応答を待たずに送るメールを、`poll` が値を返すまで待つ。
+/// 応答を待たずに済ませる処理 (メール・記録) の結果を、`poll` が値を返すまで待つ。
 /// 上限は、CPU が埋まった CI でも届くだけの長さにする (失敗するときにしか効かない)。
-async fn wait_for_sent<T>(
-    sent: &Arc<Mutex<Vec<SentMail>>>,
-    poll: impl Fn(Vec<SentMail>) -> Option<T>,
-) -> Option<T> {
+async fn wait_until<T>(mut poll: impl AsyncFnMut() -> Option<T>) -> Option<T> {
     let deadline = tokio::time::Instant::now() + std::time::Duration::from_secs(10);
     loop {
-        if let Some(found) = poll(sent_mails(sent)) {
+        if let Some(found) = poll().await {
             return Some(found);
         }
         if tokio::time::Instant::now() >= deadline {
@@ -828,6 +834,14 @@ async fn wait_for_sent<T>(
         }
         tokio::time::sleep(std::time::Duration::from_millis(10)).await;
     }
+}
+
+/// 応答を待たずに送るメールを、`poll` が値を返すまで待つ。
+async fn wait_for_sent<T>(
+    sent: &Arc<Mutex<Vec<SentMail>>>,
+    poll: impl Fn(Vec<SentMail>) -> Option<T>,
+) -> Option<T> {
+    wait_until(async || poll(sent_mails(sent))).await
 }
 
 /// 応答を待たずに送るメールを、`count` 通届くまで待って取り出す。
