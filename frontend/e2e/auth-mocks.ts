@@ -1,5 +1,6 @@
 // ログインの方法の問い合わせ (`/auth/providers`) の応答を差し替える。e2e の backend は LINE・Google・Apple を
 // 使わない構成なので、使う構成の画面はこれで確かめる。
+// 仕様書のスクリーンショット (scripts/shots.ts) も使い、Node で直接読むので、相対 import は `.ts` まで書く。
 import type { BrowserContext, Page } from '@playwright/test';
 import type { components } from '../src/lib/api/schema.d.ts';
 import { errorResponse } from './helpers.ts';

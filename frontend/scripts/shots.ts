@@ -280,7 +280,7 @@ export const shots: Record<string, ShotEntry> = {
 			await login(page, ctx.baseURL, 'admin', 'zxcvbnm1');
 			await mockAdminVerification(page, { enrolled: true, verified: false }, '000000');
 			await page.goto(`${ctx.baseURL}/admin/users`);
-			await page.getByLabel(ja.admin_code_label).waitFor({ timeout: 5000 });
+			await page.getByLabel(ja.admin_code_label, { exact: true }).waitFor({ timeout: 5000 });
 			await capture(page, ctx);
 		}
 	},
