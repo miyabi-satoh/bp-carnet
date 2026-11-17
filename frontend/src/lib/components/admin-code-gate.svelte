@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { cn } from '#lib/utils.js';
-	import { PAGE_CLASS } from '#lib/styles.js';
 	import { onMount, type Snippet } from 'svelte';
 	import { resolve } from '$app/paths';
 	import { fetchAdminVerification, verifyAdminCode } from '#lib/admin.js';
 	import { adminVerification } from '#lib/admin-verification.svelte.js';
 	import { halfWidthInput } from '#lib/half-width.js';
+	import { cn } from '#lib/utils.js';
+	import { PAGE_CLASS } from '#lib/styles.js';
 	import FieldErrorList from '#lib/components/field-error-list.svelte';
 	import * as Field from '#lib/components/ui/field/index.js';
 	import { Input } from '#lib/components/ui/input/index.js';

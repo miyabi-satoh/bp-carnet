@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { cn } from '#lib/utils.js';
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
@@ -22,6 +21,7 @@
 	import { RecordsViewState } from '#lib/records-view.svelte.js';
 	import { timezoneLabel } from '#lib/settings.js';
 	import { SECTION_TITLE_CLASS, PAGE_CLASS } from '#lib/styles.js';
+	import { cn } from '#lib/utils.js';
 	import LoadError from '#lib/components/load-error.svelte';
 	import LoadingIndicator from '#lib/components/loading-indicator.svelte';
 	import PageHeader from '#lib/components/page-header.svelte';

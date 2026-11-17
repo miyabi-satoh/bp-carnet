@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { cn } from '#lib/utils.js';
-	import { PAGE_CLASS } from '#lib/styles.js';
 	import { tick } from 'svelte';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { requestEmailChange } from '#lib/auth.js';
 	import { halfWidthInput } from '#lib/half-width.js';
+	import { cn } from '#lib/utils.js';
+	import { PAGE_CLASS } from '#lib/styles.js';
 	import * as Field from '#lib/components/ui/field/index.js';
 	import { Input } from '#lib/components/ui/input/index.js';
 	import LoadingButton from '#lib/components/loading-button.svelte';

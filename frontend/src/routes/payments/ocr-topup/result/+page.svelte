@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { cn } from '#lib/utils.js';
-	import { PAGE_CLASS } from '#lib/styles.js';
 	import { onDestroy, onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { fetchOcrTopupResult } from '#lib/payments.js';
 	import { LatestRequest } from '#lib/latest-request.js';
+	import { cn } from '#lib/utils.js';
+	import { PAGE_CLASS } from '#lib/styles.js';
 	import ButtonRow from '#lib/components/button-row.svelte';
 	import LoadingIndicator from '#lib/components/loading-indicator.svelte';
 	import PageResult from '#lib/components/page-result.svelte';

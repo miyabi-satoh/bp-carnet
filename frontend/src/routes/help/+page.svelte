@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { cn } from '#lib/utils.js';
 	import { resolve } from '$app/paths';
 	import { HELP_SECTIONS } from '#lib/help.js';
 	import * as m from '#lib/paraglide/messages.js';
 	import { LIST_ROW_CLASS, SECTION_TITLE_CLASS, PAGE_CLASS } from '#lib/styles.js';
+	import { cn } from '#lib/utils.js';
 	import PageHeader from '#lib/components/page-header.svelte';
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
 

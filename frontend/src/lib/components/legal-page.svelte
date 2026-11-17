@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { cn } from '#lib/utils.js';
-	import { PAGE_CLASS } from '#lib/styles.js';
 	import { backOrLogin } from '#lib/back-or-login.js';
 	import { legalDocumentComponent, type LegalDocument } from '#lib/legal.js';
+	import { cn } from '#lib/utils.js';
+	import { PAGE_CLASS } from '#lib/styles.js';
 	import PageHeader from '#lib/components/page-header.svelte';
 
 	/** 利用規約・プライバシーポリシーのページ。規約を出さない構成では、ページの load が 404 にする。 */

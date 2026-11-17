@@ -52,7 +52,7 @@ impl Enrollment {
 
     /// 認証アプリに出た6桁が合っていれば、その時間の区切りを返す。
     pub fn check(&self, code: &str) -> Option<u64> {
-        self.totp.check_current(code.trim())
+        check(&self.totp, code)
     }
 }
 
@@ -148,10 +148,7 @@ impl AdminTotp {
             .open(&sealed)
             .and_then(|base32| Secret::try_from_base32(base32).ok())
             .ok_or(Error::Unreadable)?;
-        let enrollment = Enrollment {
-            totp: totp(secret, username),
-        };
-        let Some(step) = enrollment.check(code) else {
+        let Some(step) = check(&totp(secret, username), code) else {
             return Ok(Verification::WrongCode);
         };
         let step = stored_step(step);
@@ -171,6 +168,11 @@ impl AdminTotp {
             Verification::WrongCode
         })
     }
+}
+
+/// 認証アプリに出た6桁が合っていれば、その時間の区切りを返す。前後の空白は無視する。
+fn check(totp: &Totp, code: &str) -> Option<u64> {
+    totp.check_current(code.trim())
 }
 
 /// 時間の区切りを、DB に置ける形にする。今の時刻の区切りは i64 に収まるので、丸めは起きない。
@@ -221,9 +223,9 @@ pub(crate) async fn forget_session_verification(
 /// このログインが、確認コードを通してから [`VERIFIED_FOR_SECONDS`] の内か。
 pub(crate) async fn is_verified(
     pool: &SqlitePool,
-    credential: VerificationTarget<'_>,
+    target: VerificationTarget<'_>,
 ) -> Result<bool, crate::error::AppError> {
-    let verified_at: Option<i64> = match credential {
+    let verified_at: Option<i64> = match target {
         VerificationTarget::Session(session) => session
             .get(SESSION_VERIFIED_AT_KEY)
             .await
@@ -242,10 +244,10 @@ pub(crate) async fn is_verified(
 /// このログインに、確認コードを通した印を置く。
 pub(crate) async fn mark_verified(
     pool: &SqlitePool,
-    credential: VerificationTarget<'_>,
+    target: VerificationTarget<'_>,
 ) -> Result<(), crate::error::AppError> {
     let now = jiff::Timestamp::now().as_second();
-    match credential {
+    match target {
         VerificationTarget::Session(session) => session
             .insert(SESSION_VERIFIED_AT_KEY, now)
             .await

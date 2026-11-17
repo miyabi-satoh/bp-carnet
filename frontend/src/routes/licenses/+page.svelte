@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { cn } from '#lib/utils.js';
 	import { backOrLogin } from '#lib/back-or-login.js';
+	import { cn } from '#lib/utils.js';
 	import PageHeader from '#lib/components/page-header.svelte';
 	import { isNativeApp } from '#lib/native-app.js';
 	import * as m from '#lib/paraglide/messages.js';

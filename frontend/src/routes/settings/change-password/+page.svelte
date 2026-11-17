@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { cn } from '#lib/utils.js';
-	import { PAGE_CLASS } from '#lib/styles.js';
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
 	import { changePassword } from '#lib/auth.js';
+	import { cn } from '#lib/utils.js';
+	import { PAGE_CLASS } from '#lib/styles.js';
 	import * as Field from '#lib/components/ui/field/index.js';
 	import LoadingButton from '#lib/components/loading-button.svelte';
 	import LoadingIndicator from '#lib/components/loading-indicator.svelte';
