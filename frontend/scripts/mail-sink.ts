@@ -9,7 +9,6 @@
 import { mkdirSync, renameSync, writeFileSync } from 'node:fs';
 import type { AddressInfo } from 'node:net';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import mailparser from 'mailparser';
 import smtpServer from 'smtp-server';
 
@@ -58,11 +57,7 @@ export async function startMailSink(dir: string, port = 0): Promise<MailSink> {
 	};
 }
 
-// `import.meta.main` は Node 24.2 からなので、起動したファイルと比べる。
-if (
-	process.argv[1] !== undefined &&
-	path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
-) {
+if (import.meta.main) {
 	const [dir, port] = process.argv.slice(2);
 	if (dir === undefined || port === undefined) {
 		console.error('使い方: node scripts/mail-sink.ts <dir> <port>');

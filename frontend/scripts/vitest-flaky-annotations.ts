@@ -15,7 +15,11 @@ export function flakyAnnotations(): Reporter {
 				for (const test of module.children.allTests()) {
 					const diagnostic = test.diagnostic();
 					if (!diagnostic?.flaky) continue;
-					const file = relative(process.cwd(), module.moduleId);
+					// 注記の file はリポジトリのルートからのパスで読まれる。vitest は frontend/ で動くので、ルート (GITHUB_WORKSPACE) から数える
+					const file = relative(
+						onGitHubActions ? (process.env.GITHUB_WORKSPACE ?? process.cwd()) : process.cwd(),
+						module.moduleId
+					);
 					const line = test.location?.line;
 					const message = `Passed on retry ${diagnostic.retryCount}: ${test.fullName}`;
 					process.stdout.write(
