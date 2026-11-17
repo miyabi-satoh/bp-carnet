@@ -3,7 +3,7 @@ import { goto } from '$app/navigation';
 import { resolve } from '$app/paths';
 import { adminVerification } from '#lib/admin-verification.svelte.js';
 import { appUpdate } from '#lib/app-update.svelte.js';
-import { errorCode } from '#lib/api/errors.js';
+import { errorCode, type ErrorCode } from '#lib/api/errors.js';
 import type { paths } from '#lib/api/schema.js';
 import { API_ORIGIN, appToken, appVersion, isNativeApp } from '#lib/native-app.js';
 
@@ -55,9 +55,9 @@ if (isNativeApp) {
 	});
 }
 
-// 使っている途中でログインが切れたら (別の端末でパスワードを変えた・凍結された・長く使わなかった)、
-// ログイン画面へ送る。画面を開くときの確認 (`+layout.ts`) だけで見ていると、同じ画面の操作では
-// 「ログインが必要です」が出るだけで、ログインへ戻る道が無いため。
+// 使っている途中でログインや管理画面の確認コードが切れたら、ログイン画面・確認コードの入力へ戻す。
+// 画面を開くときの確認 (`+layout.ts`・管理画面の読み込み) だけで見ていると、同じ画面の操作では
+// 断られた理由が出るだけで、入り直す道が無いため。
 client.use({
 	async onResponse({ request, response }) {
 		await leaveIfSessionEnded(new URL(request.url).pathname, response);
@@ -72,23 +72,26 @@ const SESSION_CHECK_PATH = '/api/v1/auth/me';
 async function leaveIfSessionEnded(path: string, response: Response): Promise<void> {
 	if (response.status !== 401 || path === SESSION_CHECK_PATH) return;
 	// 401 には、パスワードの誤りなど、ログインの切れ以外のコードもある (src/error.rs)。
-	const body: unknown = await response
-		.clone()
-		.json()
-		.catch(() => null);
-	if (errorCode(body) !== 'unauthorized') return;
+	if ((await responseErrorCode(response)) !== 'unauthorized') return;
 	// 同じ画面の問い合わせが揃って切れていたときに、ログイン画面への移動を重ねない。
 	leaving ??= goto(resolve('login'), { replace: true }).finally(() => (leaving = undefined));
 	await leaving;
 }
 
+/** 管理画面の確認コードの期限 (1時間) が切れて断られたら、確認コードの入力に戻す。 */
 async function noticeAdminVerificationExpired(response: Response): Promise<void> {
 	if (response.status !== 403) return;
+	if ((await responseErrorCode(response)) === 'admin_verification_required')
+		adminVerification.expired = true;
+}
+
+/** 応答のエラーの本文の `code`。本文を読めなければ `undefined`。後で呼び出し側も本文を読めるよう、写しを読む。 */
+async function responseErrorCode(response: Response): Promise<ErrorCode | undefined> {
 	const body: unknown = await response
 		.clone()
 		.json()
 		.catch(() => null);
-	if (errorCode(body) === 'admin_verification_required') adminVerification.expired = true;
+	return errorCode(body);
 }
 
 /** 進んでいるログイン画面への移動。 */
@@ -106,11 +109,7 @@ async function addAppHeaders(headers: Headers): Promise<void> {
 /** 版が古いと断られたら、更新を促す画面に替える。 */
 async function noticeUpdateRequired(response: Response): Promise<void> {
 	if (response.status !== 426) return;
-	const body: unknown = await response
-		.clone()
-		.json()
-		.catch(() => null);
-	if (errorCode(body) === 'app_update_required') appUpdate.required = true;
+	if ((await responseErrorCode(response)) === 'app_update_required') appUpdate.required = true;
 }
 
 /** `client` を使えない呼び出し (JSON 以外の応答) 用の `fetch`。呼び先とログインの証しを `client` とそろえる。 */

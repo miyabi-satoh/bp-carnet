@@ -4,6 +4,7 @@
 	import { afterNavigate, goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import { clearQuery, isShallowGoto } from '#lib/shallow-history.js';
 	import {
 		contactlessMessage,
 		GENERIC_ERROR_MESSAGE,
@@ -126,16 +127,14 @@
 	// リロード時に再表示されないよう、表示後は URL からクエリを取り除く。
 	// `onMount` ではなく `afterNavigate` なのは、初回表示の `onMount` 時点ではまだ router が
 	// 初期化されておらず、shallow routing が "before router is initialized" で落ちるため。
-	afterNavigate(({ shallow, type }) => {
-		if (shallow && type === 'goto') return;
+	afterNavigate((navigation) => {
+		if (isShallowGoto(navigation)) return;
 
 		const code = page.url.searchParams.get('oauthError');
 		const message = oauthErrorMessage(code);
 		if (message === undefined) return;
 		showError(message, { helpSlug: errorHelpSlug(code), contact: needsContact(code) });
-		// `page.url.pathname` は今のページの URL で、`resolve` 済み。
-		// eslint-disable-next-line svelte/no-navigation-without-resolve
-		goto(page.url.pathname, { shallow: true, replace: true });
+		clearQuery();
 	});
 
 	async function handleSubmit(e: SubmitEvent) {

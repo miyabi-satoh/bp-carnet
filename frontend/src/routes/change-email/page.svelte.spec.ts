@@ -3,7 +3,7 @@ import { render } from 'vitest-browser-svelte';
 import * as m from '#lib/paraglide/messages.js';
 
 vi.mock('$app/navigation', () => ({ goto: vi.fn() }));
-vi.mock('$app/paths', () => ({ resolve: (path: string) => `/${path.replace(/^\//, '')}` }));
+vi.mock('$app/paths', () => import('#lib/app-paths.test-mock.js'));
 // テストごとに `page.url` を差し替える (モックのモジュールは、テストの import と同じもの)。
 vi.mock('$app/state', () => ({
 	page: { url: new URL('http://localhost:3000/change-email?token=change-token'), data: {} }

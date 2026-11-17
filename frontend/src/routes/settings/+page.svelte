@@ -25,7 +25,7 @@
 		type Settings
 	} from '#lib/settings.js';
 	import { formatDateLabel, formatFutureDateLabel, type DayPeriod } from '#lib/period.js';
-	import { LIST_ROW_CLASS, SECTION_TITLE_CLASS } from '#lib/styles.js';
+	import { LIST_ROW_CLASS, SECTION_TITLE_CLASS, PAGE_CLASS } from '#lib/styles.js';
 	import { cn, openFilePicker } from '#lib/utils.js';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import { Separator } from '#lib/components/ui/separator/index.js';
@@ -411,7 +411,7 @@
 {/snippet}
 
 <!-- デザインどおり、共通ヘッダーの代わりに、丸い戻るボタンと見出しを置く。 -->
-<div class="mx-auto flex max-w-2xl flex-col px-5 pb-safe-5">
+<div class={cn(PAGE_CLASS, 'pb-safe-5')}>
 	<PageHeader backHref={resolve('/')} title={m.settings_title()} bind:heading={pageHeading} />
 
 	<div class="flex flex-col gap-4">

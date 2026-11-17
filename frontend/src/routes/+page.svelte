@@ -3,6 +3,7 @@
 	import { afterNavigate, beforeNavigate, goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import { clearQuery, isShallowGoto } from '#lib/shallow-history.js';
 	import * as m from '#lib/paraglide/messages.js';
 	import { userTimeZone } from '#lib/auth.js';
 	import {
@@ -94,9 +95,9 @@
 	);
 
 	// リンクに限らず、ブラウザの進むで印刷ページへ行くときも控える。
-	beforeNavigate(({ to, shallow, type }) => {
-		if (shallow && type === 'goto') return;
-		if (to?.route.id !== '/report') return;
+	beforeNavigate((navigation) => {
+		if (isShallowGoto(navigation)) return;
+		if (navigation.to?.route.id !== '/report') return;
 		saveHomeViewBeforeReport({
 			from: recordsView.from,
 			to: recordsView.to,
@@ -136,17 +137,15 @@
 	// ログイン画面がこのクエリを付け、Google コールバックはサーバーがこの URL へ返す。
 	// 表示後は URL からクエリを取り除く (リロードで再表示しないため、ログイン画面の
 	// `oauthError` と同じ作り)。
-	afterNavigate(({ shallow, type }) => {
-		if (shallow && type === 'goto') return;
+	afterNavigate((navigation) => {
+		if (isShallowGoto(navigation)) return;
 		if (page.url.searchParams.get('deletionCancelled') !== '1') return;
 
 		noticeDialog?.show(
 			m.account_deletion_cancelled_title(),
 			m.account_deletion_cancelled_description()
 		);
-		// `page.url.pathname` は今のページの URL で、`resolve` 済み。
-		// eslint-disable-next-line svelte/no-navigation-without-resolve
-		goto(page.url.pathname, { shallow: true, replace: true });
+		clearQuery();
 	});
 
 	/** 下部アクションバーの「手動で入力...」押下時、新規登録モードでフォームを開く。 */
@@ -162,8 +161,9 @@
 	// 印刷ページから戻ったときは、行く前の期間・系列のまま表示する。
 	// 遷移元が分かるここで決めるため、初回の取得も onMount ではなくここで行う。控えは遷移元に
 	// よらず消す (印刷ページから別の画面を経て開いたときに、古い状態を出さないため)。
-	afterNavigate(async ({ from, shallow, type }) => {
-		if (shallow && type === 'goto') return;
+	afterNavigate(async (navigation) => {
+		if (isShallowGoto(navigation)) return;
+		const { from } = navigation;
 
 		const restoredView = takeHomeViewBeforeReport();
 		if (restoredView && from?.route.id === '/report') {

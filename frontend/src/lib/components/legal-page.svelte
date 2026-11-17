@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { cn } from '#lib/utils.js';
+	import { PAGE_CLASS } from '#lib/styles.js';
 	import { backOrLogin } from '#lib/back-or-login.js';
 	import { legalDocumentComponent, type LegalDocument } from '#lib/legal.js';
 	import PageHeader from '#lib/components/page-header.svelte';
@@ -11,7 +13,7 @@
 	const back = backOrLogin();
 </script>
 
-<div class="mx-auto flex max-w-2xl flex-col px-5 pb-safe-8">
+<div class={cn(PAGE_CLASS, 'pb-safe-8')}>
 	<PageHeader onback={back} {title} />
 
 	<!-- 本文はアプリに同梱した Markdown から作る (#lib/legal)。 -->

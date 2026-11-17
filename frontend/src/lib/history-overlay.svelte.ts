@@ -1,5 +1,5 @@
-import { goto } from '$app/navigation';
 import { page } from '$app/state';
+import { pushPageState } from '#lib/shallow-history.js';
 
 /** `PageState` のうち、開いた印 (`true`) を置く鍵。 */
 type OverlayStateKey = {
@@ -62,9 +62,7 @@ export class HistoryOverlay {
 
 	#keepOpen() {
 		this.#marking = true;
-		// 今のページの履歴に印を積むだけで、別のページへ移らない。
-		// eslint-disable-next-line svelte/no-navigation-without-resolve
-		goto('', { shallow: true, state: { ...page.state, [this.#key]: true } }).finally(() => {
+		pushPageState({ ...page.state, [this.#key]: true }).finally(() => {
 			this.#marking = false;
 		});
 	}

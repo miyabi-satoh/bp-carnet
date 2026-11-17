@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { cn } from '#lib/utils.js';
+	import { PAGE_CLASS } from '#lib/styles.js';
 	import { tick } from 'svelte';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
@@ -52,7 +54,7 @@
 
 <!-- パスワードの変更 (settings/change-password) と同じく、カード1枚に欄を縦に並べる。 -->
 
-<div class="mx-auto flex max-w-2xl flex-col px-5 pb-safe-5">
+<div class={cn(PAGE_CLASS, 'pb-safe-5')}>
 	<PageHeader backHref={resolve('settings')} title={m.settings_change_email_button()} />
 
 	<div class="rounded-lg raised bg-card p-6">

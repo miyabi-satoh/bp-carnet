@@ -2,7 +2,7 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('$app/navigation', () => ({ goto: vi.fn() }));
-vi.mock('$app/paths', () => ({ resolve: (path: string) => `/${path.replace(/^\//, '')}` }));
+vi.mock('$app/paths', () => import('#lib/app-paths.test-mock.js'));
 // Node には相対 URL の基点が無いので、呼び先のオリジンを与える。
 vi.mock('#lib/native-app.js', () => ({
 	isNativeApp: false,

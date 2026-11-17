@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { cn } from '#lib/utils.js';
+	import { PAGE_CLASS } from '#lib/styles.js';
 	import { onMount, type Snippet } from 'svelte';
 	import { resolve } from '$app/paths';
 	import { fetchAdminVerification, verifyAdminCode } from '#lib/admin.js';
@@ -69,7 +71,7 @@
 {#if shown === 'open'}
 	{@render children()}
 {:else}
-	<div class="mx-auto flex max-w-2xl flex-col px-5 pb-safe-5">
+	<div class={cn(PAGE_CLASS, 'pb-safe-5')}>
 		<PageHeader backHref={resolve('/')} title={m.admin_code_title()} />
 		{#if loadErrorMessage}
 			<LoadError message={loadErrorMessage} onretry={load} />

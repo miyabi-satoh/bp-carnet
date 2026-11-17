@@ -1,5 +1,5 @@
-import { goto } from '$app/navigation';
 import { page } from '$app/state';
+import { pushPageState, replacePageState } from '#lib/shallow-history.js';
 
 // 「編集 → 取り込み内容の確認」の2段階のページ (CSV の取り込みのページ・写真で記録のページ) で
 // 共通の、確認の段階を履歴に積む扱い。
@@ -11,12 +11,7 @@ export function atPreviewStep(): boolean {
 
 /** 確認の段階へ進む。 */
 export function pushPreviewStep(): void {
-	// 今のページの履歴に印を積むだけで、別のページへ移らない。
-	// eslint-disable-next-line svelte/no-navigation-without-resolve
-	goto('', {
-		shallow: true,
-		state: { ...page.state, importStep: 'preview' }
-	});
+	pushPageState({ ...page.state, importStep: 'preview' });
 }
 
 /** 確認の段階の履歴を消す。読み込む対象を選び直したとき、編集の段階から始めるために使う。
@@ -24,9 +19,7 @@ export function pushPreviewStep(): void {
  * 消えるのは `page.state` ごとで、確認の段階の印だけではない (記録フォームのシート・写真の拡大表示の印も消える)。
  * 対象を選び直す時点ではどれも積まれていないため。 */
 export function clearPreviewStep(): void {
-	// 今のページの履歴を置き換えるだけで、別のページへ移らない。
-	// eslint-disable-next-line svelte/no-navigation-without-resolve
-	if (page.state.importStep) goto('', { shallow: true, replace: true });
+	if (page.state.importStep) replacePageState();
 }
 
 /** 見出しの戻るボタン。確認の段階なら編集の段階へ戻り、そうでなければ `leave` でページを離れる。
