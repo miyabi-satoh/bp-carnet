@@ -142,7 +142,8 @@ export async function fetchBetaNotice(): Promise<boolean> {
 	return (await optionalAuthProviders())?.betaNotice ?? false;
 }
 
-/** 問い合わせ先の URL を問い合わせる。問い合わせに失敗したら `null` (URL が分からないのでリンクを出さない)。 */
+/** 問い合わせ先の URL を問い合わせる。問い合わせに失敗したり、締め切り (`LOGIN_SCREEN_TIMEOUT_MS`) までに
+ * 返らなかったりしたら `null` (URL が分からないのでリンクを出さない)。 */
 export async function fetchContactUrl(): Promise<string | null> {
 	return (await optionalAuthProviders())?.contactUrl ?? null;
 }
