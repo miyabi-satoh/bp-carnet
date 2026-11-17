@@ -19,8 +19,7 @@ import {
 	mockLinkedProviders,
 	PRODUCTION_AUTH_PROVIDERS
 } from '../e2e/auth-mocks.ts';
-import { errorResponse } from '../e2e/helpers.ts';
-import { requiredLabel } from '../src/lib/required-label.ts';
+import { errorResponse, requiredLabel } from '../e2e/helpers.ts';
 import {
 	freeQuota,
 	mockOcrStatus,
