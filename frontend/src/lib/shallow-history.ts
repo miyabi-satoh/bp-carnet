@@ -1,13 +1,15 @@
 // shallow routing (今のページの履歴に印を積む・置き換える `goto`) の呼び方を1か所にまとめる。
-import { goto } from '$app/navigation';
+import { goto, type NavigationType } from '$app/navigation';
 import { page } from '$app/state';
-import type { NavigationBase } from '@sveltejs/kit';
 
 /** 印を積む・置き換える `goto` か。ページは移らないので、`beforeNavigate`・`afterNavigate` で移動の扱いをしない。 */
 export function isShallowGoto({
 	shallow,
 	type
-}: Pick<NavigationBase, 'shallow' | 'type'>): boolean {
+}: {
+	shallow: boolean;
+	type: NavigationType;
+}): boolean {
 	return shallow && type === 'goto';
 }
 

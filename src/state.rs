@@ -39,7 +39,8 @@ pub struct AppState {
     /// `nonce` の発行の、接続元単位 (`forwarded::rate_limit_key`) の制限。発行は未認証で叩けるため、
     /// 一つの接続元が [`NonceStore`] の上限を埋めて、ほかの人のログインを止められないようにする。
     pub app_nonce_rate_limiter: Arc<AttemptRateLimiter>,
-    /// 新しい端末からのログインの知らせ (`crate::login_notice`)。アカウントごとに数える。
+    /// 新しい端末からのログインの知らせ (`crate::login_notice`)。アカウントごとに数え、全体の上限もある
+    /// ([`AttemptRateLimiter::for_mail_requests`])。
     pub login_notice_rate_limiter: Arc<AttemptRateLimiter>,
     /// 管理画面に入るときの確認コード (`crate::admin_totp`)。`None` なら求めない。
     pub admin_totp: Option<Arc<crate::admin_totp::AdminTotp>>,

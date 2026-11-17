@@ -15,7 +15,7 @@ const SUBJECT: &str = "【BP Carnet】新しいログインがありました";
 /// 応答を待たずに [`send`] する。SMTP の往復でログインを待たせないため。ログインが成立した直後に呼ぶ
 /// (呼んだ時刻をログインの日時として書く)。
 ///
-/// 同じアカウントへの知らせは `login_notice_rate_limiter` の枠まで (10分に5回)。正しいパスワードでのログインは
+/// 知らせは `login_notice_rate_limiter` の枠まで (同じアカウントへは10分に5回、全体で10分に50回)。正しいパスワードでのログインは
 /// 試行の枠を返すので、ここで数えないと、入れる人がメールを際限なく送らせられる。送れなくてもログインは取り消さない。
 pub fn spawn(state: &AppState, user_id: i64, method: Method, client: Client) {
     if state
