@@ -58,29 +58,45 @@ async fn send(
     if !mailer.can_send_to(&username) {
         return Ok(());
     }
+    let password_usable = crate::auth::load_profile(pool, user_id)
+        .await?
+        .password_usable;
     let logged_in_at = crate::password_notice::local_time_label(pool, user_id, logged_in_at).await;
     let reset_link = mailer.link("/reset-password");
     mailer
         .send(
             &username,
             SUBJECT,
-            body(&logged_in_at, method, client, &reset_link),
+            body(&logged_in_at, method, client, password_usable, &reset_link),
         )
         .await?;
     Ok(())
 }
 
 /// 結びは、パスワード変更のお知らせ (`crate::password_notice`) と揃える。
-fn body(logged_in_at: &str, method: Method, client: Client, reset_link: &str) -> String {
+///
+/// どの場合もリンクは再設定のページ。パスワードを持たないアカウントも、そこでパスワードを持て、
+/// ほかの端末のログインが解除される (`crate::password_reset`)。
+fn body(
+    logged_in_at: &str,
+    method: Method,
+    client: Client,
+    password_usable: bool,
+    reset_link: &str,
+) -> String {
     // 外部のログインなら、乗っ取られたのはその提供元のアカウントかもしれない。
-    let what_to_do = match method {
-        Method::Google | Method::Line | Method::Apple => format!(
-            "心当たりが無い場合は、{} のアカウントのパスワードを変え、次のリンクから BP Carnet のパスワードも再設定してください",
-            method.label()
+    let provider = match method {
+        Method::Google | Method::Line | Method::Apple => Some(method.label()),
+        Method::Password | Method::Signup => None,
+    };
+    let what_to_do = match (provider, password_usable) {
+        (Some(provider), true) => format!(
+            "心当たりが無い場合は、{provider} のアカウントのパスワードを変え、次のリンクから BP Carnet のパスワードも再設定してください（ほかの端末のログインもすべて解除されます）。"
         ),
-        Method::Password | Method::Signup => {
-            "心当たりが無い場合は、次のリンクからパスワードを再設定してください".to_string()
-        }
+        (Some(provider), false) => format!(
+            "心当たりが無い場合は、{provider} のアカウントのパスワードを変えてください。次のリンクから BP Carnet のパスワードを設定すると、ほかの端末のログインもすべて解除できます。"
+        ),
+        (None, _) => "心当たりが無い場合は、次のリンクからパスワードを再設定してください（ほかの端末のログインもすべて解除されます）。".to_string(),
     };
     format!(
         "BP Carnet のアカウントにログインがありました。\n\
@@ -88,7 +104,7 @@ fn body(logged_in_at: &str, method: Method, client: Client, reset_link: &str) ->
          日時: {logged_in_at}\n\
          方法: {}（{}）\n\
          \n\
-         {what_to_do}（ほかの端末のログインもすべて解除されます）。\n\
+         {what_to_do}\n\
          \n\
          {reset_link}\n\
          \n\
@@ -148,6 +164,23 @@ mod tests {
             "{}",
             sent[0].body
         );
+    }
+
+    /// パスワードを持たない (外部のログインだけの) アカウントには、「再設定」でなく「設定」と書く。
+    #[test]
+    fn body_tells_an_account_without_a_password_to_set_one() {
+        let body = body(
+            "日時",
+            Method::Line,
+            Client::Web,
+            false,
+            "https://bp.example.com/reset-password",
+        );
+        assert!(
+            body.contains("LINE のアカウントのパスワードを変えてください。次のリンクから BP Carnet のパスワードを設定すると"),
+            "{body}"
+        );
+        assert!(!body.contains("再設定"), "{body}");
     }
 
     #[sqlx::test]
