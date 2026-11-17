@@ -2,7 +2,7 @@
 // 本物の Gemini で流すシナリオ (`@ocr`) とは別物で、API キーの無い普段の実行でも流せる。
 // 仕様書のスクリーンショット (scripts/shots.ts) も使い、Node で直接読むので、相対 import は `.ts` まで書く。
 import type { Page } from '@playwright/test';
-import type { components } from '../src/lib/api/schema';
+import type { components } from '../src/lib/api/schema.d.ts';
 import { withExif, type ExifFields } from '../src/lib/photo-taken-at.test-data.ts';
 import { drawInBlankPage, type errorResponse } from './helpers.ts';
 

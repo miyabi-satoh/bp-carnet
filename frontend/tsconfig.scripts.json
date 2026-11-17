@@ -1,0 +1,16 @@
+// node で直に動かす scripts/*.ts と、そこから読まれるファイル (e2e/ のモックなど) の検査。
+// node は拡張子の無い相対 import を解決しないが、tsconfig.json (SvelteKit の設定) では拾えず、
+// CI は `just spec` を流さないため、node と同じ解決の仕方 (nodenext) で型を検査する (`pnpm run lint`)。
+{
+	"compilerOptions": {
+		"module": "nodenext",
+		"moduleResolution": "nodenext",
+		"target": "esnext",
+		"allowImportingTsExtensions": true,
+		"resolveJsonModule": true,
+		"noEmit": true,
+		"skipLibCheck": true,
+		"strict": true
+	},
+	"include": ["scripts/*.ts"]
+}
