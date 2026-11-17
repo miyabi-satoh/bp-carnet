@@ -4,9 +4,15 @@
 //! 本人への知らせは [`crate::login_notice`]、運営者への知らせは [`crate::login_alert`]。
 
 use std::net::IpAddr;
+use std::sync::Arc;
 
 use axum::http::{HeaderMap, HeaderValue};
 use sqlx::SqlitePool;
+use tokio::sync::mpsc;
+
+use crate::config::AlertsConfig;
+use crate::login_alert::Alerter;
+use crate::mail::Mailer;
 
 use crate::device_cookie::Device;
 use crate::oauth_identity::Provider;
@@ -148,19 +154,60 @@ impl WebLogin {
     }
 }
 
-/// 失敗を残し、運営者に知らせるかを確かめる。`user_id` は、実在するアカウントへの失敗のときだけ。
-///
-/// 応答を待たずに別のタスクで行う。失敗の応答を、記録の都合 (DB の書き込みの待ち・失敗) で変えないため。
-/// 残せなければログにだけ残す。
+/// 失敗を残す。応答を待たずに作業役 ([`FailureRecorder`]) に渡す。失敗の応答を、記録の都合 (DB の書き込みの
+/// 待ち・失敗) で変えないため。`user_id` は、実在するアカウントへの失敗のときだけ。
 pub fn record_failure(state: &AppState, user_id: Option<i64>, attempt: Attempt) {
-    let state = state.clone();
-    tokio::spawn(async move {
-        if let Err(err) = insert(&state.pool, "login_failed", user_id, attempt, None).await {
-            tracing::error!(error = %crate::error_chain_line(&err), "ログインの失敗を記録できませんでした");
-            return;
+    state.login_failures.record(user_id, attempt);
+}
+
+/// 受けたまま残し終えていない失敗の上限。ログインの全体の上限 (1分300回、`AttemptRateLimiter::for_logins`)
+/// の1分ぶん。DB が詰まっている間に、溜めた分でメモリを使い潰さないため。超えた分は残さずログに出す。
+const FAILURE_QUEUE: usize = 300;
+
+/// ログインの失敗を1つの作業役で残し、運営者に知らせるかを確かめる。失敗ごとにタスクを作ると、
+/// 攻撃の間じゅう書き込みと集計が重なるため、溜まった分をまとめて残し、確かめはそのたびに1回にする。
+#[derive(Debug, Clone)]
+pub struct FailureRecorder(mpsc::Sender<Failure>);
+
+#[derive(Debug)]
+struct Failure {
+    user_id: Option<i64>,
+    attempt: Attempt,
+}
+
+impl FailureRecorder {
+    /// 作業役を起動する。
+    pub fn start(pool: SqlitePool, mailer: Arc<Mailer>, alerts: AlertsConfig) -> Self {
+        let (sender, receiver) = mpsc::channel(FAILURE_QUEUE);
+        tokio::spawn(run(receiver, pool, mailer, Alerter::new(alerts)));
+        Self(sender)
+    }
+
+    fn record(&self, user_id: Option<i64>, attempt: Attempt) {
+        if let Err(err) = self.0.try_send(Failure { user_id, attempt }) {
+            tracing::warn!(error = %err, "ログインの失敗が溜まっているため、記録しません");
         }
-        crate::login_alert::check_after_failure(&state).await;
-    });
+    }
+}
+
+async fn run(
+    mut receiver: mpsc::Receiver<Failure>,
+    pool: SqlitePool,
+    mailer: Arc<Mailer>,
+    mut alerter: Alerter,
+) {
+    while let Some(first) = receiver.recv().await {
+        let mut next = Some(first);
+        while let Some(Failure { user_id, attempt }) = next {
+            if let Err(err) = insert(&pool, "login_failed", user_id, attempt, None).await {
+                tracing::error!(error = %crate::error_chain_line(&err), "ログインの失敗を記録できませんでした");
+            }
+            next = receiver.try_recv().ok();
+        }
+        if let Err(err) = alerter.check(&pool, &mailer).await {
+            tracing::error!(error = %crate::error_chain_line(&err), "ログインの失敗の知らせを送れませんでした");
+        }
+    }
 }
 
 async fn insert(

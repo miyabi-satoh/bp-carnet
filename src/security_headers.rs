@@ -94,15 +94,23 @@ fn inline_scripts(html: &str) -> Vec<&str> {
         let Some(close) = body.find("</script>") else {
             break;
         };
-        if !attributes
-            .split_ascii_whitespace()
-            .any(|attribute| attribute.starts_with("src="))
-        {
+        if !has_src(attributes) {
             scripts.push(&body[..close]);
         }
         rest = &body[close..];
     }
     scripts
+}
+
+/// 開きタグの属性に `src` があるか。名前は大文字小文字を問わず、`=` の前後の空白を許す (HTML の決まり)。
+/// `data-src` のように、`src` で終わる別の名前とは見分ける。
+fn has_src(attributes: &str) -> bool {
+    let lower = attributes.to_ascii_lowercase();
+    lower.match_indices("src").any(|(at, _)| {
+        let before = lower[..at].chars().next_back();
+        let after = lower[at + 3..].trim_start();
+        before.is_some_and(|c| c.is_ascii_whitespace()) && after.starts_with('=')
+    })
 }
 
 fn sha256_base64(value: &str) -> String {
@@ -127,7 +135,7 @@ mod tests {
     #[test]
     fn page_csp_allows_only_the_inline_scripts_without_src() {
         let html = r#"<head><script>alert(1)</script><script type="module" src="/a.js"></script>
-<script data-src="x">lazy()</script></head>
+<script data-src="x">lazy()</script><script SRC = "/b.js"></script></head>
 <body><script>
   start();
 </script></body>"#;

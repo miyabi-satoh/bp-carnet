@@ -41,9 +41,8 @@ pub struct AppState {
     pub app_nonce_rate_limiter: Arc<AttemptRateLimiter>,
     /// 新しい端末からのログインの知らせ (`crate::login_notice`)。アカウントごとに数える。
     pub login_notice_rate_limiter: Arc<AttemptRateLimiter>,
-    /// 運営者への知らせ (`crate::login_alert`) の送り先と閾値。
-    pub alerts: Arc<crate::config::AlertsConfig>,
-    pub login_alert: Arc<crate::login_alert::AlertState>,
+    /// ログインの失敗を残し、運営者に知らせる作業役 (`crate::login_events::FailureRecorder`)。
+    pub login_failures: crate::login_events::FailureRecorder,
     pub mailer: Arc<Mailer>,
     pub ocr: Arc<OcrService>,
     /// OCR の累計金額の既定の上限 (円。`crate::config::OcrCosts`)。ユーザーごとの上限

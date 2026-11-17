@@ -83,7 +83,10 @@ fn serve_index(
     let Ok(html) = std::str::from_utf8(&file.data) else {
         return serve(INDEX_HTML, file, analytics);
     };
-    let body = seo::inject(html, &seo::head_tags(public_url, request_path));
+    let tags = seo::head_tags(public_url, request_path);
+    // CSP のハッシュは差し込む前の index.html から求めるので、差し込むタグにスクリプトがあると止められる。
+    debug_assert!(!tags.contains("<script"), "差し込むタグにスクリプトがある");
+    let body = seo::inject(html, &tags);
     let mut response = (
         [
             (header::CONTENT_TYPE, "text/html".to_string()),

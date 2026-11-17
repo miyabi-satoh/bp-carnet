@@ -72,25 +72,26 @@ async fn send(
 
 fn body(logged_in_at: &str, method: Method, client: Client, reset_link: &str) -> String {
     // 外部のログインなら、乗っ取られたのはその提供元のアカウントかもしれない。
-    let external_advice = match method {
-        Method::Google | Method::Line | Method::Apple => format!(
-            "{} のアカウントのパスワードも変えてください。\n",
-            method.label()
-        ),
+    let provider_advice = match method {
+        Method::Google | Method::Line | Method::Apple => {
+            format!(
+                "{} のアカウントのパスワードも変えてください。\n\n",
+                method.label()
+            )
+        }
         Method::Password | Method::Signup => String::new(),
     };
     format!(
         "BP Carnet のアカウントにログインがありました。\n\
          \n\
          日時: {logged_in_at}\n\
-         方法: {}\n\
-         ログイン先: {}\n\
+         方法: {}（{}）\n\
          \n\
          心当たりが無い場合は、次のリンクからパスワードを再設定してください。ほかの端末のログインもすべて解除されます。\n\
-         {external_advice}\
          \n\
          {reset_link}\n\
          \n\
+         {provider_advice}\
          心当たりがある場合は、このメールは破棄してください。\n",
         method.label(),
         client.label()
@@ -122,9 +123,8 @@ mod tests {
         assert_eq!(sent.len(), 1);
         assert_eq!(sent[0].to, "alice@example.com");
         assert_eq!(sent[0].subject, SUBJECT);
-        assert!(sent[0].body.contains("方法: Google"), "{}", sent[0].body);
         assert!(
-            sent[0].body.contains("ログイン先: アプリ"),
+            sent[0].body.contains("方法: Google（アプリ）"),
             "{}",
             sent[0].body
         );

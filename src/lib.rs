@@ -171,6 +171,11 @@ pub async fn build_app(
     let secure_cookie = config.session.secure_cookie;
     let session_layer = session::layer(session_store, session_key, &config.session);
 
+    let login_failures = login_events::FailureRecorder::start(
+        pool.clone(),
+        Arc::clone(&mailer),
+        config.alerts.clone(),
+    );
     let state = AppState {
         pool,
         login_rate_limiter: Arc::new(AttemptRateLimiter::for_logins()),
@@ -181,8 +186,7 @@ pub async fn build_app(
         app_login_nonces: Arc::new(NonceStore::default()),
         app_nonce_rate_limiter: Arc::new(AttemptRateLimiter::for_app_login_nonces()),
         login_notice_rate_limiter: Arc::new(AttemptRateLimiter::for_mail_requests()),
-        alerts: Arc::new(config.alerts.clone()),
-        login_alert: Arc::default(),
+        login_failures,
         mailer,
         ocr: Arc::new(ocr),
         ocr_free_budget_yen: ocr_costs.free_budget_yen,

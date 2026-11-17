@@ -3,14 +3,12 @@
 //! 接続元を変えながら制限の内側で試すパスワードリスト攻撃は、レートリミットに達しないので、
 //! 失敗の件数そのものを見る。
 
-use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
 use sqlx::SqlitePool;
 
 use crate::config::AlertsConfig;
 use crate::mail::Mailer;
-use crate::state::AppState;
 
 /// 知らせの間隔。攻撃の間じゅう送り続けて、メールの送信の枠を使い切らないため。
 /// 数える範囲 (直近1時間) と揃える。
@@ -21,84 +19,62 @@ const TOP_SOURCES: i64 = 5;
 
 const SUBJECT: &str = "【BP Carnet】ログインの失敗が増えています";
 
-/// 知らせの状態。プロセスの中だけで持つ (再起動で忘れても、1通多く送るだけで済む)。
-#[derive(Debug, Default)]
-pub struct AlertState(Mutex<Inner>);
+/// 送れなかったときに、次に送り直すまでの間。失敗のたびに送り直して、メールの送信の枠や SMTP の接続を
+/// 使い潰さないため。攻撃が続いていれば、この間の後の失敗でまた送る。
+const RETRY_AFTER: Duration = Duration::from_secs(5 * 60);
 
-#[derive(Debug, Default)]
-struct Inner {
+/// 運営者への知らせ。ログインの失敗を残す作業役 (`crate::login_events::FailureRecorder`) だけが持つ
+/// (知らせの間隔は、その作業役の中だけで持つ。再起動で忘れても、1通多く送るだけで済む)。
+#[derive(Debug)]
+pub struct Alerter {
+    config: AlertsConfig,
     last_sent: Option<Instant>,
-    /// 確かめを流している最中か。失敗のたびに数え直すと、攻撃の間じゅう集計が重なるので、1つずつにする。
-    checking: bool,
-    /// 確かめの最中に、新しい失敗が記録された。終わったらもう一度数える (その失敗を数え損ねないため)。
-    pending: bool,
+    retry_at: Option<Instant>,
 }
 
-impl AlertState {
-    fn sent_recently(inner: &Inner, now: Instant) -> bool {
-        inner
-            .last_sent
-            .is_some_and(|sent| now.duration_since(sent) < INTERVAL)
-    }
-
-    /// 確かめを始めてよければ `true`。最中なら、終わった後にもう一度数えるよう印を付ける。
-    fn start_check(&self, now: Instant) -> bool {
-        let mut inner = self.0.lock().expect("lock");
-        if Self::sent_recently(&inner, now) {
-            return false;
+impl Alerter {
+    pub fn new(config: AlertsConfig) -> Self {
+        Self {
+            config,
+            last_sent: None,
+            retry_at: None,
         }
-        if inner.checking {
-            inner.pending = true;
-            return false;
-        }
-        inner.checking = true;
-        true
     }
 
-    /// 確かめを終える。その間に失敗が記録されていれば `true` (もう一度数える)。
-    fn finish_check(&self) -> bool {
-        let mut inner = self.0.lock().expect("lock");
-        if std::mem::take(&mut inner.pending) {
-            return true;
-        }
-        inner.checking = false;
-        false
-    }
-
-    /// 間隔を空けていれば今を送った時刻にして `true`。
-    fn claim_send(&self, now: Instant) -> bool {
-        let mut inner = self.0.lock().expect("lock");
-        if Self::sent_recently(&inner, now) {
-            return false;
-        }
-        inner.last_sent = Some(now);
-        true
-    }
-
-    /// 送れなかったので、送った時刻を戻す。戻さないと、攻撃の間の1時間、知らせが出ない。
-    fn release_send(&self) {
-        self.0.lock().expect("lock").last_sent = None;
-    }
-}
-
-/// ログインの失敗を記録した後に呼ぶ。
-pub async fn check_after_failure(state: &AppState) {
-    if state.alerts.to.is_empty() || !state.login_alert.start_check(Instant::now()) {
-        return;
-    }
-    loop {
-        if let Err(err) = check(
-            &state.pool,
-            &state.mailer,
-            &state.alerts,
-            &state.login_alert,
-        )
-        .await
+    /// 直近1時間の失敗が閾値以上で、前の知らせから1時間空いていれば送る。送ったら `true`。
+    pub async fn check(&mut self, pool: &SqlitePool, mailer: &Mailer) -> Result<bool, Error> {
+        let now = Instant::now();
+        if self.config.to.is_empty()
+            || self
+                .last_sent
+                .is_some_and(|sent| now.duration_since(sent) < INTERVAL)
+            || self.retry_at.is_some_and(|retry_at| now < retry_at)
         {
-            tracing::error!(error = %crate::error_chain_line(&err), "ログインの失敗の知らせを送れませんでした");
+            return Ok(false);
         }
-        if !state.login_alert.finish_check() {
-            break;
+        let failures = count_failures(pool).await?;
+        if failures < i64::from(self.config.login_failures_per_hour) {
+            return Ok(false);
+        }
+        tracing::warn!(failures, "ログインの失敗が増えたため、運営者に知らせます");
+        let sent = async {
+            let summary = summarize(pool).await?;
+            mailer
+                .send(&self.config.to, SUBJECT, body(&summary))
+                .await?;
+            Ok::<_, Error>(())
+        }
+        .await;
+        match sent {
+            Ok(()) => {
+                self.last_sent = Some(now);
+                self.retry_at = None;
+                Ok(true)
+            }
+            Err(err) => {
+                self.retry_at = Some(now + RETRY_AFTER);
+                Err(err)
+            }
         }
     }
 }
@@ -109,30 +85,6 @@ pub enum Error {
     Db(#[from] sqlx::Error),
     #[error(transparent)]
     Mail(#[from] crate::mail::Error),
-}
-
-/// 直近1時間の失敗が閾値以上で、前の知らせから1時間空いていれば送る。送ったら `true`。
-async fn check(
-    pool: &SqlitePool,
-    mailer: &Mailer,
-    config: &AlertsConfig,
-    alert: &AlertState,
-) -> Result<bool, Error> {
-    let failures = count_failures(pool).await?;
-    if failures < i64::from(config.login_failures_per_hour) || !alert.claim_send(Instant::now()) {
-        return Ok(false);
-    }
-    tracing::warn!(failures, "ログインの失敗が増えたため、運営者に知らせます");
-    let sent = async {
-        let summary = summarize(pool).await?;
-        mailer.send(&config.to, SUBJECT, body(&summary)).await?;
-        Ok::<_, Error>(())
-    }
-    .await;
-    if sent.is_err() {
-        alert.release_send();
-    }
-    sent.map(|()| true)
 }
 
 async fn count_failures(pool: &SqlitePool) -> Result<i64, sqlx::Error> {
@@ -275,28 +227,16 @@ mod tests {
     #[sqlx::test]
     async fn check_sends_once_when_the_failures_reach_the_threshold(pool: SqlitePool) {
         let (mailer, sent) = Mailer::recording("https://bp.example.com");
-        let last_sent = AlertState::default();
+        let mut alerter = Alerter::new(config(3));
 
         fail(&pool, None, "192.0.2.1", 2).await;
-        assert!(
-            !check(&pool, &mailer, &config(3), &last_sent)
-                .await
-                .expect("確かめられる")
-        );
+        assert!(!alerter.check(&pool, &mailer).await.expect("確かめられる"));
 
         fail(&pool, None, "192.0.2.1", 1).await;
-        assert!(
-            check(&pool, &mailer, &config(3), &last_sent)
-                .await
-                .expect("確かめられる")
-        );
+        assert!(alerter.check(&pool, &mailer).await.expect("確かめられる"));
         // 1時間に1通まで。
         fail(&pool, None, "192.0.2.1", 1).await;
-        assert!(
-            !check(&pool, &mailer, &config(3), &last_sent)
-                .await
-                .expect("確かめられる")
-        );
+        assert!(!alerter.check(&pool, &mailer).await.expect("確かめられる"));
 
         let sent = sent.lock().expect("lock");
         assert_eq!(sent.len(), 1);
