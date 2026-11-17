@@ -136,7 +136,7 @@ fn create_owner_only_file(path: &Path) -> std::io::Result<std::fs::File> {
 /// `__Host-` の Cookie を消す `Set-Cookie` に Secure を付け直す。`SessionManagerLayer` の外側に掛ける。
 ///
 /// tower-sessions はセッションを空にすると (ログアウト・無効なセッションの破棄)、リクエストから読んだ Cookie を
-/// 元に削除用の Cookie を作り、パスとドメインしか付け直さない (`tower-sessions-0.14.0/src/service.rs`)。
+/// 元に削除用の Cookie を作り、パスとドメインしか付け直さない (`tower-sessions-0.15.0/src/service.rs`)。
 /// Secure の無い `__Host-` の `Set-Cookie` はブラウザに捨てられ、Cookie が消えずに残るため。
 pub async fn secure_host_prefixed_cookies(req: Request, next: Next) -> Response {
     let mut response = next.run(req).await;

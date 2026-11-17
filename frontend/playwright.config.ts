@@ -25,8 +25,9 @@ export default defineConfig({
 	reporter: process.env.GITHUB_ACTIONS === 'true' ? [['list'], ['github']] : 'list',
 	use: {
 		baseURL,
-		// 流し直して通ったテストも、落ちた回の trace を残す (CI では test-results/ を成果物に上げる)
+		// 流し直して通ったテストも、落ちた回の trace と画面を残す (CI では test-results/ を成果物に上げる)
 		trace: 'retain-on-failure',
+		screenshot: 'only-on-failure',
 		ignoreHTTPSErrors: ignoreHTTPSErrors(),
 		// PWA の service worker (vite.config.ts、skipWaiting + clientsClaim) は、新しいコンテキストで初めて
 		// 入った直後にページを読み込み直させ、送信中の操作を途中で打ち切ることがある。PWA 自体を

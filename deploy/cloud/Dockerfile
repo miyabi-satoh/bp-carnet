@@ -7,7 +7,7 @@
 # pnpm のストアと cargo のレジストリ・target はキャッシュマウントに置き、層に入れない。
 # GitHub Actions が持ち越す層のキャッシュ (deploy.yml) に、大きい target を載せないため。
 
-FROM node:24-bookworm-slim AS frontend
+FROM node:26-bookworm-slim AS frontend
 # frontend/package.json の packageManager と揃える。
 RUN npm install -g pnpm@12.10.1
 WORKDIR /app/frontend
