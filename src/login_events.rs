@@ -197,19 +197,18 @@ async fn run(
     mut alerter: Alerter,
 ) {
     while let Some(first) = receiver.recv().await {
-        let mut next = Some(first);
         // 失敗が届き続けても確かめに届くよう、一度に残すのはキューの上限ぶんまでにする。
-        let mut remaining = FAILURE_QUEUE;
-        while let Some(Failure { user_id, attempt }) = next {
+        let mut batch = vec![first];
+        while batch.len() < FAILURE_QUEUE {
+            let Ok(failure) = receiver.try_recv() else {
+                break;
+            };
+            batch.push(failure);
+        }
+        for Failure { user_id, attempt } in batch {
             if let Err(err) = insert(&pool, "login_failed", user_id, attempt, None).await {
                 tracing::error!(error = %crate::error_chain_line(&err), "ログインの失敗を記録できませんでした");
             }
-            remaining -= 1;
-            next = if remaining == 0 {
-                None
-            } else {
-                receiver.try_recv().ok()
-            };
         }
         if let Err(err) = alerter.check(&pool, &mailer).await {
             tracing::error!(error = %crate::error_chain_line(&err), "ログインの失敗の知らせを送れませんでした");
