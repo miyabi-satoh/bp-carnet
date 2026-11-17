@@ -10,7 +10,7 @@
 //! (`crate::csrf::same_origin_check` + セッション Cookie の `SameSite=Strict`) への影響はない。
 //!
 //! 新規 crate は追加していない: `tower_sessions::cookie` が `cookie` crate 0.18.2 を
-//! そのまま再エクスポートしており (`tower-sessions-0.14.0/src/lib.rs`)、`session.rs` が
+//! そのまま再エクスポートしており (`tower-sessions-0.15.0/src/lib.rs`)、`session.rs` が
 //! `Key` として使っている実体そのものである。
 
 use axum::http::{HeaderMap, HeaderValue, header};

@@ -123,6 +123,8 @@ just e2e <URL> <管理者パスワード> [管理者ID] # 起動済みの環境�
 just e2e-local   # 使い捨ての backend (管理者1人) と、メールを受け取る SMTP の受け口を立てて E2E を流す
 ```
 
+vitest と Playwright は、落ちたテストを2回まで流し直す。流し直して通ったテストは、vitest は最後に `⚠ Flaky test` の行、Playwright は集計の `N flaky` に出る (GitHub Actions では注記にもなる)。出たら、流し直して済ませず、時々落ちる原因を直す。CI では、落ちた回の画面・trace を成果物 `test-failures` に上げる。
+
 ## ビルド
 
 ```sh

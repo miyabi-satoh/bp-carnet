@@ -45,24 +45,26 @@ impl UserTimeZone {
             .ok()?
             .to_datetime()
             .ok()?;
-        Some(format_utc(self.0.to_zoned(datetime).ok()?.timestamp()))
+        Some(format_utc(
+            self.0.to_zoned_datetime(datetime).ok()?.timestamp(),
+        ))
     }
 
     /// 保存形式の UTC を、ユーザーのタイムゾーンでの日時にする。解釈できなければ `None`。
     pub fn local_datetime(&self, measured_at: &str) -> Option<DateTime> {
         let timestamp = measured_at.parse::<Timestamp>().ok()?;
-        Some(timestamp.to_zoned(self.0.clone()).datetime())
+        Some(timestamp.to_zoned_datetime(self.0.clone()).datetime())
     }
 
     /// `timestamp` の、ユーザーのタイムゾーンでの日時。
     pub fn to_local(&self, timestamp: Timestamp) -> DateTime {
-        timestamp.to_zoned(self.0.clone()).datetime()
+        timestamp.to_zoned_datetime(self.0.clone()).datetime()
     }
 
     /// 今このときの、ユーザーのタイムゾーンでの日付 (`YYYY-MM-DD`)。
     pub fn local_today(&self) -> String {
         Timestamp::now()
-            .to_zoned(self.0.clone())
+            .to_zoned_datetime(self.0.clone())
             .date()
             .strftime(LOCAL_DATE_FORMAT)
             .to_string()
@@ -71,7 +73,9 @@ impl UserTimeZone {
     /// ユーザーのタイムゾーンでの `date` の始まりを、保存形式の UTC にする。0:00 が夏時間の
     /// 切り替えで存在しない日は、切り替え後の最初の時刻になる。
     pub fn start_of_day_utc(&self, date: Date) -> Option<String> {
-        Some(format_utc(date.to_zoned(self.0.clone()).ok()?.timestamp()))
+        Some(format_utc(
+            date.to_zoned_datetime(self.0.clone()).ok()?.timestamp(),
+        ))
     }
 }
 

@@ -13,8 +13,8 @@ updates:
       cargo:
         patterns: ["*"]
     ignore:
-      # tower-sessions-sqlx-store 0.15 系が対応する組み合わせとして sqlx は 0.8系、
-      # tower-sessions は 0.14系に固定している。0.x系は minor の繰り上がりも破壊的変更を
+      # tower-sessions-sqlx-store 0.15.1 が対応する組み合わせとして sqlx は 0.8系、
+      # tower-sessions は 0.15系に固定している。0.x系は minor の繰り上がりも破壊的変更を
       # 意味しうるため、semver-minor も合わせて無視し patch 更新のみ自動PR化する
       # (固定バージョンを上げる場合は手動で Cargo.toml を更新すること)。
       - dependency-name: "sqlx"

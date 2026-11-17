@@ -20,8 +20,8 @@ const NPM_LICENSES_FILE = 'third-party-licenses/npm.json';
 const NODE_MODULES = '/node_modules/';
 
 // コードを同梱しているのに、chunk からは辿れないパッケージ。
-// - Paraglide は `src/lib/paraglide` に出力するので、モジュールの ID が node_modules の外になる。
-//   出力はコンパイラが書いたコードで、そのままバンドルに入る。
+// - Paraglide の出力は、ランタイムが `src/lib/paraglide`、メッセージが仮想モジュール (下の PARAGLIDE_MESSAGE) で、
+//   どちらもモジュールの ID が node_modules の外になる。出力はコンパイラが書いたコードで、そのままバンドルに入る。
 // - CSS の `@import` (`src/routes/layout.css`) は @tailwindcss/vite が展開してしまい、
 //   Rollup のモジュールにもアセットにも出てこない。中身は配る CSS に入っている。
 // - Service Worker の実行部分は、@vite-pwa/sveltekit がこのビルドの後で別に作る。
@@ -48,6 +48,10 @@ const VIRTUAL_MODULES: Record<string, (root: string) => string> = {
 	// Vite が読み込む Rolldown を、Vite の場所から Node の解決で探す。
 	'\0rolldown/runtime.js': (root) => resolvePackage(viteDir(root), 'rolldown')
 };
+
+// Paraglide の Vite プラグインが、メッセージ1つごとに出す仮想モジュール。ID にプロジェクトのハッシュとキーが入り、
+// 完全一致では書けないので、メッセージのモジュールの形だけを通す。パッケージは EXTRA_PACKAGES で数えている。
+const PARAGLIDE_MESSAGE = /^\0virtual:paraglide\/[0-9a-f]+\/messages\/[a-z0-9_]+\.js$/;
 
 // 本文の中で、配る物に入らない部分が始まる印。そこから後ろは表示しない。
 // - Vite の `LICENSE.md` は、Vite 本体の条文の後に、Vite 自身が同梱する依存の条文を2千行ほど続けている。
@@ -98,6 +102,7 @@ export function thirdPartyLicenses(): Plugin {
 						? output.moduleIds
 						: output.originalFileNames.map((name) => resolve(root, name));
 				for (const source of sources) {
+					if (PARAGLIDE_MESSAGE.test(source)) continue;
 					if (source.startsWith('\0')) {
 						const packageOf = VIRTUAL_MODULES[source];
 						if (packageOf === undefined) {

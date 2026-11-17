@@ -30,3 +30,6 @@ e2e/.kept
 # Paraglide (vite プラグインが生成するため追跡しない)
 src/lib/paraglide
 project.inlang/cache/
+
+# vitest (browser mode の落ちたときの画面)
+.vitest
