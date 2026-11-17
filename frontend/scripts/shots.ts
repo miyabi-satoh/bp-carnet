@@ -14,11 +14,12 @@
 import type { Locator, Page } from 'playwright';
 import ja from '../messages/ja.json' with { type: 'json' };
 import {
+	mockAdminVerification,
 	mockAuthProviders,
 	mockLinkedProviders,
 	PRODUCTION_AUTH_PROVIDERS
 } from '../e2e/auth-mocks.ts';
-import { errorResponse } from '../e2e/helpers.ts';
+import { errorResponse, requiredLabel } from '../e2e/helpers.ts';
 import {
 	freeQuota,
 	mockOcrStatus,
@@ -266,6 +267,21 @@ export const shots: Record<string, ShotEntry> = {
 			await page.goto(`${ctx.baseURL}/settings/change-password`);
 			await page
 				.getByRole('textbox', { name: ja.settings_change_password_current_label })
+				.waitFor({ timeout: 5000 });
+			await capture(page, ctx);
+		}
+	},
+
+	// 管理画面に入るときの確認コードの入力。`just spec` の backend は確認コードを求めない構成
+	// (`ADMIN_TOTP_KEY` が無い) なので、本番と同じ求める構成の応答をモックで返す。
+	admin_code: {
+		viewports: ['mobile'],
+		async run(page, ctx) {
+			await login(page, ctx.baseURL, 'admin', 'zxcvbnm1');
+			await mockAdminVerification(page, { enrolled: true, verified: false }, '000000');
+			await page.goto(`${ctx.baseURL}/admin/users`);
+			await page
+				.getByLabel(requiredLabel(ja.admin_code_label), { exact: true })
 				.waitFor({ timeout: 5000 });
 			await capture(page, ctx);
 		}

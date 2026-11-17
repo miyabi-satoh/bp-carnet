@@ -1,0 +1,18 @@
+// node で直に動かす scripts/ と、そこから読まれるファイル (e2e/ のモックなど) の型検査 (`pnpm run lint`)。
+// node は拡張子の無い相対 import を解決できず、型を消すだけでは動かない書き方 (enum など) も読めない。
+// tsconfig.json (SvelteKit の設定) ではどちらも拾えず、CI は `just spec` を流さないため、node と同じ解決の仕方と制約で検査する。
+{
+	"compilerOptions": {
+		"module": "nodenext",
+		"moduleResolution": "nodenext",
+		"target": "esnext",
+		"allowImportingTsExtensions": true,
+		"erasableSyntaxOnly": true,
+		"verbatimModuleSyntax": true,
+		"resolveJsonModule": true,
+		"noEmit": true,
+		"skipLibCheck": true,
+		"strict": true
+	},
+	"include": ["scripts/**/*.ts"]
+}
