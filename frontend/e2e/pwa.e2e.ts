@@ -37,6 +37,10 @@ test('manifest に、アプリの名前・起動の URL・表示のしかた・�
 	}
 });
 
+/** Service Worker が有効になるまでの待ち。有効になる前に画面と使い方の画像 (数百件) を先にキャッシュするので、
+ * 検査を並べて流す負荷の下では既定の 5 秒を超える。テストの上限 (既定の 30 秒) の内に収まる長さにする。 */
+const PRECACHE_TIMEOUT_MS = 20_000;
+
 test('Service Worker が有効になり、画面は Service Worker から、API の応答はサーバーから返る', async ({
 	page,
 	ignoreHTTPSErrors
@@ -59,7 +63,7 @@ test('Service Worker が有効になり、画面は Service Worker から、API 
 			})
 			.catch(() => null);
 	await expect
-		.poll(registration)
+		.poll(registration, { timeout: PRECACHE_TIMEOUT_MS })
 		.toEqual({ state: 'activated', script: '/sw.js', controlled: true });
 
 	// 静的アセットだけをキャッシュし、API の応答はキャッシュしない (共有端末でログアウト後にデータを残さないため)。
