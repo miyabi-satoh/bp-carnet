@@ -661,6 +661,7 @@ DB は `bp-carnet.db`。これが無く改名前の `bp-tracker.db` があれば
 bp-carnet                                サーバーを起動する
 bp-carnet --create-user <name> [--admin] ユーザーを作成する (パスワードは対話入力、--admin で管理者)
 bp-carnet --reset-password <name>        パスワードを再設定する (パスワードは対話入力)
+bp-carnet --enroll-admin-code <name>     管理画面の確認コードの認証アプリを登録する (要: ADMIN_TOTP_KEY)
 bp-carnet --openapi                      OpenAPI 仕様 (JSON) を標準出力に書き出す
 bp-carnet -v | --version                 バージョンを表示する
 ```

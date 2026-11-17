@@ -34,6 +34,8 @@
 			loadErrorMessage = result.message;
 			return;
 		}
+		// 開き直したときは、前に断られた印より今の状態を信じる。
+		adminVerification.expired = false;
 		const { required, enrolled, verified } = result.status;
 		view = !required || verified ? 'open' : enrolled ? 'code' : 'not-enrolled';
 	}
