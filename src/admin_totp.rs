@@ -170,7 +170,7 @@ impl AdminTotp {
     }
 }
 
-/// 認証アプリに出た6桁が合っていれば、その時間の区切りを返す。前後の空白は無視する。
+/// [`Enrollment::check`] と [`AdminTotp::verify`] で共通の照合。前後の空白は無視する。
 fn check(totp: &Totp, code: &str) -> Option<u64> {
     totp.check_current(code.trim())
 }
