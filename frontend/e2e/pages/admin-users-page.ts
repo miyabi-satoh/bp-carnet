@@ -1,6 +1,7 @@
 import type { Locator, Page } from '@playwright/test';
 import { ja } from '../helpers';
 import { AdminAddUserDialog } from './admin-add-user-dialog';
+import { AdminCodeGate } from './admin-code-gate';
 import { AdminDeleteUserDialog } from './admin-delete-user-dialog';
 import { AdminOcrLimitDialog } from './admin-ocr-limit-dialog';
 import { AdminResetPasswordDialog } from './admin-reset-password-dialog';
@@ -8,7 +9,12 @@ import { AdminUserDetailPage } from './admin-user-detail-page';
 
 /** 管理者のユーザー一覧 (`/admin/users`)。ユーザーごとのカードに、状態と操作のボタンが並ぶ。 */
 export class AdminUsersPage {
-	constructor(private readonly page: Page) {}
+	/** 確認コードを求める構成で、一覧の前に出る入力。 */
+	readonly codeGate: AdminCodeGate;
+
+	constructor(private readonly page: Page) {
+		this.codeGate = new AdminCodeGate(page);
+	}
 
 	async open(): Promise<void> {
 		await this.page.goto('/admin/users');

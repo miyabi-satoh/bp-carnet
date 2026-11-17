@@ -864,6 +864,7 @@ fn session_generation_is_current(session_generation: Option<i64>, current: i64) 
 
 /// [`AuthUser`] に加えて `role = 'admin'` を要求する axum extractor (docs/authentication.md)。
 /// 管理者APIのハンドラの引数に加えるだけで、一般ユーザーからの呼び出しを 403 で弾ける。
+/// 確認コードを求める構成では、通していないログインも 403 (`admin_verification_required`) で弾く。
 pub struct AdminUser(pub AuthUser);
 
 impl FromRequestParts<AppState> for AdminUser {
@@ -876,6 +877,31 @@ impl FromRequestParts<AppState> for AdminUser {
         let user = AuthUser::from_request_parts(parts, state).await?;
         if user.role != Role::Admin {
             return Err(AppError::Forbidden);
+        }
+        // 確認コードを求める構成なら、このログインで通してから1時間の内に限る (`crate::admin_totp`)。
+        if state.admin_totp.is_some() {
+            let verified = match user.app_token_id {
+                Some(id) => {
+                    crate::admin_totp::is_verified(
+                        &state.pool,
+                        crate::admin_totp::Credential::AppToken(id),
+                    )
+                    .await?
+                }
+                None => {
+                    let session = Session::from_request_parts(parts, state)
+                        .await
+                        .map_err(|(_, msg)| AppError::Internal(Error::MissingSessionLayer(msg)))?;
+                    crate::admin_totp::is_verified(
+                        &state.pool,
+                        crate::admin_totp::Credential::Session(&session),
+                    )
+                    .await?
+                }
+            };
+            if !verified {
+                return Err(AppError::AdminVerificationRequired);
+            }
         }
         Ok(AdminUser(user))
     }

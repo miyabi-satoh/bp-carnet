@@ -147,6 +147,13 @@ fn main() {
         );
     }
 
+    let admin_totp = bp_carnet::admin_totp::AdminTotp::from_env();
+    if admin_totp.is_some() {
+        tracing::info!("管理画面の確認コードが有効です");
+    } else {
+        tracing::warn!("ADMIN_TOTP_KEY が未設定のため、管理画面に確認コードを求めません");
+    }
+
     // 有効な機能に要る無料枠・単価・買い足しの量が無ければ、数え損なう・付け損なう前に止める。
     let ocr_costs = match config
         .ocr
@@ -174,6 +181,7 @@ fn main() {
         stripe,
         app_store,
         ocr_costs,
+        admin_totp,
     };
 
     let rt = tokio::runtime::Runtime::new().expect("failed to build tokio runtime");
@@ -195,6 +203,7 @@ struct Server {
     stripe: StripeClient,
     app_store: AppStoreClient,
     ocr_costs: bp_carnet::config::OcrCosts,
+    admin_totp: Option<bp_carnet::admin_totp::AdminTotp>,
 }
 
 impl Server {
@@ -213,6 +222,7 @@ impl Server {
             stripe,
             app_store,
             ocr_costs,
+            admin_totp,
         } = self;
 
         // lettre の接続プールは組み立てと同時にタスクを spawn するため、ランタイムの中で作る。
@@ -246,6 +256,7 @@ impl Server {
                 stripe,
                 app_store,
                 ocr_costs,
+                admin_totp,
             },
         )
         .await?;

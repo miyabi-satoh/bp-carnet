@@ -49,6 +49,7 @@
 | ログイン画面の紹介へのリンク     | `[server] intro_url` (ウェブだけ。アプリには出さない)                                                                                         |
 | アクセス解析                     | `[server] cloudflare_analytics_token` (ウェブのログインしていない画面だけ。下の「アクセス解析」)                                              |
 | ログインの失敗の運営者への知らせ | `[alerts] to` (→ docs/authentication.md「ログインの記録と知らせ」)                                                                            |
+| 管理画面の確認コード             | `ADMIN_TOTP_KEY` (→ docs/authentication.md「管理者の確認コード」)                                                                             |
 
 - 画面は、未ログインで叩ける `GET /api/v1/auth/providers` (ログイン方式・β表示) と `GET /api/v1/ocr/status` (読み取り・買い足し) で、どれが使えるかを知る。
 - ログインには常にパスワードか外部の提供元の確認が要る。パスワード無しで入れるモードは無い。

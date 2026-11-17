@@ -166,13 +166,20 @@ const FAILURE_QUEUE: usize = 300;
 
 /// ログインの失敗を1つの作業役で残し、運営者に知らせるかを確かめる。失敗ごとにタスクを作ると、
 /// 攻撃の間じゅう書き込みと集計が重なるため、溜まった分をまとめて残し、確かめはそのたびに1回にする。
+/// 管理画面の確認コードの誤り (`crate::admin_totp`) も、同じ作業役で運営者に知らせる。
 #[derive(Debug, Clone)]
 pub struct FailureRecorder(mpsc::Sender<Failure>);
 
 #[derive(Debug)]
-struct Failure {
-    user_id: Option<i64>,
-    attempt: Attempt,
+enum Failure {
+    Login {
+        user_id: Option<i64>,
+        attempt: Attempt,
+    },
+    AdminCode {
+        user_id: i64,
+        ip: Option<IpAddr>,
+    },
 }
 
 impl FailureRecorder {
@@ -184,7 +191,16 @@ impl FailureRecorder {
     }
 
     fn record(&self, user_id: Option<i64>, attempt: Attempt) {
-        if let Err(err) = self.0.try_send(Failure { user_id, attempt }) {
+        self.send(Failure::Login { user_id, attempt });
+    }
+
+    /// 管理画面の確認コードの誤りを、運営者に知らせる。
+    pub fn record_admin_code_failure(&self, user_id: i64, ip: Option<IpAddr>) {
+        self.send(Failure::AdminCode { user_id, ip });
+    }
+
+    fn send(&self, failure: Failure) {
+        if let Err(err) = self.0.try_send(failure) {
             tracing::warn!(error = %err, "ログインの失敗が溜まっているため、記録しません");
         }
     }
@@ -200,9 +216,18 @@ async fn run(
     // 一度にまとめるのはキューの上限ぶんまでにする。
     let mut batch = Vec::with_capacity(FAILURE_QUEUE);
     while receiver.recv_many(&mut batch, FAILURE_QUEUE).await > 0 {
-        for Failure { user_id, attempt } in batch.drain(..) {
-            if let Err(err) = insert(&pool, "login_failed", user_id, attempt, None).await {
-                tracing::error!(error = %crate::error_chain_line(&err), "ログインの失敗を記録できませんでした");
+        for failure in batch.drain(..) {
+            match failure {
+                Failure::Login { user_id, attempt } => {
+                    if let Err(err) = insert(&pool, "login_failed", user_id, attempt, None).await {
+                        tracing::error!(error = %crate::error_chain_line(&err), "ログインの失敗を記録できませんでした");
+                    }
+                }
+                Failure::AdminCode { user_id, ip } => {
+                    if let Err(err) = alerter.admin_code_failed(&pool, &mailer, user_id, ip).await {
+                        tracing::error!(error = %crate::error_chain_line(&err), "確認コードの誤りの知らせを送れませんでした");
+                    }
+                }
             }
         }
         if let Err(err) = alerter.check(&pool, &mailer).await {

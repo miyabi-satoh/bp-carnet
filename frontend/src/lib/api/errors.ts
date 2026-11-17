@@ -28,6 +28,9 @@ export const ERROR_CODES = [
 	'cannot_unlink_last_login_method',
 	'username_taken',
 	'too_many_requests',
+	'admin_verification_required',
+	'admin_code_not_enrolled',
+	'invalid_admin_code',
 	'invalid_email_token',
 	'invalid_request_body',
 	'invalid_path',
@@ -62,6 +65,9 @@ const MESSAGES: Record<ErrorCode, () => string> = {
 	invalid_credentials: m.error_invalid_credentials,
 	incorrect_password: m.error_incorrect_password,
 	forbidden: m.error_forbidden,
+	admin_verification_required: m.error_admin_verification_required,
+	admin_code_not_enrolled: m.error_admin_code_not_enrolled,
+	invalid_admin_code: m.error_invalid_admin_code,
 	// 問い合わせの一文は含めない。`errorMessage` が管理者の一文を足し、ログイン画面は
 	// `contactlessMessage` で元の文を取って問い合わせ先を出し分ける。
 	account_frozen: m.error_account_frozen,

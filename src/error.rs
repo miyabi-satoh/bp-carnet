@@ -93,6 +93,15 @@ pub enum AppError {
     CannotUnlinkLastLoginMethod,
     #[error("too many requests")]
     TooManyRequests,
+    /// 管理 API に、確認コードを通していない (か、通してから時間がたった) ログインで来た
+    /// (`crate::admin_totp`)。画面は確認コードの入力を出す。
+    #[error("the admin verification code is required")]
+    AdminVerificationRequired,
+    /// 確認コードの認証アプリが、まだ端末で登録されていない。
+    #[error("no admin verification code is enrolled")]
+    AdminCodeNotEnrolled,
+    #[error("the admin verification code is incorrect")]
+    InvalidAdminCode,
     /// メール内リンクのトークンが未知・期限切れ・使用済み。どれかを区別しない (有効だった
     /// トークンかどうかを推測させないため)。
     #[error("the link is invalid or has expired")]
@@ -247,6 +256,11 @@ impl AppError {
                 (StatusCode::CONFLICT, "cannot_unlink_last_login_method")
             }
             Self::TooManyRequests => (StatusCode::TOO_MANY_REQUESTS, "too_many_requests"),
+            Self::AdminVerificationRequired => {
+                (StatusCode::FORBIDDEN, "admin_verification_required")
+            }
+            Self::AdminCodeNotEnrolled => (StatusCode::CONFLICT, "admin_code_not_enrolled"),
+            Self::InvalidAdminCode => (StatusCode::BAD_REQUEST, "invalid_admin_code"),
             Self::InvalidEmailToken => (StatusCode::BAD_REQUEST, "invalid_email_token"),
             Self::OcrBudgetExhausted => (StatusCode::TOO_MANY_REQUESTS, "ocr_budget_exhausted"),
             Self::OcrInProgress => (StatusCode::CONFLICT, "ocr_in_progress"),

@@ -2,6 +2,7 @@
 
 mod account;
 mod admin;
+mod admin_verification;
 mod app_auth;
 mod auth;
 mod email_change;
@@ -85,6 +86,7 @@ pub fn router() -> OpenApiRouter<AppState> {
         .merge(account::router())
         .merge(email_change::router())
         .merge(admin::router())
+        .merge(admin_verification::router())
         .merge(records::router())
         .merge(settings::router())
         .merge(ocr::router())

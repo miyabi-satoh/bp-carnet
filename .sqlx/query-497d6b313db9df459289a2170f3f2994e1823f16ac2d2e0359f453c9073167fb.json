@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT EXISTS (SELECT 1 FROM admin_totp WHERE user_id = ?) AS \"enrolled!: bool\"",
+  "describe": {
+    "columns": [
+      {
+        "name": "enrolled!: bool",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "497d6b313db9df459289a2170f3f2994e1823f16ac2d2e0359f453c9073167fb"
+}

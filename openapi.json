@@ -1004,6 +1004,134 @@
         }
       }
     },
+    "/api/v1/admin/verification": {
+      "get": {
+        "summary": "確認コードの状態。管理画面を開いたときに、入力を出すかを決めるのに使う。",
+        "operationId": "status",
+        "responses": {
+          "200": {
+            "description": "確認コードの状態",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminVerificationStatus"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "管理者ではない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "確認コードを通す。通ったら、このログインで1時間、管理 API を使える。",
+        "description": "照合は管理者ごとに1分5回まで (6桁は総当たりできるため)。誤りは運営者に知らせる。",
+        "operationId": "verify",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminVerificationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "通した (確認コードを求めない構成では、何もせずに 204)"
+          },
+          "400": {
+            "description": "確認コードが違う・使用済み、またはリクエストボディが不正",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未ログイン",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "管理者ではない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "認証アプリが端末で登録されていない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Content-Type が application/json でない",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "必須フィールドが無い",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "照合の回数の上限を超えた",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/app/auth/apple": {
       "post": {
         "summary": "Sign in with Apple でログインする。認可コードを Bundle ID 宛てに引き換え、ID トークンの\n`nonce` を確かめる (docs/authentication.md)。",
@@ -3895,6 +4023,41 @@
             "items": {
               "$ref": "#/components/schemas/AdminUserResponse"
             }
+          }
+        }
+      },
+      "AdminVerificationRequest": {
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "認証アプリに出た6桁。",
+            "example": "123456"
+          }
+        }
+      },
+      "AdminVerificationStatus": {
+        "type": "object",
+        "required": [
+          "required",
+          "enrolled",
+          "verified"
+        ],
+        "properties": {
+          "enrolled": {
+            "type": "boolean",
+            "description": "認証アプリが端末で登録済みか。`false` なら、画面は端末での登録を案内する。"
+          },
+          "required": {
+            "type": "boolean",
+            "description": "管理 API に確認コードを求める構成か。`false` なら、画面は入力を出さずに管理画面を開く。"
+          },
+          "verified": {
+            "type": "boolean",
+            "description": "このログインで確認コードを通してから1時間の内か。"
           }
         }
       },

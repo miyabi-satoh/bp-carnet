@@ -79,3 +79,30 @@ export async function mockLinkedProviders(
 	});
 	return { unlinkRequests };
 }
+
+type AdminVerificationStatus = components['schemas']['AdminVerificationStatus'];
+
+/**
+ * 管理画面の確認コードの状態 (`GET /admin/verification`) を差し替え、照合 (`POST`) に答える。e2e の backend は
+ * 確認コードを求めない構成 (`ADMIN_TOTP_KEY` が無い) なので、求める構成の画面はこれで作る。ページを開く前に呼ぶ。
+ * 照合は `validCode` だけを通す (本当の照合は backend の結合テスト、tests/api/admin_verification.rs)。
+ */
+export async function mockAdminVerification(
+	page: Page,
+	status: Omit<AdminVerificationStatus, 'required'>,
+	validCode: string
+): Promise<void> {
+	await page.route('**/api/v1/admin/verification', async (route) => {
+		if (route.request().method() === 'GET') {
+			return route.fulfill({ json: { required: true, ...status } });
+		}
+		const { code } = route.request().postDataJSON() as { code: string };
+		if (code === validCode) return route.fulfill({ status: 204 });
+		return route.fulfill({
+			status: 400,
+			json: {
+				error: { code: 'invalid_admin_code', message: 'the admin verification code is incorrect' }
+			}
+		});
+	});
+}

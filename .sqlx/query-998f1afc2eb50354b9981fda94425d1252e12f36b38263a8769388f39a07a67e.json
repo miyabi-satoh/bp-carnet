@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE admin_totp SET last_step = ?\n             WHERE user_id = ? AND (last_step IS NULL OR last_step < ?)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "998f1afc2eb50354b9981fda94425d1252e12f36b38263a8769388f39a07a67e"
+}

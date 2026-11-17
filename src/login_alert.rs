@@ -18,6 +18,7 @@ const INTERVAL: Duration = Duration::from_secs(60 * 60);
 const TOP_SOURCES: i64 = 5;
 
 const SUBJECT: &str = "【BP Carnet】ログインの失敗が増えています";
+const ADMIN_CODE_SUBJECT: &str = "【BP Carnet】管理画面の確認コードが間違って入力されました";
 
 /// 送れなかったときに、次に送り直すまでの間。失敗のたびに送り直して、メールの送信の枠や SMTP の接続を
 /// 使い潰さないため。攻撃が続いていれば、この間の後の失敗でまた送る。
@@ -30,6 +31,8 @@ pub struct Alerter {
     config: AlertsConfig,
     last_sent: Option<Instant>,
     retry_at: Option<Instant>,
+    /// 確認コードの誤りの知らせを最後に送った時刻。ログインの失敗の知らせとは別に数える。
+    admin_code_last_sent: Option<Instant>,
 }
 
 impl Alerter {
@@ -38,7 +41,49 @@ impl Alerter {
             config,
             last_sent: None,
             retry_at: None,
+            admin_code_last_sent: None,
         }
+    }
+
+    /// 管理画面の確認コードの誤りを知らせる。管理者のパスワードが破られているおそれがあるので、
+    /// 件数を待たずに送る。1時間に1通まで (照合の回数の制限の内で、誤りは1時間に300回まで起きうるため)。
+    pub async fn admin_code_failed(
+        &mut self,
+        pool: &SqlitePool,
+        mailer: &Mailer,
+        user_id: i64,
+        ip: Option<std::net::IpAddr>,
+    ) -> Result<bool, Error> {
+        let now = Instant::now();
+        if self.config.to.is_empty()
+            || self
+                .admin_code_last_sent
+                .is_some_and(|sent| now.duration_since(sent) < INTERVAL)
+        {
+            return Ok(false);
+        }
+        let username = crate::auth::load_username(pool, user_id)
+            .await?
+            .unwrap_or_default();
+        let ip = ip.map_or_else(|| "不明".to_string(), |ip| ip.to_canonical().to_string());
+        tracing::warn!(user_id, "管理画面の確認コードの誤りを、運営者に知らせます");
+        mailer
+            .send(
+                &self.config.to,
+                ADMIN_CODE_SUBJECT,
+                format!(
+                    "管理画面の確認コードが間違って入力されました。\n\
+                     \n\
+                     管理者: {username}\n\
+                     接続元: {ip}\n\
+                     \n\
+                     入力した覚えが無い場合は、管理者のパスワードが知られているおそれがあります。パスワードを変えてください。\n\
+                     この知らせは1時間に1通までです。\n"
+                ),
+            )
+            .await?;
+        self.admin_code_last_sent = Some(now);
+        Ok(true)
     }
 
     /// 直近1時間の失敗が閾値以上で、前の知らせから1時間空いていれば送る。送ったら `true`。
@@ -221,6 +266,40 @@ mod tests {
                     (Some("192.0.2.2".to_string()), 2),
                 ],
             }
+        );
+    }
+
+    #[sqlx::test]
+    async fn admin_code_failures_are_sent_once_an_hour(pool: SqlitePool) {
+        let admin = insert_user(&pool, "admin@example.com").await;
+        let (mailer, sent) = Mailer::recording("https://bp.example.com");
+        let mut alerter = Alerter::new(config(20));
+        let ip = Some("192.0.2.1".parse().expect("固定のアドレス"));
+
+        assert!(
+            alerter
+                .admin_code_failed(&pool, &mailer, admin, ip)
+                .await
+                .expect("送れる")
+        );
+        assert!(
+            !alerter
+                .admin_code_failed(&pool, &mailer, admin, ip)
+                .await
+                .expect("送れる")
+        );
+
+        let sent = sent.lock().expect("lock");
+        assert_eq!(sent.len(), 1);
+        assert!(
+            sent[0].body.contains("管理者: admin@example.com"),
+            "{}",
+            sent[0].body
+        );
+        assert!(
+            sent[0].body.contains("接続元: 192.0.2.1"),
+            "{}",
+            sent[0].body
         );
     }
 

@@ -1,6 +1,7 @@
 // ユーザー管理 (一覧・追加・凍結・削除の予約・パスワードの再設定・閲覧)。共有の管理者で流す。
 // 操作する相手は、画面から追加したユーザーか、API で作った使い捨てユーザー (`managedUser`) にする。
 import { createRecordByApi, fetchTimeZone, loginStatus } from './api-helpers';
+import { mockAdminVerification } from './auth-mocks';
 import { todayIn } from './date-helpers';
 import { test, expect, NO_LOGIN } from './fixtures';
 import { ja, uniqueId, waitForApiResponse } from './helpers';
@@ -14,6 +15,39 @@ async function closeResult(result: DialogResult) {
 	await result.closeButton.click();
 	await expect(result.root).toBeHidden();
 }
+
+test.describe('確認コードを求める構成', () => {
+	test('違うコードではエラーを出し、合うコードを入れると一覧が出る', async ({ page }) => {
+		await mockAdminVerification(page, { enrolled: true, verified: false }, '123456');
+		const adminUsers = new AdminUsersPage(page);
+		await adminUsers.open();
+
+		await adminUsers.codeGate.submit('000000');
+		await expect(page.getByText(ja.error_invalid_admin_code)).toBeVisible();
+		await expect(adminUsers.addButton).toBeHidden();
+
+		await adminUsers.codeGate.submit('123456');
+		await expect(adminUsers.addButton).toBeVisible();
+	});
+
+	test('このログインで通していれば、入力を出さずに一覧を出す', async ({ page }) => {
+		await mockAdminVerification(page, { enrolled: true, verified: true }, '123456');
+		const adminUsers = new AdminUsersPage(page);
+		await adminUsers.open();
+
+		await expect(adminUsers.addButton).toBeVisible();
+		await expect(adminUsers.codeGate.code).toBeHidden();
+	});
+
+	test('認証アプリが登録されていなければ、端末での登録を案内する', async ({ page }) => {
+		await mockAdminVerification(page, { enrolled: false, verified: false }, '123456');
+		const adminUsers = new AdminUsersPage(page);
+		await adminUsers.open();
+
+		await expect(adminUsers.codeGate.notEnrolledNotice).toBeVisible();
+		await expect(adminUsers.codeGate.code).toBeHidden();
+	});
+});
 
 test('画面からユーザーを追加すると、一覧に出てそのユーザーでログインできる', async ({
 	page,

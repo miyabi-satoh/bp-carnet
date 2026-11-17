@@ -7,6 +7,7 @@ import type { BpRecord, BpSummary } from '#lib/records.js';
 
 export type AdminUser = components['schemas']['AdminUserResponse'];
 export type AdminUserDetail = components['schemas']['AdminUserDetailResponse'];
+export type AdminVerificationStatus = components['schemas']['AdminVerificationStatus'];
 
 /** 管理画面の一覧と閲覧ページで共通の、ユーザーの見出しと状態に要る項目。 */
 type AdminUserHeading = Pick<
@@ -126,4 +127,17 @@ export async function createUser(
 		client.POST('/api/v1/admin/users', { body: { username, password, role } })
 	);
 	return result.ok ? { ok: true, username: result.data.username } : result;
+}
+
+/** 管理画面に入るときの確認コードの状態 (docs/authentication.md「管理者の確認コード」)。 */
+export async function fetchAdminVerification(): Promise<
+	ApiResult<{ status: AdminVerificationStatus }>
+> {
+	const result = await unwrapRequest(client.GET('/api/v1/admin/verification'));
+	return result.ok ? { ok: true, status: result.data } : result;
+}
+
+/** 認証アプリの確認コードを通す。通ったら、このログインで1時間は管理画面を使える。 */
+export function verifyAdminCode(code: string): Promise<ApiResult> {
+	return ensureOkRequest(client.POST('/api/v1/admin/verification', { body: { code } }));
 }
