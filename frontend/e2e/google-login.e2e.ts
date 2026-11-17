@@ -1,5 +1,5 @@
 // Google でのログイン (docs/authentication.md)。Google との往復は e2e では通せないので、ボタンの出し分けと、
-// コールバックが失敗して戻ったときの案内だけを確かめる。ログインそのものは backend の結合テスト (tests/api.rs) で確かめる。
+// コールバックが失敗して戻ったときの案内だけを確かめる。ログインそのものは backend の結合テスト (tests/api/) で確かめる。
 // e2e の backend は Google を使わない構成なので、使う構成は `/auth/providers` の応答を差し替えて確かめる。
 import { mockAuthProviders } from './auth-mocks';
 import { test, expect, NO_LOGIN } from './fixtures';

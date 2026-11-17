@@ -1,7 +1,7 @@
 // メールを送る機能 (サインアップ・パスワードの再設定、docs/authentication.md) を、届いたメールのリンクまで通して確かめる。
 // メールは本物の SMTP で受け取る (→ scripts/mail-sink.ts)。読めるのは `just e2e-local` だけ。
 // 同じ接続元からメールを送らせる要求は10分に5回まで (`AttemptRateLimiter::for_mail_requests`) なので、
-// ここで送らせる回数はそれに収める。有効期限・出し直し・レートリミットは backend の結合テスト (tests/api.rs) で確かめる。
+// ここで送らせる回数はそれに収める。有効期限・出し直し・レートリミットは backend の結合テスト (tests/api/) で確かめる。
 import { createUserByApi, loginStatus } from './api-helpers';
 import { test, expect, NO_LOGIN } from './fixtures';
 import { uniqueId } from './helpers';
@@ -106,8 +106,7 @@ test('パスワードの再設定を申し込むとメールが届き、リン�
 	await resetPassword.email.fill(email);
 	await resetPassword.submitButton.click();
 	await expect(resetPassword.sentTitle).toBeVisible();
-	// 打ち間違いに気づけるよう、送り先を見せる。
-	await expect(page.getByText(email, { exact: true })).toBeVisible();
+	await expect(resetPassword.sentTo(email)).toBeVisible();
 
 	const mail = await waitForMailTo(email);
 	expect(mail.subject).toBe('【BP Carnet】パスワードの再設定');

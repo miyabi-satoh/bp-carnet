@@ -22,6 +22,11 @@ export class ResetPasswordPage {
 		return this.page.getByText(ja.reset_password_sent_title, { exact: true });
 	}
 
+	/** 送れたときに見せる送り先。打ち間違いに気づけるようにする。 */
+	sentTo(email: string): Locator {
+		return this.page.getByText(email, { exact: true });
+	}
+
 	// 以下はメールのリンク (`/reset-password?token=...`) から開いた画面。
 
 	get newPassword(): Locator {

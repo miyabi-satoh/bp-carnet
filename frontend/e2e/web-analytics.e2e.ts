@@ -52,6 +52,8 @@ test.describe('ログインしていない画面', () => {
 
 test('ログインした後の画面では、計測する構成でもスクリプトを読まない', async ({ page }) => {
 	await mockAuthProviders(page, { cloudflareAnalyticsToken: 'token-1' });
+	// CSP で止まって数えられないことが無いよう、ログイン前と同じく通しておく。
+	await allowAnalyticsInCsp(page);
 	const loads = await countBeaconLoads(page);
 	await new HomePage(page).open();
 

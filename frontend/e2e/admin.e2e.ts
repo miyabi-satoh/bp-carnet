@@ -4,7 +4,7 @@ import { createRecordByApi, fetchTimeZone, loginStatus } from './api-helpers';
 import { mockAdminVerification } from './auth-mocks';
 import { todayIn } from './date-helpers';
 import { test, expect, NO_LOGIN } from './fixtures';
-import { ja, uniqueId, waitForApiResponse } from './helpers';
+import { errorResponse, ja, uniqueId, waitForApiResponse } from './helpers';
 import { AdminUsersPage } from './pages/admin-users-page';
 import { DialogResult } from './pages/dialog-result';
 import { HomePage } from './pages/home-page';
@@ -23,7 +23,7 @@ test.describe('確認コードを求める構成', () => {
 		await adminUsers.open();
 
 		await adminUsers.codeGate.submit('000000');
-		await expect(page.getByText(ja.error_invalid_admin_code)).toBeVisible();
+		await expect(adminUsers.codeGate.invalidCodeError).toBeVisible();
 		await expect(adminUsers.addButton).toBeHidden();
 
 		await adminUsers.codeGate.submit('123456');
@@ -46,15 +46,7 @@ test.describe('確認コードを求める構成', () => {
 		// 一覧の読み込みは通し、開いた後の操作 (ユーザーの追加) だけを断る。
 		await page.route('**/api/v1/admin/users', (route) =>
 			route.request().method() === 'POST'
-				? route.fulfill({
-						status: 403,
-						json: {
-							error: {
-								code: 'admin_verification_required',
-								message: 'admin verification required'
-							}
-						}
-					})
+				? route.fulfill(errorResponse(403, 'admin_verification_required'))
 				: route.fallback()
 		);
 
