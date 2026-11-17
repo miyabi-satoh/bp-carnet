@@ -3,12 +3,16 @@
 //! 接続元を変えながら制限の内側で試すパスワードリスト攻撃は、レートリミットに達しないので、
 //! 失敗の件数そのものを見る。
 
+use std::net::IpAddr;
 use std::time::{Duration, Instant};
 
 use sqlx::SqlitePool;
 
 use crate::config::AlertsConfig;
 use crate::mail::Mailer;
+
+/// 送り元の IP を読めなかったときに、知らせに書く語。
+const UNKNOWN_IP: &str = "不明";
 
 /// 知らせの間隔。攻撃の間じゅう送り続けて、メールの送信の枠を使い切らないため。
 /// 数える範囲 (直近1時間) と揃える。
@@ -81,7 +85,7 @@ impl Alerter {
         pool: &SqlitePool,
         mailer: &Mailer,
         user_id: i64,
-        ip: Option<std::net::IpAddr>,
+        ip: Option<IpAddr>,
     ) -> Result<bool, Error> {
         let now = Instant::now();
         if self.config.to.is_empty() || !self.admin_code.ready(now) {
@@ -96,12 +100,15 @@ impl Alerter {
         pool: &SqlitePool,
         mailer: &Mailer,
         user_id: i64,
-        ip: Option<std::net::IpAddr>,
+        ip: Option<IpAddr>,
     ) -> Result<(), Error> {
         let username = crate::auth::load_username(pool, user_id)
             .await?
             .unwrap_or_default();
-        let ip = ip.map_or_else(|| "不明".to_string(), |ip| ip.to_canonical().to_string());
+        let ip = ip.map_or_else(
+            || UNKNOWN_IP.to_string(),
+            |ip| ip.to_canonical().to_string(),
+        );
         tracing::warn!(user_id, "管理画面の確認コードの誤りを、運営者に知らせます");
         mailer
             .send(
@@ -214,7 +221,7 @@ fn body(summary: &Summary) -> String {
     let top_sources = summary
         .top_sources
         .iter()
-        .map(|(ip, count)| format!("- {}: {count}件", ip.as_deref().unwrap_or("不明")))
+        .map(|(ip, count)| format!("- {}: {count}件", ip.as_deref().unwrap_or(UNKNOWN_IP)))
         .collect::<Vec<_>>()
         .join("\n");
     format!(

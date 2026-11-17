@@ -20,7 +20,8 @@
 	} from '#lib/period.js';
 	import { RecordsViewState } from '#lib/records-view.svelte.js';
 	import { timezoneLabel } from '#lib/settings.js';
-	import { SECTION_TITLE_CLASS } from '#lib/styles.js';
+	import { SECTION_TITLE_CLASS, PAGE_CLASS } from '#lib/styles.js';
+	import { cn } from '#lib/utils.js';
 	import LoadError from '#lib/components/load-error.svelte';
 	import LoadingIndicator from '#lib/components/loading-indicator.svelte';
 	import PageHeader from '#lib/components/page-header.svelte';
@@ -52,26 +53,13 @@
 		user
 			? [
 					{ label: m.common_username_label(), value: user.username },
-					{
-						label: m.admin_user_detail_status_label(),
-						value: adminUserStatusLabel(user)
-					},
-
+					{ label: m.admin_user_detail_status_label(), value: adminUserStatusLabel(user) },
 					{
 						label: m.admin_user_detail_created_at_label(),
 						value: formatDateLabel(new Date(user.createdAt), true, userTimeZone())
 					},
-
-					{
-						label: m.admin_user_detail_login_method_label(),
-						value: loginMethodLabel(user)
-					},
-
-					{
-						label: m.admin_user_detail_timezone_label(),
-						value: timezoneLabel(user.timezone)
-					},
-
+					{ label: m.admin_user_detail_login_method_label(), value: loginMethodLabel(user) },
+					{ label: m.admin_user_detail_timezone_label(), value: timezoneLabel(user.timezone) },
 					{
 						label: m.admin_user_detail_period_label({
 							period: m.record_day_period_morning_label()
@@ -109,7 +97,7 @@
 
 <!-- デザインに無い画面。ユーザー管理と同じく、共通ヘッダーの代わりに
      丸い戻るボタンと見出しを置き、記録の部分はメイン画面の並びに揃える。 -->
-<div class="mx-auto flex max-w-2xl flex-col px-5 pb-safe-5">
+<div class={cn(PAGE_CLASS, 'pb-safe-5')}>
 	<PageHeader
 		backHref={resolve('admin/users')}
 		backLabel={m.admin_user_detail_back_label()}

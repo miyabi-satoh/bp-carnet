@@ -56,8 +56,8 @@
 </script>
 
 <CenteredScreen>
+	<AuthPageHeader icon={LockIcon} title={m.reset_password_title()} />
 	{#if token === null}
-		<AuthPageHeader icon={LockIcon} title={m.reset_password_title()} />
 		<EmailRequestForm
 			submitLabel={m.reset_password_request_submit_button()}
 			sentTitle={m.reset_password_sent_title()}
@@ -65,7 +65,6 @@
 			onsubmit={handleRequest}
 		/>
 	{:else}
-		<AuthPageHeader icon={LockIcon} title={m.reset_password_title()} />
 		{#if usable === null}
 			<LoadingIndicator />
 		{:else if !usable}

@@ -8,6 +8,11 @@ import { requiredLabel } from '../src/lib/required-label.ts';
  * `requiredLabel` は単体テストと共用 (→ src/lib/required-label.ts)。 */
 export { ja, requiredLabel };
 
+/** API のエラーの応答 (→ src/error.rs の ErrorResponse)。 */
+export function errorResponse(status: number, code: string) {
+	return { status, json: { error: { code, message: code } } };
+}
+
 /** `method` の API への応答か。`apiPath` は `/api/v1` を除いたパス (`send` と同じ、→ api-helpers.ts)。 */
 export function isApiResponse(res: Response, method: string, apiPath: string): boolean {
 	return res.request().method() === method && new URL(res.url()).pathname === `/api/v1${apiPath}`;

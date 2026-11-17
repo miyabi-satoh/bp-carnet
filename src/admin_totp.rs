@@ -19,7 +19,7 @@ const ISSUER: &str = "BP Carnet";
 
 /// 一度通した確認コードを、もう一度求めずに済ませる長さ (秒)。管理の作業をひととおり済ませられ、
 /// 離席した端末を長く開けておかない長さとしてユーザーが決めた。
-pub const VERIFIED_FOR_SECONDS: i64 = 60 * 60;
+const VERIFIED_FOR_SECONDS: i64 = 60 * 60;
 
 pub struct AdminTotp {
     cipher: TokenCipher,
@@ -52,7 +52,7 @@ impl Enrollment {
 
     /// 認証アプリに出た6桁が合っていれば、その時間の区切りを返す。
     pub fn check(&self, code: &str) -> Option<u64> {
-        self.totp.check_current(code.trim())
+        check(&self.totp, code)
     }
 }
 
@@ -102,7 +102,7 @@ impl AdminTotp {
         step: u64,
     ) -> Result<(), sqlx::Error> {
         let sealed = self.cipher.seal(&enrollment.secret_base32());
-        let step = i64::try_from(step).unwrap_or(i64::MAX);
+        let step = stored_step(step);
         sqlx::query!(
             "INSERT INTO admin_totp (user_id, secret, last_step) VALUES (?, ?, ?)
              ON CONFLICT (user_id) DO UPDATE SET
@@ -148,10 +148,10 @@ impl AdminTotp {
             .open(&sealed)
             .and_then(|base32| Secret::try_from_base32(base32).ok())
             .ok_or(Error::Unreadable)?;
-        let Some(step) = totp(secret, username).check_current(code.trim()) else {
+        let Some(step) = check(&totp(secret, username), code) else {
             return Ok(Verification::WrongCode);
         };
-        let step = i64::try_from(step).unwrap_or(i64::MAX);
+        let step = stored_step(step);
         // 照合と使った印を1文にまとめ、同じコードの同時の送信を両方通さない。
         let updated = sqlx::query!(
             "UPDATE admin_totp SET last_step = ?
@@ -170,6 +170,16 @@ impl AdminTotp {
     }
 }
 
+/// [`Enrollment::check`] と [`AdminTotp::verify`] で共通の照合。前後の空白は無視する。
+fn check(totp: &Totp, code: &str) -> Option<u64> {
+    totp.check_current(code.trim())
+}
+
+/// 時間の区切りを、DB に置ける形にする。今の時刻の区切りは i64 に収まるので、丸めは起きない。
+fn stored_step(step: u64) -> i64 {
+    i64::try_from(step).unwrap_or(i64::MAX)
+}
+
 /// RFC 6238 の既定 (SHA-1・6桁・30秒・前後1つの区切りを許す)。認証アプリの多くがこれだけに対応する。
 fn totp(secret: Secret, username: &str) -> Totp {
     Builder::new()
@@ -184,17 +194,17 @@ fn totp(secret: Secret, username: &str) -> Totp {
 const SESSION_VERIFIED_AT_KEY: &str = "admin_verified_at";
 
 /// 確認コードを通した印を置く先。ログインの証しごとに持ち、ほかの端末のログインには効かせない。
-pub(crate) enum Credential<'a> {
+pub(crate) enum VerificationTarget<'a> {
     Session(&'a tower_sessions::Session),
     AppToken(i64),
 }
 
-impl<'a> Credential<'a> {
+impl<'a> VerificationTarget<'a> {
     /// アプリのトークンでのログインならトークン、ウェブならセッション。
     pub(crate) fn of(user: &crate::auth::AuthUser, session: &'a tower_sessions::Session) -> Self {
         match user.app_token_id {
-            Some(id) => Credential::AppToken(id),
-            None => Credential::Session(session),
+            Some(id) => VerificationTarget::AppToken(id),
+            None => VerificationTarget::Session(session),
         }
     }
 }
@@ -213,14 +223,14 @@ pub(crate) async fn forget_session_verification(
 /// このログインが、確認コードを通してから [`VERIFIED_FOR_SECONDS`] の内か。
 pub(crate) async fn is_verified(
     pool: &SqlitePool,
-    credential: Credential<'_>,
+    target: VerificationTarget<'_>,
 ) -> Result<bool, crate::error::AppError> {
-    let verified_at: Option<i64> = match credential {
-        Credential::Session(session) => session
+    let verified_at: Option<i64> = match target {
+        VerificationTarget::Session(session) => session
             .get(SESSION_VERIFIED_AT_KEY)
             .await
             .map_err(crate::auth::Error::Session)?,
-        Credential::AppToken(id) => {
+        VerificationTarget::AppToken(id) => {
             sqlx::query_scalar!("SELECT admin_verified_at FROM app_tokens WHERE id = ?", id)
                 .fetch_optional(pool)
                 .await?
@@ -234,15 +244,15 @@ pub(crate) async fn is_verified(
 /// このログインに、確認コードを通した印を置く。
 pub(crate) async fn mark_verified(
     pool: &SqlitePool,
-    credential: Credential<'_>,
+    target: VerificationTarget<'_>,
 ) -> Result<(), crate::error::AppError> {
     let now = jiff::Timestamp::now().as_second();
-    match credential {
-        Credential::Session(session) => session
+    match target {
+        VerificationTarget::Session(session) => session
             .insert(SESSION_VERIFIED_AT_KEY, now)
             .await
             .map_err(crate::auth::Error::Session)?,
-        Credential::AppToken(id) => {
+        VerificationTarget::AppToken(id) => {
             sqlx::query!(
                 "UPDATE app_tokens SET admin_verified_at = ? WHERE id = ?",
                 now,

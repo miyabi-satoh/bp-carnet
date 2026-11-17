@@ -4,7 +4,7 @@
 import type { Page } from '@playwright/test';
 import type { components } from '../src/lib/api/schema';
 import { withExif, type ExifFields } from '../src/lib/photo-taken-at.test-data.ts';
-import { drawInBlankPage } from './helpers.ts';
+import { drawInBlankPage, type errorResponse } from './helpers.ts';
 
 type OcrResult = components['schemas']['OcrResult'];
 type OcrReading = components['schemas']['OcrReading'];
@@ -151,11 +151,6 @@ export function notebookResult(rows: readonly NotebookRow[]): OcrResult {
 		period: row.period
 	}));
 	return { kind: 'memo', readings, usage: NO_USAGE };
-}
-
-/** API のエラーの応答 (→ src/error.rs の ErrorResponse)。 */
-export function errorResponse(status: number, code: string) {
-	return { status, json: { error: { code, message: code } } };
 }
 
 /**

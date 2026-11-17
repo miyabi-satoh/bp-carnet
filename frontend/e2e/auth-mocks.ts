@@ -2,6 +2,7 @@
 // 使わない構成なので、使う構成の画面はこれで確かめる。
 import type { BrowserContext, Page } from '@playwright/test';
 import type { components } from '../src/lib/api/schema';
+import { errorResponse } from './helpers';
 
 type AuthProvidersResponse = components['schemas']['AuthProvidersResponse'];
 
@@ -41,7 +42,7 @@ type MeResponse = components['schemas']['MeResponse'];
  * (`DELETE /account/identities/{provider}`) に答える。e2e の backend は LINE・Google でログインできない
  * ため、連携のある状態はこれで作る。ページを開く前に呼ぶ。
  * 解除は、ログイン方法が残らなければサーバーと同じく 409 で断り、残れば連携を外す (本当の判定は
- * backend の結合テスト、tests/api.rs)。`unlinkRequests` に、受けた解除の提供元が並ぶ。
+ * backend の結合テスト、tests/api/)。`unlinkRequests` に、受けた解除の提供元が並ぶ。
  */
 export async function mockLinkedProviders(
 	page: Page,
@@ -63,15 +64,7 @@ export async function mockLinkedProviders(
 			.pop() as MeResponse['linkedProviders'][number];
 		unlinkRequests.push(provider);
 		if (!passwordUsable && linkedProviders.length < 2) {
-			await route.fulfill({
-				status: 409,
-				json: {
-					error: {
-						code: 'cannot_unlink_last_login_method',
-						message: 'cannot unlink the last login method'
-					}
-				}
-			});
+			await route.fulfill(errorResponse(409, 'cannot_unlink_last_login_method'));
 			return;
 		}
 		linkedProviders = linkedProviders.filter((p) => p !== provider);
@@ -98,11 +91,6 @@ export async function mockAdminVerification(
 		}
 		const { code } = route.request().postDataJSON() as { code: string };
 		if (code === validCode) return route.fulfill({ status: 204 });
-		return route.fulfill({
-			status: 400,
-			json: {
-				error: { code: 'invalid_admin_code', message: 'the admin verification code is incorrect' }
-			}
-		});
+		return route.fulfill(errorResponse(400, 'invalid_admin_code'));
 	});
 }

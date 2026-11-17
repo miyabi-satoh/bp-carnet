@@ -1,4 +1,5 @@
 import { beforeNavigate, goto, type BeforeNavigate } from '$app/navigation';
+import { isShallowGoto } from '#lib/shallow-history.js';
 
 /** 入力の途中でページを離れる前に確認する。コンポーネントの script で1つ作り、
  * `LeaveConfirmDialog` に渡す。
@@ -24,7 +25,7 @@ export class LeaveGuard {
 		this.#isDirty = isDirty;
 		this.#isBusy = isBusy;
 		beforeNavigate((navigation) => {
-			if (navigation.shallow && navigation.type === 'goto') return;
+			if (isShallowGoto(navigation)) return;
 			if (this.#allowed) return;
 			if (this.#isBusy()) {
 				navigation.cancel();

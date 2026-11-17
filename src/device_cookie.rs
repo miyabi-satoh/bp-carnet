@@ -56,7 +56,7 @@ impl Device {
             })
             .max_age(MAX_AGE)
             .build();
-        HeaderValue::from_str(&cookie.to_string()).expect("cookie header value should be valid")
+        crate::session::set_cookie_header(&cookie)
     }
 }
 

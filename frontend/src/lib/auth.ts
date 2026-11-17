@@ -129,25 +129,29 @@ async function requestAuthProviders(): Promise<LoadResult<AuthProviders>> {
 	}
 }
 
+/** 表示が無くても困るものが無い問い合わせ用の、ログインの方法と構成。失敗したり、締め切り
+ * (`LOGIN_SCREEN_TIMEOUT_MS`) までに返らなかったりしたら `null`。やり直さない。 */
+async function optionalAuthProviders(): Promise<AuthProviders | null> {
+	const result = await withTimeout(requestAuthProviders(), timedOut);
+	return result.ok ? result.data : null;
+}
+
 /** 「オープンβテスト中」の表示を出す構成か。ログイン済みの画面のヘッダーが使う (ログイン・サインアップ画面は
  * それぞれの問い合わせの応答を使う)。問い合わせに失敗したら出さない側にする: 表示が無くても困らないため。 */
 export async function fetchBetaNotice(): Promise<boolean> {
-	const result = await withTimeout(requestAuthProviders(), timedOut);
-	return result.ok && result.data.betaNotice;
+	return (await optionalAuthProviders())?.betaNotice ?? false;
 }
 
 /** 問い合わせ先の URL を問い合わせる。問い合わせに失敗したり、締め切り (`LOGIN_SCREEN_TIMEOUT_MS`) までに
  * 返らなかったりしたら `null` (URL が分からないのでリンクを出さない)。 */
 export async function fetchContactUrl(): Promise<string | null> {
-	const result = await withTimeout(requestAuthProviders(), timedOut);
-	return result.ok ? result.data.contactUrl : null;
+	return (await optionalAuthProviders())?.contactUrl ?? null;
 }
 
 /** Cloudflare Web Analytics のトークンを問い合わせる。計測しない構成 (空) や、問い合わせに失敗したら `null`
  * (計測できなくても困らないため、やり直さない)。 */
 export async function fetchAnalyticsToken(): Promise<string | null> {
-	const result = await withTimeout(requestAuthProviders(), timedOut);
-	return (result.ok && result.data.cloudflareAnalyticsToken) || null;
+	return (await optionalAuthProviders())?.cloudflareAnalyticsToken || null;
 }
 
 /** ログインの結果。猶予期間中の削除予約を取り消したかを返す (ホーム画面で知らせるため)。 */

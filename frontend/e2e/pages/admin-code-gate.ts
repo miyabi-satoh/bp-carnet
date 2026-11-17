@@ -15,7 +15,12 @@ export class AdminCodeGate {
 
 	/** 認証アプリが端末で登録されていないときの案内。 */
 	get notEnrolledNotice(): Locator {
-		return this.page.getByText(ja.error_admin_code_not_enrolled);
+		return this.page.getByText(ja.error_admin_code_not_enrolled, { exact: true });
+	}
+
+	/** 違うコードを入れたときのエラー。 */
+	get invalidCodeError(): Locator {
+		return this.page.getByText(ja.error_invalid_admin_code, { exact: true });
 	}
 
 	async submit(code: string): Promise<void> {

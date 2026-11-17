@@ -32,6 +32,7 @@ pub(crate) mod login_alert;
 pub(crate) mod login_events;
 pub(crate) mod login_notice;
 pub mod mail;
+pub(crate) mod notice;
 pub(crate) mod oauth_cookie;
 pub(crate) mod oauth_identity;
 pub mod ocr;

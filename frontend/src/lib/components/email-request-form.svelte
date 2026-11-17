@@ -10,8 +10,6 @@
 	import RequiredMark from '#lib/components/required-mark.svelte';
 
 	type Props = {
-		/** メール欄の下に出す補足。 */
-		description?: string;
 		submitLabel: string;
 		/** 送信ボタンの直上に置くもの (サインアップの同意の文)。 */
 		beforeSubmit?: Snippet;
@@ -21,8 +19,7 @@
 		onsubmit: (email: string) => Promise<boolean>;
 	};
 
-	let { description, submitLabel, beforeSubmit, sentTitle, sentDescription, onsubmit }: Props =
-		$props();
+	let { submitLabel, beforeSubmit, sentTitle, sentDescription, onsubmit }: Props = $props();
 
 	let email = $state('');
 	let loading = $state(false);
@@ -70,14 +67,10 @@
 						type="email"
 						autocomplete="email"
 						{@attach halfWidthInput}
-						aria-describedby={description ? 'email-description' : undefined}
 						bind:value={email}
 						bind:ref={emailInput}
 						required
 					/>
-					{#if description}
-						<Field.FieldDescription id="email-description">{description}</Field.FieldDescription>
-					{/if}
 				</Field.Field>
 				<Field.Field class="gap-2.5">
 					{@render beforeSubmit?.()}

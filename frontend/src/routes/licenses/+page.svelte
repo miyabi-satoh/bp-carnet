@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { backOrLogin } from '#lib/back-or-login.js';
+	import { cn } from '#lib/utils.js';
 	import PageHeader from '#lib/components/page-header.svelte';
 	import { isNativeApp } from '#lib/native-app.js';
 	import * as m from '#lib/paraglide/messages.js';
-	import { SECTION_TITLE_CLASS } from '#lib/styles.js';
+	import { SECTION_TITLE_CLASS, PAGE_CLASS } from '#lib/styles.js';
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
 	import { SvelteSet } from 'svelte/reactivity';
 	import type { DisplayPackage, LicenseDisplay } from '../../../scripts/license-display';
@@ -32,7 +33,7 @@
 	const back = backOrLogin();
 </script>
 
-<div class="mx-auto flex max-w-2xl flex-col px-5 pb-safe-8">
+<div class={cn(PAGE_CLASS, 'pb-safe-8')}>
 	<PageHeader onback={back} title={m.licenses_title()} />
 
 	{#each sections as section (section.key)}

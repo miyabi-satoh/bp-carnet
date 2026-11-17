@@ -2,6 +2,8 @@
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
 	import { changePassword } from '#lib/auth.js';
+	import { cn } from '#lib/utils.js';
+	import { PAGE_CLASS } from '#lib/styles.js';
 	import * as Field from '#lib/components/ui/field/index.js';
 	import LoadingButton from '#lib/components/loading-button.svelte';
 	import LoadingIndicator from '#lib/components/loading-indicator.svelte';
@@ -45,7 +47,7 @@
 
 <!-- デザインに合わせ、カード1枚に欄を縦に並べる。現在のパスワードを
      求めるのは、セッションだけを奪った相手にパスワードを置き換えられないようにするため。 -->
-<div class="mx-auto flex max-w-2xl flex-col px-5 pb-safe-5">
+<div class={cn(PAGE_CLASS, 'pb-safe-5')}>
 	<!-- 見出しは設定画面と同じ PageHeader (設定画面から続けて開くため)。 -->
 
 	<PageHeader backHref={resolve('settings')} title={m.settings_change_password_button()} />

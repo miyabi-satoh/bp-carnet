@@ -9,14 +9,9 @@ vi.mock('$app/navigation', () => ({
 	beforeNavigate: vi.fn(),
 	goto: vi.fn(),
 	refreshAll: vi.fn(),
-	preloadCode: vi.fn(async () => {}),
-	pushState: vi.fn(),
-	replaceState: vi.fn()
+	preloadCode: vi.fn(async () => {})
 }));
-vi.mock('$app/paths', () => ({
-	asset: (path: string) => path,
-	resolve: (path: string) => `/${path.replace(/^\//, '')}`
-}));
+vi.mock('$app/paths', () => import('#lib/app-paths.test-mock.js'));
 vi.mock('$app/state', () => ({
 	navigating: { to: null },
 	page: {

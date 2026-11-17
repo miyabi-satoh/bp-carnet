@@ -1,3 +1,6 @@
+/** 一覧や設定を縦に並べるページの外枠。下の余白は、読むページ (`pb-safe-8`) と操作するページ (`pb-safe-5`) で使う側が付ける。 */
+export const PAGE_CLASS = 'mx-auto flex max-w-2xl flex-col px-5';
+
 /** カードの上に置くセクションの見出し。設定画面と、管理者による利用者の
  * 閲覧ページで使う。 */
 export const SECTION_TITLE_CLASS = 'mb-2 text-sm font-bold text-muted-foreground';

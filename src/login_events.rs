@@ -11,10 +11,9 @@ use sqlx::SqlitePool;
 use tokio::sync::mpsc;
 
 use crate::config::AlertsConfig;
+use crate::device_cookie::Device;
 use crate::login_alert::Alerter;
 use crate::mail::Mailer;
-
-use crate::device_cookie::Device;
 use crate::oauth_identity::Provider;
 use crate::state::AppState;
 
@@ -201,7 +200,7 @@ impl FailureRecorder {
 
     fn send(&self, failure: Failure) {
         if let Err(err) = self.0.try_send(failure) {
-            tracing::warn!(error = %err, "ログインの失敗が溜まっているため、記録しません");
+            tracing::warn!(error = %crate::error_chain_line(&err), "ログインの失敗が溜まっているため、記録しません");
         }
     }
 }
@@ -262,7 +261,7 @@ async fn insert(
 }
 
 /// `device_hash` の端末から、このアカウントにログインしたことがあるか (残っている90日の記録の中で)。
-pub async fn is_known_device(
+async fn is_known_device(
     pool: &SqlitePool,
     user_id: i64,
     device_hash: &str,

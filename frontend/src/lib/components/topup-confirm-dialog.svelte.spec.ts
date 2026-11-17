@@ -3,7 +3,7 @@ import { page } from 'vitest/browser';
 import { render } from 'vitest-browser-svelte';
 import * as m from '#lib/paraglide/messages.js';
 
-vi.mock('$app/paths', () => ({ resolve: (path: string) => `/${path.replace(/^\//, '')}` }));
+vi.mock('$app/paths', () => import('#lib/app-paths.test-mock.js'));
 vi.mock('#lib/external-navigation.js', () => ({ navigateTo: vi.fn() }));
 vi.mock('#lib/payments.js', () => ({ startOcrTopupCheckout: vi.fn() }));
 vi.mock('#lib/app-store-purchase.js', () => ({

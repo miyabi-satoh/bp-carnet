@@ -2,7 +2,8 @@
 	import { resolve } from '$app/paths';
 	import { HELP_SECTIONS } from '#lib/help.js';
 	import * as m from '#lib/paraglide/messages.js';
-	import { LIST_ROW_CLASS, SECTION_TITLE_CLASS } from '#lib/styles.js';
+	import { LIST_ROW_CLASS, SECTION_TITLE_CLASS, PAGE_CLASS } from '#lib/styles.js';
+	import { cn } from '#lib/utils.js';
 	import PageHeader from '#lib/components/page-header.svelte';
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
 
@@ -10,7 +11,7 @@
 </script>
 
 <!-- 使い方の目次。見た目は設定画面の一覧に揃える。 -->
-<div class="mx-auto flex max-w-2xl flex-col px-5 pb-safe-8">
+<div class={cn(PAGE_CLASS, 'pb-safe-8')}>
 	<!-- ログインしていなければ、ホームからログイン画面へ送られる。 -->
 	<PageHeader backHref={resolve('/')} title={m.help_title()} />
 

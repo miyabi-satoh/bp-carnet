@@ -1,6 +1,6 @@
 // 利用規約・プライバシーポリシー (docs/authentication.md)。
 // 同意の文は LINE・Google・Apple のボタンにも掛かるので、使う構成を `/auth/providers` の応答を差し替えて確かめる。
-// 同意が記録されることは backend の結合テスト (tests/api.rs) で確かめる。
+// 同意が記録されることは backend の結合テスト (tests/api/) で確かめる。
 import type { BrowserContext } from '@playwright/test';
 import { mockAuthProviders, PRODUCTION_AUTH_PROVIDERS } from './auth-mocks';
 import { test, expect, NO_LOGIN } from './fixtures';

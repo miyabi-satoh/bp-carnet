@@ -18,8 +18,8 @@ import {
 	mockLinkedProviders,
 	PRODUCTION_AUTH_PROVIDERS
 } from '../e2e/auth-mocks.ts';
+import { errorResponse } from '../e2e/helpers.ts';
 import {
-	errorResponse,
 	freeQuota,
 	mockOcrStatus,
 	mockOcrExtract,

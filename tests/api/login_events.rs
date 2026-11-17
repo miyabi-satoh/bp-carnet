@@ -4,14 +4,6 @@
 
 use super::*;
 
-fn login_request_with_cookie(cookie: &str, username: &str, password: &str) -> Request<Body> {
-    post_json(
-        "/api/v1/auth/login",
-        Some(cookie),
-        json!({"username": username, "password": password}),
-    )
-}
-
 async fn auth_events(pool: &SqlitePool) -> Vec<(Option<i64>, String, String, String)> {
     sqlx::query!("SELECT user_id, kind, method, client FROM auth_events ORDER BY id")
         .fetch_all(pool)
@@ -20,6 +12,14 @@ async fn auth_events(pool: &SqlitePool) -> Vec<(Option<i64>, String, String, Str
         .into_iter()
         .map(|row| (row.user_id, row.kind, row.method, row.client))
         .collect()
+}
+
+/// 失敗は応答を待たずに残すので、`count` 件残るまで待つ。余計に残る分も比べられるよう、その後も少し待つ。
+async fn wait_for_events(pool: &SqlitePool, count: usize) {
+    wait_until(async || (auth_events(pool).await.len() >= count).then_some(()))
+        .await
+        .unwrap_or_else(|| panic!("{count} 件の記録が残るはず"));
+    tokio::time::sleep(std::time::Duration::from_millis(50)).await;
 }
 
 /// 同じブラウザ (端末の印の Cookie) からのログインは知らせず、別のブラウザからのログインは知らせる。
@@ -70,19 +70,6 @@ async fn login_failures_record_the_account_only_when_it_exists(pool: SqlitePool)
     insert_user(&pool, "admin", "password").await;
     let user_id = user_id_of(&pool, "admin").await;
     let app = test_app(pool.clone()).await;
-
-    // 失敗は応答を待たずに残すので、届くまで待つ。
-    async fn wait_for_events(pool: &SqlitePool, count: usize) {
-        let deadline = tokio::time::Instant::now() + std::time::Duration::from_secs(10);
-        while auth_events(pool).await.len() < count {
-            assert!(
-                tokio::time::Instant::now() < deadline,
-                "{count} 件の記録が残るはず"
-            );
-            tokio::time::sleep(std::time::Duration::from_millis(10)).await;
-        }
-        tokio::time::sleep(std::time::Duration::from_millis(50)).await;
-    }
 
     let wrong_password = send(&app, login_request("admin", "wrong")).await;
     assert_eq!(wrong_password.status(), StatusCode::UNAUTHORIZED);

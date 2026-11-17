@@ -14,7 +14,7 @@ import {
 import { mockAuthProviders, PRODUCTION_AUTH_PROVIDERS } from './auth-mocks';
 import { addDays, hourIn, startOfWeek, todayIn } from './date-helpers';
 import { test, userTest, expect, NO_LOGIN } from './fixtures';
-import { clearLogin, countPrints, ja, waitForApiResponse } from './helpers';
+import { clearLogin, countPrints, errorResponse, ja, waitForApiResponse } from './helpers';
 import { HelpIndexPage } from './pages/help-index-page';
 import { HelpTopicPage } from './pages/help-topic-page';
 import { HomePage } from './pages/home-page';
@@ -24,7 +24,6 @@ import { TopupResultPage } from './pages/topup-result-page';
 import { VerifyEmailPage } from './pages/verify-email-page';
 import { HELP_SHOTS_ENABLED, SAMPLE_TEXT, takeHelpShot } from './help-shots';
 import {
-	errorResponse,
 	freeQuota,
 	mockOcrStatus,
 	mockOcrExtract,

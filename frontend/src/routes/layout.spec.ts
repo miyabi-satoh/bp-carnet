@@ -2,7 +2,7 @@
 import { isRedirect } from '@sveltejs/kit';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('$app/paths', () => ({ resolve: (path: string) => `/${path.replace(/^\//, '')}` }));
+vi.mock('$app/paths', () => import('#lib/app-paths.test-mock.js'));
 vi.mock('#lib/api/client.js', () => ({ client: { GET: vi.fn() } }));
 vi.mock('#lib/settings.js', () => ({
 	browserTimeZone: () => undefined,

@@ -132,12 +132,11 @@ async fn the_code_is_required_per_login_including_the_app(pool: SqlitePool) {
     .await;
     assert_eq!(passed.status(), StatusCode::NO_CONTENT);
 
-    let mut relogin = login_request("admin@example.com", "password");
-    relogin.headers_mut().insert(
-        axum::http::header::COOKIE,
-        first.parse().expect("Cookie の値"),
-    );
-    let relogin = send(&app, relogin).await;
+    let relogin = send(
+        &app,
+        login_request_with_cookie(&first, "admin@example.com", "password"),
+    )
+    .await;
     assert_eq!(relogin.status(), StatusCode::OK);
     let same_browser = send(
         &app,

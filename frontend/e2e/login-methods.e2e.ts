@@ -1,9 +1,9 @@
 // 設定画面の「ログイン方法」(連携の解除、docs/authentication.md)。e2e の backend は LINE・Google でログインできない
 // ため、連携のある状態は `/auth/me` の応答を差し替えて作る (→ auth-mocks.ts)。解除の判定そのものは
-// backend の結合テスト (tests/api.rs) で確かめる。
+// backend の結合テスト (tests/api/) で確かめる。
 import { mockLinkedProviders } from './auth-mocks';
 import { userTest as test, expect, NO_LOGIN } from './fixtures';
-import { ja } from './helpers';
+import { errorResponse, ja } from './helpers';
 import { SettingsPage } from './pages/settings-page';
 
 test.use({ storageState: NO_LOGIN });
@@ -93,10 +93,7 @@ test('画面を開いたあとに状態が変わって解除を断られたら�
 	await mockLinkedProviders(page, { passwordUsable: true, linkedProviders: ['google'] });
 	// 画面を開いている間に、ほかの端末でパスワードが無くなった、などの食い違い。
 	await page.route('**/api/v1/account/identities/*', (route) =>
-		route.fulfill({
-			status: 409,
-			json: { error: { code: 'cannot_unlink_last_login_method', message: 'conflict' } }
-		})
+		route.fulfill(errorResponse(409, 'cannot_unlink_last_login_method'))
 	);
 	const settings = new SettingsPage(page);
 	await settings.open();

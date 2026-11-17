@@ -105,8 +105,8 @@ fn username_error_message(error: UsernameError) -> String {
     }
 }
 
-/// `--reset-password` に続く引数を、ユーザー名に解釈する。ユーザー名1つだけを受け付ける。
-fn parse_reset_password_args(args: &[String]) -> Option<&String> {
+/// `--reset-password`・確認コードの登録に続く引数を、ユーザー名に解釈する。ユーザー名1つだけを受け付ける。
+fn parse_username_arg(args: &[String]) -> Option<&String> {
     match args {
         [username] if !username.starts_with('-') => Some(username),
         _ => None,
@@ -210,7 +210,7 @@ fn create_user(args: &[String]) {
 /// パスワードを再設定する (docs/authentication.md)。管理画面の再設定と違い自分自身も対象にでき、
 /// 監査ログにも残さない (このマシンに触れる人は DB を直接書き換えられるため)。
 fn reset_password(args: &[String]) {
-    let Some(username) = parse_reset_password_args(args) else {
+    let Some(username) = parse_username_arg(args) else {
         exit_with("使い方: bp-carnet --reset-password <username>");
     };
     let username = crate::auth::normalize_username(username);
@@ -287,7 +287,7 @@ fn open_existing_db(db_path: &Path) -> (tokio::runtime::Runtime, sqlx::SqlitePoo
 /// 管理画面の確認コードの認証アプリを登録する (docs/authentication.md「管理者の確認コード」)。
 /// 画面からは登録させない。パスワードを破った相手が、先に自分の認証アプリを登録できないようにするため。
 fn enroll_admin_code(args: &[String]) {
-    let Some(username) = parse_reset_password_args(args) else {
+    let Some(username) = parse_username_arg(args) else {
         exit_with("使い方: bp-carnet --enroll-admin-code <username>");
     };
     let username = crate::auth::normalize_username(username);
@@ -428,7 +428,7 @@ mod tests {
     #[test]
     fn reset_password_args_accept_only_a_single_username() {
         let valid = args(&["kyoko"]);
-        assert_eq!(parse_reset_password_args(&valid), Some(&valid[0]));
+        assert_eq!(parse_username_arg(&valid), Some(&valid[0]));
         for raw in [
             vec![],
             vec!["kyoko", "mika"],
@@ -437,7 +437,7 @@ mod tests {
         ] {
             let args = args(&raw);
             assert!(
-                parse_reset_password_args(&args).is_none(),
+                parse_username_arg(&args).is_none(),
                 "{raw:?} は解釈できないべき"
             );
         }

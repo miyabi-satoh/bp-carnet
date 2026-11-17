@@ -5,6 +5,8 @@
 	import { page } from '$app/state';
 	import { fetchOcrTopupResult } from '#lib/payments.js';
 	import { LatestRequest } from '#lib/latest-request.js';
+	import { cn } from '#lib/utils.js';
+	import { PAGE_CLASS } from '#lib/styles.js';
 	import ButtonRow from '#lib/components/button-row.svelte';
 	import LoadingIndicator from '#lib/components/loading-indicator.svelte';
 	import PageResult from '#lib/components/page-result.svelte';
@@ -77,7 +79,7 @@
 
 <!-- ほかの画面と同じく、見出しを上に置き、結果をカード1枚に出す。
      Stripe から戻ってくる画面なので、戻るボタンは置かず、行き先はカードの中のボタンで示す。 -->
-<div class="mx-auto flex max-w-2xl flex-col px-5 pb-safe-5">
+<div class={cn(PAGE_CLASS, 'pb-safe-5')}>
 	<!-- 見出しの高さは PageHeader (丸い戻るボタンの行) にそろえる。 -->
 	<div class="pt-safe-5 pb-5">
 		<h1 class="flex min-h-11 items-center text-lg font-extrabold">{m.topup_result_title()}</h1>

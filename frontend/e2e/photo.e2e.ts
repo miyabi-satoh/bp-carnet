@@ -4,12 +4,11 @@ import type { Locator, Page } from '@playwright/test';
 import { createRecordByApi, fetchTimeZone } from './api-helpers';
 import { addDays, todayIn, weekLabel } from './date-helpers';
 import { userTest as test, expect, NO_LOGIN } from './fixtures';
-import { chooseFile, ja, settledBox, waitForApiResponse } from './helpers';
+import { chooseFile, errorResponse, ja, settledBox, waitForApiResponse } from './helpers';
 import { HomePage } from './pages/home-page';
 import { PhotoPage } from './pages/photo-page';
 import type { PhotoPreview } from './pages/photo-preview';
 import {
-	errorResponse,
 	freeQuota,
 	mockOcrStatus,
 	mockOcrExtract,
@@ -603,12 +602,12 @@ test('血圧値を読み取れなかったら、写っていたものに応じ�
 	await photoPage.pickPhoto(photo);
 	await expect(photoPage.noValuesMessage).toBeVisible();
 	await expect(photoPage.noValuesHint('monitor_none')).toBeVisible();
-	await expect(page.getByText(notes)).toBeHidden();
+	await expect(page.getByText(notes)).toHaveCount(0);
 
 	await mockOcrExtract(page, { json: { ...noValuesResult(), kind: 'unknown', notes } });
 	await photoPage.retake(photo);
 	await expect(photoPage.noValuesHint('unknown')).toBeVisible();
-	await expect(page.getByText(notes)).toBeHidden();
+	await expect(page.getByText(notes)).toHaveCount(0);
 });
 
 // 「低」だけ案内を替え、写真と見比べるよう促す (docs/ocr.md)。

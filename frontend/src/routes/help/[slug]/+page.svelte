@@ -2,6 +2,8 @@
 	import { resolve } from '$app/paths';
 	import { adjacentHelpTopics, setHelpTopicSlug } from '#lib/help.js';
 	import * as m from '#lib/paraglide/messages.js';
+	import { cn } from '#lib/utils.js';
+	import { PAGE_CLASS } from '#lib/styles.js';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import PageHeader from '#lib/components/page-header.svelte';
 	import ChevronLeftIcon from '@lucide/svelte/icons/chevron-left';
@@ -23,7 +25,7 @@
 
 <!-- 使い方の項目。本文 (#lib/help/<言語>/<slug>.md) は、前置きと、1歩ずつの短い説明と画面の画像。 -->
 
-<div class="mx-auto flex max-w-2xl flex-col px-5 pb-safe-8">
+<div class={cn(PAGE_CLASS, 'pb-safe-8')}>
 	<PageHeader backHref={resolve('help')} title={topic.title()} />
 
 	<div class="flex flex-col gap-4 text-base leading-relaxed"><Content /></div>

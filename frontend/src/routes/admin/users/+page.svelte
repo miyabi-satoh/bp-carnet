@@ -13,6 +13,8 @@
 	import type { ApiResult } from '#lib/api/errors.js';
 	import { userTimeZone } from '#lib/auth.js';
 	import { filterAdminUsers } from '#lib/admin-search.js';
+	import { cn } from '#lib/utils.js';
+	import { PAGE_CLASS } from '#lib/styles.js';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import { Input } from '#lib/components/ui/input/index.js';
 	import AdminAddUserDialog from '#lib/components/admin-add-user-dialog.svelte';
@@ -112,7 +114,7 @@
 </script>
 
 <!-- デザインどおり、共通ヘッダーの代わりに、丸い戻るボタンと見出し、右に「追加...」を置く。 -->
-<div class="mx-auto flex max-w-2xl flex-col px-5 pb-safe-5">
+<div class={cn(PAGE_CLASS, 'pb-safe-5')}>
 	<PageHeader backHref={resolve('/')} title={m.admin_users_title()}>
 		{#snippet actions()}
 			<Button

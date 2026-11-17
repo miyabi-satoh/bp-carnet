@@ -3,9 +3,8 @@
 import type { Page, Request } from '@playwright/test';
 import { exportXml, record, zip } from '../src/lib/apple-health.test-data';
 import { userTest as test, expect, NO_LOGIN } from './fixtures';
-import { ja, waitForApiResponse } from './helpers';
+import { errorResponse, ja, waitForApiResponse } from './helpers';
 import {
-	errorResponse,
 	freeQuota,
 	mockDocumentRead,
 	mockOcrStatus,

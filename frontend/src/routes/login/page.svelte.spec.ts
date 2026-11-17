@@ -5,13 +5,9 @@ import * as m from '#lib/paraglide/messages.js';
 vi.mock('$app/navigation', () => ({
 	afterNavigate: vi.fn(),
 	goto: vi.fn(),
-	refreshAll: vi.fn(),
-	replaceState: vi.fn()
+	refreshAll: vi.fn()
 }));
-vi.mock('$app/paths', () => ({
-	resolve: (path: string, params: Record<string, string> = {}) =>
-		`/${path.replace(/^\//, '')}`.replace(/\[(\w+)\]/g, (_, key: string) => params[key])
-}));
+vi.mock('$app/paths', () => import('#lib/app-paths.test-mock.js'));
 vi.mock('$app/state', () => ({ page: { url: new URL('http://localhost/login'), data: {} } }));
 vi.mock('#lib/auth.js', async (importOriginal) => ({
 	...(await importOriginal<typeof import('#lib/auth.js')>()),

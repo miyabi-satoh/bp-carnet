@@ -166,6 +166,12 @@ fn parse_set_cookie(value: &HeaderValue) -> Option<Cookie<'static>> {
     Cookie::parse(value.to_str().ok()?.to_string()).ok()
 }
 
+/// 自分で組み立てた Cookie の `Set-Cookie` の値。名前・値は自分で決めたもの (英数字と記号) だけなので、
+/// ヘッダーに置けない文字は入らない。
+pub(crate) fn set_cookie_header(cookie: &Cookie<'_>) -> HeaderValue {
+    HeaderValue::from_str(&cookie.to_string()).expect("cookie header value should be valid")
+}
+
 fn with_secure_if_needed(value: HeaderValue) -> HeaderValue {
     if !needs_secure(&value) {
         return value;
