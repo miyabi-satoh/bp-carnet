@@ -20,6 +20,7 @@ import {
 	PRODUCTION_AUTH_PROVIDERS
 } from '../e2e/auth-mocks.ts';
 import { errorResponse } from '../e2e/helpers.ts';
+import { requiredLabel } from '../src/lib/required-label.ts';
 import {
 	freeQuota,
 	mockOcrStatus,
@@ -280,7 +281,9 @@ export const shots: Record<string, ShotEntry> = {
 			await login(page, ctx.baseURL, 'admin', 'zxcvbnm1');
 			await mockAdminVerification(page, { enrolled: true, verified: false }, '000000');
 			await page.goto(`${ctx.baseURL}/admin/users`);
-			await page.getByLabel(ja.admin_code_label, { exact: true }).waitFor({ timeout: 5000 });
+			await page
+				.getByLabel(requiredLabel(ja.admin_code_label), { exact: true })
+				.waitFor({ timeout: 5000 });
 			await capture(page, ctx);
 		}
 	},
