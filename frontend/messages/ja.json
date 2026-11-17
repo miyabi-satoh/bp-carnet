@@ -445,6 +445,7 @@
 	"admin_code_title": "確認コード",
 	"admin_code_label": "認証アプリの確認コード",
 	"admin_code_submit_button": "確認する",
+	"admin_code_error_title": "確認できませんでした",
 	"admin_users_menu_link": "ユーザー管理",
 	"admin_users_add_button": "追加...",
 	"admin_users_status_active": "有効",
