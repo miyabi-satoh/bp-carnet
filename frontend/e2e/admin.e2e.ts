@@ -30,6 +30,21 @@ test.describe('確認コードを求める構成', () => {
 		await expect(adminUsers.addButton).toBeVisible();
 	});
 
+	test('コード違い以外で断られたら、ダイアログで知らせる', async ({ page }) => {
+		await mockAdminVerification(page, { enrolled: true, verified: false }, '123456');
+		await page.route('**/api/v1/admin/verification', (route) =>
+			route.request().method() === 'POST'
+				? route.fulfill(errorResponse(429, 'too_many_requests'))
+				: route.fallback()
+		);
+		const adminUsers = new AdminUsersPage(page);
+		await adminUsers.open();
+
+		await adminUsers.codeGate.submit('123456');
+		await expect(adminUsers.codeGate.errorDialog).toContainText(ja.error_too_many_requests);
+		await expect(adminUsers.codeGate.invalidCodeError).toBeHidden();
+	});
+
 	test('このログインで通していれば、入力を出さずに一覧を出す', async ({ page }) => {
 		await mockAdminVerification(page, { enrolled: true, verified: true }, '123456');
 		const adminUsers = new AdminUsersPage(page);

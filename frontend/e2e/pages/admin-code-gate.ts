@@ -23,6 +23,11 @@ export class AdminCodeGate {
 		return this.page.getByText(ja.error_invalid_admin_code, { exact: true });
 	}
 
+	/** コード違い以外の失敗 (通信・回数の上限など) を知らせるダイアログ。 */
+	get errorDialog(): Locator {
+		return this.page.getByRole('alertdialog', { name: ja.admin_code_error_title });
+	}
+
 	async submit(code: string): Promise<void> {
 		await this.code.fill(code);
 		await this.submitButton.click();

@@ -12,6 +12,7 @@
 	import LoadError from '#lib/components/load-error.svelte';
 	import LoadingButton from '#lib/components/loading-button.svelte';
 	import LoadingIndicator from '#lib/components/loading-indicator.svelte';
+	import NoticeDialog from '#lib/components/notice-dialog.svelte';
 	import PageHeader from '#lib/components/page-header.svelte';
 	import RequiredMark from '#lib/components/required-mark.svelte';
 	import * as m from '#lib/paraglide/messages.js';
@@ -28,6 +29,7 @@
 	let code = $state('');
 	let codeError = $state<string | undefined>();
 	let submitting = $state(false);
+	let errorDialog = $state<ReturnType<typeof NoticeDialog> | null>(null);
 
 	async function load() {
 		loadErrorMessage = '';
@@ -57,8 +59,11 @@
 				// 鍵を替えて登録が読めなくなったときも、ここに来る。
 				view = 'not-enrolled';
 				adminVerification.expired = false;
-			} else {
+			} else if (result.code === 'invalid_admin_code') {
 				codeError = result.message;
+			} else {
+				// 打ち直しで済まない失敗 (通信・回数の上限など) は、ほかの画面と同じくダイアログで知らせる。
+				errorDialog?.show(m.admin_code_error_title(), result.message);
 			}
 		} finally {
 			submitting = false;
@@ -107,3 +112,5 @@
 		{/if}
 	</div>
 {/if}
+
+<NoticeDialog bind:this={errorDialog} />
