@@ -37,10 +37,6 @@ test('manifest に、アプリの名前・起動の URL・表示のしかた・�
 	}
 });
 
-/** Service Worker が有効になるまでの待ち。有効になる前に画面と使い方の画像 (数百件) を先にキャッシュするので、
- * 検査を並べて流す負荷の下では既定の 5 秒を超える。テストの上限 (既定の 30 秒) の内に収まる長さにする。 */
-const PRECACHE_TIMEOUT_MS = 20_000;
-
 test('Service Worker が有効になり、画面は Service Worker から、API の応答はサーバーから返る', async ({
 	page,
 	ignoreHTTPSErrors
@@ -48,6 +44,9 @@ test('Service Worker が有効になり、画面は Service Worker から、API 
 	// 登録はセキュアコンテキストのときだけ。localhost (`just e2e-local`) はセキュアコンテキストに当たる。
 	// 証明書エラーのあるページ (自己署名の証明書の環境) では、`ignoreHTTPSErrors` でもブラウザが登録を拒む。
 	test.skip(ignoreHTTPSErrors, '証明書の検証を省く環境では Service Worker が登録されない');
+	// 有効になる前に、画面と使い方の画像 (約380件) を先にキャッシュする。検査を並べて流す負荷の下では
+	// 6秒ほどかかり、待ちの既定 (5秒) を超える。待ちを30秒に延ばし、テストの上限も既定の3倍 (`test.slow`) にする。
+	test.slow();
 
 	await page.goto('/login');
 	// 有効になると開いている画面を読み直させることがあり、その間の evaluate は失敗するのでやり直す。
@@ -63,7 +62,7 @@ test('Service Worker が有効になり、画面は Service Worker から、API 
 			})
 			.catch(() => null);
 	await expect
-		.poll(registration, { timeout: PRECACHE_TIMEOUT_MS })
+		.poll(registration, { timeout: 30_000 })
 		.toEqual({ state: 'activated', script: '/sw.js', controlled: true });
 
 	// 静的アセットだけをキャッシュし、API の応答はキャッシュしない (共有端末でログアウト後にデータを残さないため)。
